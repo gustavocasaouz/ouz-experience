@@ -74,7 +74,10 @@ export async function createTestDb(opts: { seed?: boolean } = {}) {
       throw new Error(`Falha na migração ${file}: ${(e as Error).message}`);
     }
   }
-  if (opts.seed) await db.exec(readFileSync(join(ROOT, "seed.sql"), "utf8"));
+  if (opts.seed) {
+    await db.exec(readFileSync(join(ROOT, "seed.sql"), "utf8"));
+    await db.exec(readFileSync(join(ROOT, "seed-etapa2.sql"), "utf8"));
+  }
   return new TestDb(db);
 }
 
