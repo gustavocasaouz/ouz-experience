@@ -4,7 +4,6 @@ import { Badge, ButtonLink, Card, DataList, FormMessage, PageHeader, SectionTitl
 import { SubmitButton } from "@/design-system/submit-button";
 import { Flash, type SP } from "@/components/admin/flash";
 import { Countdown } from "@/components/commercial/countdown";
-import { EvaluationView, type Evaluation } from "@/components/commercial/evaluation-view";
 import { PaymentsList } from "@/components/commercial/payments-list";
 import { requireViewer } from "@/server/auth/viewer";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
@@ -35,7 +34,7 @@ export default async function BrokerProposal({ params, searchParams }: { params:
   const supabase = await createSupabaseServerClient();
   const { data: p } = await supabase
     .from("proposals")
-    .select("*, unit:units(code), development:developments(name, slug)")
+    .select("id, status, client_name, client_document, offered_price, table_price, payments, observations, submitted_at, analysis_reasons, decision_reason, unit:units(code), development:developments(name, slug)")
     .eq("id", id)
     .maybeSingle();
   if (!p) notFound();
@@ -49,8 +48,8 @@ export default async function BrokerProposal({ params, searchParams }: { params:
       .maybeSingle(),
     p.status === "na_fila" ? supabase.rpc("broker_queue_position", { p_proposal_id: id }) : Promise.resolve({ data: null }),
   ]);
-  const unitCode = (p.unit as { code: string }).code;
-  const dev = p.development as { name: string; slug: string };
+  const unitCode = (p.unit as unknown as { code: string }).code;
+  const dev = p.development as unknown as { name: string; slug: string };
   const items = ((reservation?.items ?? []) as Array<{
     id: string; label: string; description: string | null; required: boolean; status: string; rejection_reason: string | null; sort_order: number;
     files: Array<{ id: string; storage_path: string; uploaded_at: string; removed_at: string | null }>;
@@ -165,8 +164,6 @@ export default async function BrokerProposal({ params, searchParams }: { params:
               <PaymentsList payments={p.payments} />
             </div>
           </section>
-
-          {p.evaluation && <EvaluationView evaluation={p.evaluation as Evaluation} title="Avaliação registrada no envio" />}
 
           <section>
             <SectionTitle title="Histórico" />

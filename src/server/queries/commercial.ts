@@ -32,7 +32,8 @@ export type BrokerProposal = {
   submitted_at: string | null;
   created_at: string;
   unit: { code: string; development: { name: string; slug: string } } | null;
-  reservation: Array<{ id: string; status: string; expires_at: string; regularization_deadline: string | null }>;
+  /** Relação 1:1 (proposal_id é único em reservations): objeto ou null. */
+  reservation: { id: string; status: string; expires_at: string; regularization_deadline: string | null } | null;
 };
 
 export async function listMyProposals(): Promise<BrokerProposal[]> {

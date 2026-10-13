@@ -16,7 +16,7 @@ export default async function MyProposals() {
       ) : (
         <Table head={["Unidade", "Cliente", "Valor", "Status", "Prazo", "Atualização"]} caption="Minhas propostas">
           {proposals.map((p) => {
-            const res = p.reservation.find((r) => ["aguardando_documentos", "pendencias_documentacao"].includes(r.status)) ?? p.reservation[0];
+            const res = p.reservation;
             return (
               <tr key={p.id}>
                 <Td>

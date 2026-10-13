@@ -22,7 +22,7 @@ export default async function AdminHome() {
   if (hasPermission(viewer, "comercial")) {
     tiles.push({
       label: "Propostas em análise",
-      value: await count(supabase.from("proposals").select("*", { count: "exact", head: true }).eq("status", "em_analise")),
+      value: await count(supabase.from("proposals").select("id", { count: "exact", head: true }).eq("status", "em_analise")),
       href: "/admin/propostas?status=em_analise",
     });
   }

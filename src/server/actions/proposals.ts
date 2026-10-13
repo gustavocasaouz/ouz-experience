@@ -10,6 +10,7 @@ import { processOutbox } from "@/server/notifications/outbox";
 import { checkRateLimit } from "@/server/security/rate-limit";
 import { ALLOWED_DOC_TYPES, objectPath, validateUpload } from "@/server/files";
 import { parseBRL } from "@/lib/format";
+import { detectDocument } from "@/domain/documentos";
 import { dbErrorMessage, type ActionState } from "./types";
 
 const paymentSchema = z.object({
@@ -43,28 +44,28 @@ function readForm(fd: FormData) {
   };
 }
 
-/** Prévia, rascunho, envio e envio para análise: todas as decisões são tomadas pelas funções do banco. */
+/** Rascunho, envio e envio para análise. As decisões são das funções do banco; o corretor não vê as regras. */
 export async function proposalAction(prev: ActionState, fd: FormData): Promise<ActionState> {
   const viewer = await getViewer();
   if (!viewer || viewer.broker?.status !== "aprovado") return { error: "Acesso restrito a corretores aprovados." };
   const f = readForm(fd);
   if (!f.payments) return { error: "Revise as condições de pagamento (valores, quantidades e datas).", data: prev.data };
   if (!/^[\w:-]{8,80}$/.test(f.idempotencyKey)) return { error: "Formulário inválido. Recarregue a página." };
-  const supabase = await createSupabaseServerClient();
 
-  if (f.intent === "preview") {
-    if (!f.offered) return { error: "Informe o valor ofertado.", data: prev.data };
-    const { data, error } = await supabase.rpc("broker_preview_evaluation", {
-      p_unit_id: f.unitId,
-      p_offered_price: f.offered,
-      p_payments: f.payments,
-      p_client_document: f.clientDocument,
-    });
-    if (error) return { error: dbErrorMessage(error), data: prev.data };
-    return { ok: true, data: { ...prev.data, evaluation: data } };
+  const docOk = Boolean(detectDocument(f.clientDocument));
+  const fieldErrors: Record<string, string[]> = {};
+  if (f.clientDocument && !docOk) fieldErrors.client_document = ["CPF/CNPJ inválido: os dígitos verificadores não conferem."];
+  if (f.intent !== "draft") {
+    if (f.clientName.length < 2) fieldErrors.client_name = ["Informe o nome do cliente."];
+    if (!f.clientDocument) fieldErrors.client_document = ["Informe o CPF ou CNPJ do cliente."];
+    if (!f.offered) fieldErrors.offered_price = ["Informe o valor ofertado."];
+    if (Object.keys(fieldErrors).length) {
+      return { error: "Sem nome e CPF/CNPJ válidos a proposta não pode ser enviada. Corrija os campos destacados ou salve como rascunho.", fieldErrors, data: prev.data };
+    }
   }
 
   if (!(await checkRateLimit("proposal", 60, 3600, viewer.userId))) return { error: "Muitas operações. Aguarde alguns minutos.", data: prev.data };
+  const supabase = await createSupabaseServerClient();
 
   const { data: id, error } = await supabase.rpc("broker_save_proposal_draft", {
     p_id: f.id ?? (prev.data?.id as string | undefined) ?? null,
@@ -81,7 +82,12 @@ export async function proposalAction(prev: ActionState, fd: FormData): Promise<A
 
   if (f.intent === "draft") {
     revalidatePath("/corretor/propostas");
-    return { ok: true, message: "Rascunho salvo.", data: { ...prev.data, id } };
+    return {
+      ok: true,
+      message: fieldErrors.client_document ? "Rascunho salvo, mas sem o CPF/CNPJ (inválido). Corrija antes de enviar." : "Rascunho salvo.",
+      fieldErrors,
+      data: { ...prev.data, id },
+    };
   }
 
   const { data: result, error: submitError } = await supabase.rpc("broker_submit_proposal", {
@@ -89,11 +95,12 @@ export async function proposalAction(prev: ActionState, fd: FormData): Promise<A
     p_request_analysis: f.intent === "analysis",
   });
   if (submitError) return { error: dbErrorMessage(submitError, "Não foi possível enviar."), data: { ...prev.data, id } };
-  const r = result as { status: string; within: boolean; evaluation?: unknown };
+  const r = result as { status: string; within: boolean };
   if (r.status === "rascunho") {
     return {
-      error: "A proposta está fora da política. Veja os critérios abaixo e ajuste as condições ou envie para análise da OUZ.",
-      data: { ...prev.data, id, evaluation: r.evaluation, outside: true },
+      error:
+        "As condições não se enquadram na política comercial vigente. Você pode ajustá-las ou enviar a proposta para análise da OUZ.",
+      data: { ...prev.data, id, outside: true },
     };
   }
   after(() => processOutbox(10).catch(() => undefined));

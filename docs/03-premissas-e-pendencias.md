@@ -14,6 +14,12 @@
 10. E-mails de desenvolvimento nunca saem (`EMAIL_MODE=log`).
 11. Vercel Cron exige plano Pro para frequência menor que diária; a rotina crítica (reservas) roda no `pg_cron` do Supabase para não depender disso.
 
+## Decisões tomadas pela OUZ
+
+- **13/10/2026 — Domínio:** app em `ouz.app.br`; `ouzgroup.com.br` só para o site institucional.
+- **13/10/2026 — Regras comerciais ocultas do corretor:** o corretor não vê limites, percentuais nem critérios da política. Ao enviar, sabe apenas se a proposta está dentro ou fora da política e pode pedir análise da OUZ. Reforçado no banco: snapshot das regras e avaliação detalhada não são legíveis pela API do corretor; a prévia detalhada é exclusiva da OUZ. (Substitui o item do escopo original que previa mostrar os critérios não atendidos.)
+- **13/10/2026 — Proposta:** condições podem ser digitadas em reais ou em % do valor ofertado.
+
 ## Decisões pendentes da OUZ
 
 | # | Tema | Pergunta | Padrão provisório |

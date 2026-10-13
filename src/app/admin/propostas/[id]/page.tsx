@@ -19,23 +19,25 @@ export default async function AdminProposal({ params, searchParams }: { params: 
   const supabase = await createSupabaseServerClient();
   const { data: p } = await supabase
     .from("proposals")
-    .select("*, broker:broker_profiles(full_name, email, creci_number, creci_uf), unit:units(id, code, status), development:developments(name), reservation:reservations(id, status, expires_at)")
+    .select("id, status, client_name, client_document, client_document_type, offered_price, table_price, payments, observations, submitted_at, analysis_reasons, decision_reason, queue_priority, broker:broker_profiles(full_name, email, creci_number, creci_uf), unit:units(id, code, status), development:developments(name), reservation:reservations(id, status, expires_at)")
     .eq("id", id)
     .maybeSingle();
   if (!p) notFound();
-  const unit = p.unit as { id: string; code: string; status: string };
-  const [{ data: events }, { data: queue }] = await Promise.all([
+  const unit = p.unit as unknown as { id: string; code: string; status: string };
+  const [{ data: events }, { data: queue }, { data: evalRows }] = await Promise.all([
     supabase.from("proposal_events").select("occurred_at, to_status, note, visible_to_broker").eq("proposal_id", id).order("occurred_at", { ascending: false }),
     supabase.rpc("admin_unit_queue", { p_unit_id: unit.id }),
+    supabase.rpc("admin_proposal_evaluation", { p_proposal_id: id }),
   ]);
-  const broker = p.broker as { full_name: string; email: string; creci_number: string; creci_uf: string };
-  const reservation = (p.reservation as Array<{ id: string; status: string; expires_at: string }>)[0];
+  const evaluation = ((evalRows ?? []) as Array<{ evaluation: Evaluation | null }>)[0]?.evaluation ?? null;
+  const broker = p.broker as unknown as { full_name: string; email: string; creci_number: string; creci_uf: string };
+  const reservation = p.reservation as unknown as { id: string; status: string; expires_at: string } | null;
   const doc = p.client_document ? (p.client_document_type === "cnpj" ? formatCnpj(p.client_document) : formatCpf(p.client_document)) : "—";
 
   return (
     <>
       <PageHeader
-        eyebrow={`${(p.development as { name: string }).name} · unidade ${unit.code}`}
+        eyebrow={`${(p.development as unknown as { name: string }).name} · unidade ${unit.code}`}
         title={`Proposta de ${p.client_name ?? "—"}`}
         description={<Badge tone={PROPOSAL_STATUS_TONE[p.status]}>{PROPOSAL_STATUS_LABELS[p.status]}</Badge>}
       />
@@ -59,7 +61,7 @@ export default async function AdminProposal({ params, searchParams }: { params: 
             <PaymentsList payments={p.payments} />
             {p.observations && <p className="text-sm text-ink-soft mt-4 whitespace-pre-line">Observações: {p.observations}</p>}
           </div>
-          {p.evaluation && <EvaluationView evaluation={p.evaluation as Evaluation} title="Avaliação registrada no envio" />}
+          {evaluation && <EvaluationView evaluation={evaluation} title="Avaliação registrada no envio (visível só para a OUZ)" />}
           <section>
             <SectionTitle title={`Fila da unidade ${unit.code}`} />
             {!(queue as unknown[] | null)?.length ? (

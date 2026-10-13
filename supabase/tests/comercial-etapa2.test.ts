@@ -105,17 +105,17 @@ beforeAll(async () => {
 afterAll(async () => db.close());
 
 describe("avaliação de política", () => {
-  it("prévia indica critérios atendidos e não atendidos", async () => {
+  it("prévia (só OUZ) indica critérios atendidos e não atendidos", async () => {
     const u = await unitId(SOHO, "DEMO-101");
     const price = await currentPrice(u);
     const ok = terms(price);
-    const [{ e }] = await db.as<{ e: { within: boolean } }>(A.claims, `select public.broker_preview_evaluation($1, $2, $3::jsonb, $4) as e`, [
+    const [{ e }] = await db.as<{ e: { within: boolean } }>(comercial.aal2, `select public.broker_preview_evaluation($1, $2, $3::jsonb, $4) as e`, [
       u, ok.offered, JSON.stringify(ok.payments), CLIENT_1,
     ]);
     expect(e.within).toBe(true);
     const bad = terms(price, { discount: 10 });
     const [{ e: e2 }] = await db.as<{ e: { within: boolean; criteria: Array<{ code: string; ok: boolean }> } }>(
-      A.claims,
+      comercial.aal2,
       `select public.broker_preview_evaluation($1, $2, $3::jsonb, $4) as e`,
       [u, bad.offered, JSON.stringify(bad.payments), CLIENT_1],
     );
@@ -127,12 +127,32 @@ describe("avaliação de política", () => {
     const u = await unitId(SOHO, "DEMO-101");
     const t = terms(await currentPrice(u));
     const [{ e }] = await db.as<{ e: { within: boolean; criteria: Array<{ code: string }> } }>(
-      A.claims,
+      comercial.aal2,
       `select public.broker_preview_evaluation($1, $2, $3::jsonb, $4) as e`,
       [u, t.offered, JSON.stringify(t.payments), CNPJ_1],
     );
     expect(e.within).toBe(false);
     expect(e.criteria.map((c) => c.code)).toContain("analise_obrigatoria");
+  });
+});
+
+describe("regras ocultas do corretor", () => {
+  it("corretor não faz prévia, não lê snapshot de regras/avaliação e o envio não devolve critérios", async () => {
+    const u = await unitId(SOHO, "DEMO-102");
+    const t = terms(await currentPrice(u), { discount: 10 });
+    await expect(
+      db.as(A.claims, `select public.broker_preview_evaluation($1, $2, $3::jsonb, $4)`, [u, t.offered, JSON.stringify(t.payments), CLIENT_1]),
+    ).rejects.toThrow(/acesso negado/);
+    const id = await draft(A.claims, u, cpf(912000001), t);
+    const r = await submit(A.claims, id);
+    expect(r).toEqual({ status: "rascunho", within: false });
+    await expect(db.as(A.claims, `select policy_rules from public.proposals where id = $1`, [id])).rejects.toThrow(/permission denied/);
+    await expect(db.as(A.claims, `select evaluation from public.proposals where id = $1`, [id])).rejects.toThrow(/permission denied/);
+    await expect(db.as(A.claims, `select * from public.admin_proposal_evaluation($1)`, [id])).rejects.toThrow(/acesso negado/);
+    await expect(db.as(A.claims, `select public._broker_submit_proposal_full($1, false)`, [id])).rejects.toThrow(/permission denied/);
+    const [ev] = await db.as<{ evaluation: { within: boolean } | null }>(comercial.aal2, `select * from public.admin_proposal_evaluation($1)`, [id]);
+    expect(ev).toBeDefined();
+    await db.as(A.claims, `select public.broker_withdraw_proposal($1, 'teste')`, [id]);
   });
 });
 
