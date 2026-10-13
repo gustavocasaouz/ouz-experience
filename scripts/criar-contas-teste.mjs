@@ -1,4 +1,5 @@
-// Cria contas FICTÍCIAS de teste no Supabase de DESENVOLVIMENTO (idempotente).
+// Cria contas FICTÍCIAS de teste no Supabase de DESENVOLVIMENTO (idempotente) e as devolve ao estado-base.
+// Atenção: gera senhas novas a cada execução.
 // Uso: node --env-file=.env.local scripts/criar-contas-teste.mjs
 // Senhas geradas aleatoriamente e gravadas em contas-teste.local.txt (fora do Git). Nada é impresso.
 import { createClient } from "@supabase/supabase-js";
@@ -65,6 +66,15 @@ for (const acc of ACCOUNTS) {
         }),
         "broker insert",
       );
+    }
+    // Volta ao estado-base do teste (desfaz aprovações/suspensões feitas manualmente nas telas).
+    if (b.status === "pendente" && prev && prev.status !== "pendente") {
+      must(await db.from("broker_profiles").update({ status: "pendente", status_reason: null, status_changed_at: new Date().toISOString() }).eq("user_id", user.id), "reset pendente");
+      must(await db.from("broker_status_history").insert({ broker_user_id: user.id, from_status: prev.status, to_status: "pendente", reason: "Reset das contas de teste (script)" }), "history");
+    }
+    if (!b.uman) {
+      await db.from("development_broker_grants").update({ revoked_at: new Date().toISOString(), revoke_reason: "Reset das contas de teste (script)" })
+        .eq("development_id", UMAN).eq("broker_user_id", user.id).is("revoked_at", null);
     }
     if (b.status === "aprovado" && prev?.status !== "aprovado") {
       must(await db.from("broker_profiles").update({ status: "aprovado", status_reason: "Conta de teste", status_changed_at: new Date().toISOString() }).eq("user_id", user.id), "approve");

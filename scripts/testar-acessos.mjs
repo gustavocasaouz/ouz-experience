@@ -49,6 +49,13 @@ expect("Corretor não vê outros corretores", await count(sem.from("broker_profi
 const com = await as("corretor.uman@teste.ouz.app.br");
 expect("Corretor aprovado COM UMAN (via grupo): conteúdo completo", await view(com), { unidadesUMAN: 4, conteudoUMAN: 1, teaserUMAN: 1, unidadesSOHO: 4 });
 
+const prices = async (c, dev) => ((await c.rpc("current_unit_prices", { p_development_id: dev })).data ?? []).length;
+expect("Preços: corretor aprovado vê SOHO (aberto)", await prices(sem, SOHO) > 0, true);
+expect("Preços: UMAN em pré-lançamento oculto mesmo para quem tem acesso ao conteúdo (sem janela)", [await prices(sem, UMAN), await prices(com, UMAN)], [0, 0]);
+expect("Preços: corretor pendente não vê nenhum", await prices(pend, SOHO), 0);
+const anonC = createClient(url, key, { auth: { persistSession: false } });
+expect("Preços: visitante não vê nenhum", await prices(anonC, SOHO), 0);
+
 const cli = await as("cliente@teste.ouz.app.br");
 const units = (await cli.from("units").select("code, development_id")).data ?? [];
 expect("Cliente vê só a própria unidade", units.map((u) => u.code), ["DEMO-101"]);

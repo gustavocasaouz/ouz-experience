@@ -39,7 +39,7 @@ Legenda: ✅ feito · 🔨 em andamento · ⬜ a fazer
 | Rotina de prazos no pg_cron (a cada minuto) | ✅ |
 | Pré-lançamento: campanhas, registros, duplicidade, ondas, janelas e propostas | ✅ |
 | Testes: 48 h, documentação no prazo, expiração e avanço, versões, duplicidade, notificações, pré-lançamento | ✅ |
-| Teste de concorrência real (duas propostas simultâneas no Supabase) | ⬜ após aplicar as migrações no Supabase |
+| Teste de concorrência real (duas propostas simultâneas no Supabase) — `scripts/testar-concorrencia.mjs` | ✅ |
 
 ## Etapa 3 — Experiência do cliente
 Linha do tempo e atualizações · evolução física · comunicados · previsões com histórico · personalização · vistoria · pendências · chaves · manuais · documentos versionados · financeiro (manual + importação validada) · comprovantes sem baixa automática · esclarecimentos · chamados · eventos com capacidade/lista de espera/lembretes · central de notificações.
