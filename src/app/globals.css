@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/*
+ * OUZ Experience — tokens do design system.
+ * Paleta e tipografia PROVISÓRIAS: troque aqui quando o branding oficial chegar;
+ * os componentes usam apenas estes tokens.
+ */
+@theme {
+  --color-paper: #f7f5f0;        /* off-white de fundo */
+  --color-surface: #ffffff;
+  --color-sand: #eeeae2;         /* superfícies secundárias */
+  --color-line: #e2ddd3;
+  --color-ink: #262624;          /* grafite */
+  --color-ink-soft: #5b5954;
+  --color-ink-mute: #85827b;
+  --color-accent: #8a7a63;       /* detalhe discreto */
+  --color-accent-soft: #d9cfbf;
+  --color-success: #3f6b4f;
+  --color-success-soft: #e6efe8;
+  --color-warning: #8a6420;
+  --color-warning-soft: #f5ecda;
+  --color-danger: #9b3b33;
+  --color-danger-soft: #f6e4e1;
+  --color-info: #3c5a78;
+  --color-info-soft: #e3eaf1;
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading), ui-serif, Georgia, serif;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --tracking-label: 0.18em;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-ink-mute);
+}
+
+@utility container-page {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (width >= 48rem) {
+    padding-inline: 2.5rem;
+  }
+}

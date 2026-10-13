@@ -286,3 +286,15 @@ describe("auditoria e notificações", () => {
     expect(r).toEqual({ cpf: "***.982.247-**", cnpj: "**.222.333/****-**" });
   });
 });
+
+describe("listagem básica de corretores para o comercial", () => {
+  it("comercial lista nome/CRECI sem CPF; atendimento não lista", async () => {
+    const com = await makeOperator(db, admin.aal2, "comercial@teste.ouz", ["comercial"]);
+    const rows = await db.as<Record<string, unknown>>(com.aal2, `select * from public.staff_list_brokers_basic()`);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(Object.keys(rows[0])).not.toContain("cpf");
+    expect(await db.as(com.aal2, `select * from public.broker_profiles`)).toHaveLength(0);
+    const at = await makeOperator(db, admin.aal2, "at2@teste.ouz", ["atendimento"]);
+    await expect(db.as(at.aal2, `select * from public.staff_list_brokers_basic()`)).rejects.toThrow(/acesso negado/);
+  });
+});

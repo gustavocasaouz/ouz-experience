@@ -406,7 +406,8 @@ alter table public.rate_limits enable row level security;  -- sem policies: só 
 
 create policy profiles_select on public.profiles for select to authenticated
   using (id = auth.uid() or public.has_staff_permission('clientes') or public.has_staff_permission('corretores')
-         or public.has_staff_permission('administracao') or public.has_staff_permission('atendimento'));
+         or public.has_staff_permission('administracao') or public.has_staff_permission('atendimento')
+         or public.has_staff_permission('auditoria'));
 create policy profiles_update_self on public.profiles for update to authenticated
   using (id = auth.uid()) with check (id = auth.uid());
 revoke update on public.profiles from authenticated;

@@ -10,3 +10,8 @@ coverage/
 *.log
 supabase/.temp/
 supabase/.branches/
+
+# gerados localmente
+tsconfig.tsbuildinfo
+next-env.d.ts
+.claude/

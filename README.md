@@ -8,6 +8,7 @@ Documentação:
 - [Fluxos e modelo de dados](docs/02-fluxos-e-modelo-de-dados.md)
 - [Premissas e decisões pendentes](docs/03-premissas-e-pendencias.md)
 - [Backlog](docs/04-backlog.md)
+- [Configuração dos ambientes](docs/05-configuracao.md)
 
 Banco: `supabase/migrations` (RLS em todas as tabelas) e `supabase/seed.sql` (dados demonstrativos, só desenvolvimento).
 

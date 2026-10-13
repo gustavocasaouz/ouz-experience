@@ -134,7 +134,7 @@ create table public.broker_profiles (
   country text not null default 'Brasil',
   address jsonb,                                                  -- opcional
   agency_name text,
-  agency_cnpj text check (agency_cnpj is null or agency_cnpj ~ '^\d{14}$'),
+  agency_cnpj text check (agency_cnpj is null or agency_cnpj ~ '^[0-9A-Z]{12}\d{2}$'),
   terms_version text not null,
   privacy_version text not null,
   terms_accepted_at timestamptz not null,

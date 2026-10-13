@@ -32,7 +32,7 @@ create trigger clients_audit after insert or update or delete on public.clients
 create table public.client_identities (
   client_id uuid primary key references public.clients (id) on delete cascade,
   document_type public.document_type not null,
-  document_number text not null check (document_number ~ '^\d{11}$|^\d{14}$'),
+  document_number text not null check (document_number ~ '^\d{11}$|^[0-9A-Z]{12}\d{2}$'),
   document_hash text not null unique,                 -- HMAC(pepper) calculado no servidor
   updated_at timestamptz not null default now()
 );
