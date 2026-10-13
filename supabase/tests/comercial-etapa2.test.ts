@@ -180,7 +180,7 @@ describe("propostas, reserva de 48 h e fila", () => {
     expect(hours).toBe(48);
     expect(Math.abs(Date.now() - new Date(res.starts_at).getTime())).toBeLessThan(60_000);
     const [{ status }] = await db.admin<{ status: string }>(`select status from public.units where id = $1`, [u]);
-    expect(status).toBe("reservada");
+    expect(status).toBe("disponivel"); // só vira "reservada" após o envio da documentação
   });
 
   it("reenvio é idempotente e rascunho com a mesma chave não duplica", async () => {
@@ -257,7 +257,10 @@ describe("documentação, expiração e avanço da fila", () => {
     await expect(
       db.as(B.claims, `select public.broker_add_reservation_file($1, $2, 'application/pdf', 1)`, [items[0].id, `${res.id}/x.pdf`]),
     ).rejects.toThrow(/acesso negado/);
+    const unitStatus = async () => (await db.admin<{ status: string }>(`select status from public.units where id = $1`, [u]))[0].status;
+    expect(await unitStatus()).toBe("disponivel");
     await db.as(A.claims, `select public.broker_submit_reservation_documents($1)`, [res.id]);
+    expect(await unitStatus()).toBe("reservada");
     await expireNow(res.id); // prazo original passa enquanto a OUZ confere
     await runDeadlines();
     expect((await reservationOf(p.id)).status).toBe("documentacao_enviada");
@@ -437,6 +440,21 @@ describe("consultas comerciais", () => {
     await expect(db.as(A.claims, `select * from public.admin_unit_queue($1)`, [u])).rejects.toThrow(/acesso negado/);
     const q = await db.as<{ queue_position: number }>(comercial.aal2, `select * from public.admin_unit_queue($1)`, [u]);
     expect(q.map((r) => r.queue_position)).toEqual(q.map((_, i) => i + 1));
+  });
+});
+
+describe("visão da OUZ e opção de posição removida", () => {
+  it("OUZ vê a reserva aguardando documentos mesmo com a unidade 'disponível'; corretor não acessa a visão nem a posição", async () => {
+    const u = await unitId(SOHO, "DEMO-104");
+    const pa = await draft(B.claims, u, cpf(913000001), terms(await currentPrice(u)));
+    expect((await submit(B.claims, pa)).status).toBe("reservada");
+    const [{ status }] = await db.admin<{ status: string }>(`select status from public.units where id = $1`, [u]);
+    expect(status).toBe("disponivel");
+    const ov = await db.as<{ unit_id: string; reservation_status: string | null }>(comercial.aal2, `select * from public.admin_units_overview($1)`, [SOHO]);
+    expect(ov.find((r) => r.unit_id === u)?.reservation_status).toBe("aguardando_documentos");
+    await expect(db.as(B.claims, `select * from public.admin_units_overview($1)`, [SOHO])).rejects.toThrow(/acesso negado/);
+    await expect(db.as(B.claims, `select public.broker_queue_position($1)`, [pa])).rejects.toThrow(/does not exist/);
+    await db.as(B.claims, `select public.broker_withdraw_proposal($1, 'teste')`, [pa]);
   });
 });
 

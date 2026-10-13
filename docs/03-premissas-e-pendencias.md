@@ -19,6 +19,8 @@
 - **13/10/2026 — Domínio:** app em `ouz.app.br`; `ouzgroup.com.br` só para o site institucional.
 - **13/10/2026 — Regras comerciais ocultas do corretor:** o corretor não vê limites, percentuais nem critérios da política. Ao enviar, sabe apenas se a proposta está dentro ou fora da política e pode pedir análise da OUZ. Reforçado no banco: snapshot das regras e avaliação detalhada não são legíveis pela API do corretor; a prévia detalhada é exclusiva da OUZ. (Substitui o item do escopo original que previa mostrar os critérios não atendidos.)
 - **13/10/2026 — Proposta:** condições podem ser digitadas em reais ou em % do valor ofertado.
+- **13/10/2026 — Fila sigilosa:** o corretor não sabe quantas propostas existem em cada unidade nem a sua posição na fila (opção de posição removida). A quantidade e a fila completa são exclusivas da OUZ (permissão Comercial).
+- **13/10/2026 — “Reservada” só após a documentação:** a unidade aparece como *Disponível* para os corretores enquanto a reserva aguarda documentos; passa a *Reservada* quando o corretor da reserva envia a documentação completa. A reserva de 48 h e a fila valem desde a aprovação (uma reserva ativa por unidade). Consequência: um corretor pode fazer proposta numa unidade “disponível” e ela entrar na fila; ele vê apenas o status “Na fila da unidade”.
 
 ## Decisões pendentes da OUZ
 
@@ -29,7 +31,6 @@
 | 3 | Regularização | Prazo para corrigir documento recusado na reserva | 24 h, configurável por empreendimento |
 | 4 | Análise | Prazo máximo de uma proposta em análise segurando a fila | 24 h úteis, configurável |
 | 5 | Duplicidade | Critério de desempate entre corretores com o mesmo cliente | Primeiro envio válido + análise da OUZ |
-| 6 | Posição na fila | Corretor vê a posição? | Desabilitado por padrão, configurável por empreendimento |
 | 7 | Checklist | Documentos exigidos para PF e PJ | Modelo editável, sem itens obrigatórios pré-definidos |
 | 8 | Pré-lançamento | Limite de registros por cliente e critério de prioridade | 1 por cliente; ordem cronológica |
 | 9 | Retenção | Prazos (LGPD) para leads, documentos de corretores recusados, logs | A definir com o jurídico; rotina pronta e desligada |

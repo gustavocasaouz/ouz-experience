@@ -70,6 +70,7 @@ Estados: `rascunho` → `em_analise` | `na_fila` | `reservada` → `reprovada` |
 - Ordem registrada no servidor: `queue_priority desc, queue_entered_at, queue_seq` (sequência do banco).
 - Uma única reserva ativa por unidade: índice único parcial `reservations_one_active_per_unit` (última barreira) + lock da unidade (`SELECT … FOR UPDATE`) em toda função que cria/encerra reserva. Duas propostas simultâneas se serializam no lock: a segunda vê a reserva e entra na fila.
 - Proposta na fila **não** tem prazo de 48 h.
+- Sigilo: o corretor não vê quantas propostas há na fila nem a sua posição; vê apenas o próprio status. A unidade só aparece como “Reservada” aos corretores depois do envio da documentação completa da reserva (antes disso, “Disponível”). A OUZ vê a situação real em `admin_units_overview`.
 - Prioridade manual: só `comercial`, com justificativa (≥ 5 caracteres) e auditoria.
 - Promoção (`promote_next_in_queue`): ao encerrar uma reserva, percorre a fila em ordem e **reavalia** cada proposta com a tabela/política vigentes, o cadastro do corretor e a situação da unidade. A primeira elegível recebe a reserva com prazo novo; as inelegíveis vão para `em_analise` (motivo `reavaliacao_fila`) e saem da fila, com aviso ao corretor e à OUZ.
 - Idempotência: rascunho com a mesma `idempotency_key` devolve a mesma proposta; reenviar uma proposta já enviada não altera nada.

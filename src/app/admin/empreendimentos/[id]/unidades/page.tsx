@@ -6,7 +6,9 @@ import { DevelopmentHeader, loadDevelopment } from "@/components/admin/developme
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { hasPermission } from "@/server/auth/viewer";
 import { createUnit, updateUnitStatus } from "@/server/actions/admin/developments";
-import { UNIT_STATUS_LABELS } from "@/lib/labels";
+import { RESERVATION_STATUS_LABELS, UNIT_STATUS_LABELS } from "@/lib/labels";
+import { formatDateTime } from "@/lib/format";
+import Link from "next/link";
 
 const STATUS_OPTIONS = Object.entries(UNIT_STATUS_LABELS).map(([value, label]) => ({ value, label }));
 
@@ -23,8 +25,9 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
     );
   }
   const supabase = await createSupabaseServerClient();
-  const { data: counts } = await supabase.rpc("unit_queue_counts", { p_development_id: dev.id });
-  const queue = new Map(((counts ?? []) as Array<{ unit_id: string; queue_count: number }>).map((c) => [c.unit_id, c.queue_count]));
+  const { data: overview } = await supabase.rpc("admin_units_overview", { p_development_id: dev.id });
+  type Ov = { unit_id: string; queue_count: number; reservation_id: string | null; reservation_status: string | null; reservation_deadline: string | null };
+  const ov = new Map(((overview ?? []) as Ov[]).map((o) => [o.unit_id, o]));
   const { data: units } = await supabase
     .from("units")
     .select("id, code, tower, floor, typology, bedrooms, private_area_m2, status, is_demo, data_source")
@@ -54,20 +57,27 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
       <section>
         <SectionTitle title="Unidades" />
         <p className="text-sm text-ink-mute mb-4">
-          Na Etapa 2, a situação “Reservada” passará a ser controlada pelo fluxo de reservas e fila, sem edição manual.
+          “Reservada” é exibida aos corretores somente depois que o corretor da reserva envia a documentação completa; até lá a unidade aparece como disponível, mas a reserva e a fila já valem. Não altere manualmente para “Reservada”: o fluxo de reservas controla essa situação.
         </p>
         {!units?.length ? (
           <EmptyState title="Nenhuma unidade cadastrada" />
         ) : (
-          <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área", "Origem", "Fila", "Situação"]} caption="Unidades">
+          <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área", "Reserva (visão OUZ)", "Fila", "Situação para corretores"]} caption="Unidades">
             {units.map((u) => (
               <tr key={u.id}>
                 <Td className="font-medium">{u.code}{u.is_demo ? " · demo" : ""}</Td>
                 <Td>{[u.tower, u.floor].filter((v) => v !== null && v !== "").join(" / ") || "—"}</Td>
                 <Td>{u.typology ?? "—"}{u.bedrooms !== null ? ` · ${u.bedrooms} dorm.` : ""}</Td>
                 <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}</Td>
-                <Td className="text-xs text-ink-mute">{u.data_source}</Td>
-                <Td className="text-sm">{queue.get(u.id) ?? 0}</Td>
+                <Td className="text-sm">
+                  {ov.get(u.id)?.reservation_id ? (
+                    <Link className="underline underline-offset-4" href={`/admin/reservas/${ov.get(u.id)!.reservation_id}`}>
+                      {RESERVATION_STATUS_LABELS[ov.get(u.id)!.reservation_status!]}
+                    </Link>
+                  ) : "—"}
+                  {ov.get(u.id)?.reservation_deadline && <span className="block text-xs text-ink-mute">até {formatDateTime(ov.get(u.id)!.reservation_deadline)}</span>}
+                </Td>
+                <Td className="text-sm">{ov.get(u.id)?.queue_count ?? 0}</Td>
                 <Td>
                   <form action={updateUnitStatus} className="flex gap-2 items-center">
                     <input type="hidden" name="development_id" value={dev.id} />

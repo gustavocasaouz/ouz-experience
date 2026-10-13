@@ -85,7 +85,6 @@ export default async function DevelopmentCommercial({ params, searchParams }: { 
                 <TextField label="Prazo da reserva para documentação (horas)" name="reservation_hours" type="number" min={1} max={720} required defaultValue={String(settings?.reservation_hours ?? 48)} />
                 <TextField label="Prazo para regularizar pendências (horas)" name="regularization_hours" type="number" min={1} max={720} required defaultValue={String(settings?.regularization_hours ?? 24)} />
                 <CheckboxField name="regularization_expires" label="Expirar a reserva se a pendência não for regularizada no prazo" defaultChecked={settings?.regularization_expires ?? true} />
-                <CheckboxField name="show_queue_position" label="Mostrar ao corretor a posição da proposta na fila" defaultChecked={settings?.show_queue_position ?? false} />
                 <SubmitButton className="self-start">Salvar configurações</SubmitButton>
               </form>
             </Card>

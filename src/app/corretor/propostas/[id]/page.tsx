@@ -39,14 +39,13 @@ export default async function BrokerProposal({ params, searchParams }: { params:
     .maybeSingle();
   if (!p) notFound();
 
-  const [{ data: events }, { data: reservation }, { data: position }] = await Promise.all([
+  const [{ data: events }, { data: reservation }] = await Promise.all([
     supabase.from("proposal_events").select("occurred_at, to_status, note").eq("proposal_id", id).order("occurred_at", { ascending: false }),
     supabase
       .from("reservations")
       .select("id, status, starts_at, expires_at, docs_submitted_at, regularization_deadline, ended_at, end_reason, items:reservation_items(id, label, description, required, status, rejection_reason, sort_order, files:reservation_files(id, storage_path, uploaded_at, removed_at))")
       .eq("proposal_id", id)
       .maybeSingle(),
-    p.status === "na_fila" ? supabase.rpc("broker_queue_position", { p_proposal_id: id }) : Promise.resolve({ data: null }),
   ]);
   const unitCode = (p.unit as unknown as { code: string }).code;
   const dev = p.development as unknown as { name: string; slug: string };
@@ -154,7 +153,6 @@ export default async function BrokerProposal({ params, searchParams }: { params:
                 { label: "Valor ofertado", value: formatBRL(p.offered_price) },
                 { label: "Tabela no envio", value: p.table_price ? formatBRL(p.table_price) : "—" },
                 { label: "Enviada em", value: formatDateTime(p.submitted_at) },
-                ...(p.status === "na_fila" ? [{ label: "Posição na fila", value: position ? `${position}º` : "Exibição não habilitada pela OUZ" }] : []),
                 ...(p.analysis_reasons?.length ? [{ label: "Motivo da análise", value: (p.analysis_reasons as string[]).map((r) => ANALYSIS_REASON_LABELS[r] ?? r).join(", ") }] : []),
                 ...(p.decision_reason ? [{ label: "Retorno da OUZ", value: p.decision_reason }] : []),
               ]}

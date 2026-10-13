@@ -10,7 +10,7 @@ export default async function MyProposals() {
   const proposals = await listMyProposals();
   return (
     <>
-      <PageHeader eyebrow="Corretor" title="Minhas propostas" description="Você vê apenas as suas propostas, o status e, quando a OUZ habilitar, a posição na fila." />
+      <PageHeader eyebrow="Corretor" title="Minhas propostas" description="Você vê apenas as suas propostas e o status de cada uma." />
       {proposals.length === 0 ? (
         <EmptyState title="Nenhuma proposta ainda">Escolha uma unidade em um empreendimento liberado para começar.</EmptyState>
       ) : (
