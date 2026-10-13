@@ -11,7 +11,7 @@ Nada aqui foi criado automaticamente: as contas e projetos são da OUZ. Use **do
 5. **Auth › Providers › Email**: manter "Confirm email" ligado. Senha mínima 10.
 6. **Auth › Multi-Factor**: habilitar **TOTP**.
 7. **Auth › URL Configuration**:
-   - Site URL: a URL do ambiente (ex.: `https://experience.ouz.com.br`; em dev `http://localhost:3000`).
+   - Site URL: a URL do ambiente (produção: `https://ouz.app.br`; desenvolvimento: `http://localhost:3000`).
    - Redirect URLs: `<site>/auth/confirm**`.
 8. **Auth › Email Templates** (recomendado — o link funciona mesmo se aberto em outro aparelho):
    - *Confirm signup*: link `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`
@@ -42,13 +42,21 @@ Ver `.env.example`. Em desenvolvimento, copie para `.env.local`.
 ## 3. Vercel
 
 1. Importar o repositório `ouz-experience` do GitHub.
-2. Configurar as variáveis por ambiente: **Production** → Supabase de produção; **Preview** e **Development** → Supabase de desenvolvimento, `EMAIL_MODE=log`.
-3. Plano **Pro** (uso comercial e cron a cada 10 min em `vercel.json`). No plano Hobby o cron precisa ser diário.
-4. Região das funções: `gru1` (São Paulo), já definida em `vercel.json`.
+2. Domains: adicionar `ouz.app.br` (e `www.ouz.app.br` redirecionando para ele) e apontar o DNS conforme a Vercel indicar.
+3. Configurar as variáveis por ambiente: **Production** → Supabase de produção; **Preview** e **Development** → Supabase de desenvolvimento, `EMAIL_MODE=log`.
+4. Plano **Pro** (uso comercial e cron a cada 10 min em `vercel.json`). No plano Hobby o cron precisa ser diário.
+5. Região das funções: `gru1` (São Paulo), já definida em `vercel.json`.
 
 ## 4. Resend
 
-Verificar o domínio de envio (SPF/DKIM) e definir `EMAIL_FROM` (ex.: `OUZ <experience@ouz.com.br>`). Nenhum e-mail é enviado de verdade fora de produção.
+Domínio decidido: **`ouz.app.br`** (o domínio institucional `ouzgroup.com.br` fica só com o site da OUZ).
+
+1. Resend › Domains › Add domain: `ouz.app.br`, região São Paulo (`sa-east-1`) se disponível.
+2. Criar no DNS de `ouz.app.br` os registros que o Resend mostrar (SPF/MX do subdomínio de envio, DKIM e, recomendado, DMARC).
+3. Após verificado: `EMAIL_FROM=OUZ Experience <nao-responda@ouz.app.br>`.
+4. Supabase › Authentication › SMTP: host `smtp.resend.com`, porta `465`, usuário `resend`, senha = uma API key do Resend, remetente `nao-responda@ouz.app.br`. Assim os e-mails de confirmação e recuperação também saem pelo domínio do app, para qualquer destinatário.
+
+Nenhum e-mail transacional do app é enviado de verdade fora de produção (`EMAIL_MODE=log`).
 
 ## 5. Rodar localmente
 

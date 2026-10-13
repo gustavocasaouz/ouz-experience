@@ -19,7 +19,7 @@
 | # | Tema | Pergunta | Padrão provisório |
 |---|---|---|---|
 | 1 | Branding | Logotipo, tipografia e paleta oficiais | Tokens neutros (off-white, grafite) ajustáveis |
-| 2 | Domínio | Domínio do Experience e remetente de e-mail | `EMAIL_FROM` vazio até definir |
+| 2 | Domínio | ~~Domínio do Experience e remetente de e-mail~~ **Decidido (13/10/2026):** o app fica em `ouz.app.br`; o site institucional continua em `ouzgroup.com.br`, com um botão que leva ao app. E-mails do app saem de `ouz.app.br` (verificado no Resend); `ouzgroup.com.br` não é usado pelo app. | `EMAIL_FROM=OUZ Experience <nao-responda@ouz.app.br>` |
 | 3 | Regularização | Prazo para corrigir documento recusado na reserva | 24 h, configurável por empreendimento |
 | 4 | Análise | Prazo máximo de uma proposta em análise segurando a fila | 24 h úteis, configurável |
 | 5 | Duplicidade | Critério de desempate entre corretores com o mesmo cliente | Primeiro envio válido + análise da OUZ |
