@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { publicEnv } from "@/lib/env";
 
 /**
  * Renova a sessão do Supabase (cookies) a cada requisição.
@@ -7,8 +8,8 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const url = publicEnv.supabaseUrl;
+  const key = publicEnv.supabaseKey;
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
