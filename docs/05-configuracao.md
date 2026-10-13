@@ -66,3 +66,13 @@ npm run dev        # http://localhost:3000
 npm test           # regras de domínio + testes de banco (PGlite, sem Docker)
 npm run typecheck && npm run lint && npm run build
 ```
+
+## 6. Contas de teste (somente desenvolvimento)
+
+```bash
+node --env-file=.env.local scripts/criar-contas-teste.mjs   # cria/atualiza 4 contas fictícias; senhas em contas-teste.local.txt (fora do Git)
+node --env-file=.env.local scripts/testar-acessos.mjs       # entra com cada conta e confere o isolamento no Supabase real
+node --env-file=.env.local scripts/verificar-supabase.mjs   # confere conexão, bloqueios do visitante e buckets
+```
+
+O script de criação recusa rodar se `APP_ENV` não for `development`.
