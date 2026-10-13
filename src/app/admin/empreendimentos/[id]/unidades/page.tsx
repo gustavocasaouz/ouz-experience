@@ -23,6 +23,8 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
     );
   }
   const supabase = await createSupabaseServerClient();
+  const { data: counts } = await supabase.rpc("unit_queue_counts", { p_development_id: dev.id });
+  const queue = new Map(((counts ?? []) as Array<{ unit_id: string; queue_count: number }>).map((c) => [c.unit_id, c.queue_count]));
   const { data: units } = await supabase
     .from("units")
     .select("id, code, tower, floor, typology, bedrooms, private_area_m2, status, is_demo, data_source")
@@ -57,7 +59,7 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
         {!units?.length ? (
           <EmptyState title="Nenhuma unidade cadastrada" />
         ) : (
-          <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área", "Origem", "Situação"]} caption="Unidades">
+          <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área", "Origem", "Fila", "Situação"]} caption="Unidades">
             {units.map((u) => (
               <tr key={u.id}>
                 <Td className="font-medium">{u.code}{u.is_demo ? " · demo" : ""}</Td>
@@ -65,6 +67,7 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
                 <Td>{u.typology ?? "—"}{u.bedrooms !== null ? ` · ${u.bedrooms} dorm.` : ""}</Td>
                 <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}</Td>
                 <Td className="text-xs text-ink-mute">{u.data_source}</Td>
+                <Td className="text-sm">{queue.get(u.id) ?? 0}</Td>
                 <Td>
                   <form action={updateUnitStatus} className="flex gap-2 items-center">
                     <input type="hidden" name="development_id" value={dev.id} />

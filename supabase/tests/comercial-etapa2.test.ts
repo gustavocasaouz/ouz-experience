@@ -439,3 +439,19 @@ describe("consultas comerciais", () => {
     expect(q.map((r) => r.queue_position)).toEqual(q.map((_, i) => i + 1));
   });
 });
+
+describe("contagem da fila por unidade", () => {
+  it("corretor vê só números; sem acesso a preços não vê; OUZ pode desligar", async () => {
+    const u = await unitId(SOHO, "DEMO-101");
+    const rows = await db.as<{ unit_id: string; queue_count: number }>(A.claims, `select * from public.unit_queue_counts($1)`, [SOHO]);
+    expect(Object.keys(rows[0]).sort()).toEqual(["queue_count", "unit_id"]);
+    const [{ n }] = await db.admin<{ n: number }>(`select count(*)::int n from public.proposals where unit_id = $1 and status = 'na_fila'`, [u]);
+    expect(rows.find((r) => r.unit_id === u)?.queue_count).toBe(n);
+    expect(await db.as(C.claims, `select * from public.unit_queue_counts($1)`, [UMAN])).toHaveLength(0); // C não tem janela no UMAN
+    expect((await db.as(A.claims, `select * from public.unit_queue_counts($1)`, [UMAN])).length).toBe(4); // A tem janela aberta
+    await db.admin(`update public.development_commercial_settings set show_queue_count = false where development_id = $1`, [SOHO]);
+    expect(await db.as(A.claims, `select * from public.unit_queue_counts($1)`, [SOHO])).toHaveLength(0);
+    expect((await db.as(comercial.aal2, `select * from public.unit_queue_counts($1)`, [SOHO])).length).toBe(4);
+    await db.admin(`update public.development_commercial_settings set show_queue_count = true where development_id = $1`, [SOHO]);
+  });
+});

@@ -5,7 +5,7 @@ import { Flash, type SP } from "@/components/admin/flash";
 import { PrelaunchForm } from "@/components/commercial/prelaunch-form";
 import { requireViewer } from "@/server/auth/viewer";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
-import { listUnitsWithPrices } from "@/server/queries/commercial";
+import { listUnitsWithPrices, queueLabel } from "@/server/queries/commercial";
 import { cancelPrelaunch } from "@/server/actions/proposals";
 import { REGISTRATION_STATUS_LABELS, UNIT_STATUS_LABELS } from "@/lib/labels";
 import { formatBRL, formatDateTime, requestNow } from "@/lib/format";
@@ -99,13 +99,14 @@ async function WindowUnits({ developmentId, registrationId }: { developmentId: s
   const units = await listUnitsWithPrices(developmentId);
   if (!units.length) return <p className="text-sm text-ink-mute">Unidades ainda não disponíveis.</p>;
   return (
-    <Table head={["Unidade", "Tipologia", "Preço de tabela", "Situação", ""]} caption="Unidades liberadas na janela">
+    <Table head={["Unidade", "Tipologia", "Preço de tabela", "Situação", "Fila", ""]} caption="Unidades liberadas na janela">
       {units.map((u) => (
         <tr key={u.id}>
           <Td className="font-medium">{u.code}</Td>
           <Td>{u.typology ?? "—"}</Td>
           <Td>{formatBRL(u.price)}</Td>
           <Td>{UNIT_STATUS_LABELS[u.status]}</Td>
+          <Td className="text-sm text-ink-soft whitespace-nowrap">{queueLabel(u.queueCount) ?? "—"}</Td>
           <Td>
             {(u.status === "disponivel" || u.status === "reservada") && u.price !== null && (
               <Link className="text-sm underline underline-offset-4" href={`/corretor/propostas/nova?unidade=${u.id}&registro=${registrationId}`}>

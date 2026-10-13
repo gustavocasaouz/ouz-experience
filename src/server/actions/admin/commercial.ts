@@ -38,6 +38,7 @@ export async function updateCommercialSettings(fd: FormData) {
       ...parsed.data,
       regularization_expires: str(fd, "regularization_expires") === "on",
       show_queue_position: str(fd, "show_queue_position") === "on",
+      show_queue_count: str(fd, "show_queue_count") === "on",
     })
     .eq("development_id", id);
   failOn(error, path);
