@@ -4,9 +4,11 @@ Nada aqui foi criado automaticamente: as contas e projetos são da OUZ. Use **do
 
 ## 1. Supabase (fazer em cada projeto)
 
-1. **Criar o projeto** na região `South America (São Paulo)`.
+1. **Criar o projeto** na região `South America (São Paulo)` — obrigatório para produção (dados no Brasil e menor latência). A região não pode ser mudada depois. O projeto de desenvolvimento atual está em `us-east-2`, o que é aceitável só para desenvolvimento.
 2. **Extensões** (Database › Extensions): habilitar `pg_cron`. (`pgcrypto` já vem habilitada.)
-3. **Aplicar as migrações**, em ordem, de `supabase/migrations/` — pelo SQL Editor (colar e executar cada arquivo) ou pela CLI: `supabase link` + `supabase db push`.
+3. **Aplicar as migrações** de `supabase/migrations/`:
+   - Desenvolvimento: `node --env-file=.env.local scripts/migrar.mjs` (usa `SUPABASE_DB_URL`, string de conexão *Session pooler*; registra o histórico em `supabase_migrations.schema_migrations`, compatível com a Supabase CLI). `--status` lista pendências.
+   - Produção: somente com autorização explícita da OUZ, em janela combinada (`--confirmo-producao` com a URL de produção em um arquivo separado, ou `supabase db push`).
 4. **Dados demonstrativos** (SOMENTE no projeto de desenvolvimento): executar `supabase/seed.sql`.
 5. **Auth › Providers › Email**: manter "Confirm email" ligado. Senha mínima 10.
 6. **Auth › Multi-Factor**: habilitar **TOTP**.

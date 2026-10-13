@@ -56,6 +56,11 @@ expect("Preços: corretor pendente não vê nenhum", await prices(pend, SOHO), 0
 const anonC = createClient(url, key, { auth: { persistSession: false } });
 expect("Preços: visitante não vê nenhum", await prices(anonC, SOHO), 0);
 
+const rules = await sem.from("proposals").select("policy_rules").limit(1);
+expect("Regras ocultas: corretor não lê o snapshot da política", Boolean(rules.error), true);
+const preview = await sem.rpc("broker_preview_evaluation", { p_unit_id: (await sem.from("units").select("id").eq("development_id", SOHO).limit(1)).data[0].id, p_offered_price: 1, p_payments: [], p_client_document: "" });
+expect("Regras ocultas: corretor não faz prévia da avaliação", Boolean(preview.error), true);
+
 const cli = await as("cliente@teste.ouz.app.br");
 const units = (await cli.from("units").select("code, development_id")).data ?? [];
 expect("Cliente vê só a própria unidade", units.map((u) => u.code), ["DEMO-101"]);
