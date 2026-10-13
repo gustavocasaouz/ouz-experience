@@ -61,6 +61,11 @@ expect("Regras ocultas: corretor não lê o snapshot da política", Boolean(rule
 const preview = await sem.rpc("broker_preview_evaluation", { p_unit_id: (await sem.from("units").select("id").eq("development_id", SOHO).limit(1)).data[0].id, p_offered_price: 1, p_payments: [], p_client_document: "" });
 expect("Regras ocultas: corretor não faz prévia da avaliação", Boolean(preview.error), true);
 
+for (const [nome, c] of [["sem UMAN", sem], ["com UMAN", com], ["pendente", pend]]) {
+  const q = await c.rpc("unit_queue_counts", { p_development_id: SOHO });
+  expect(`Fila: corretor ${nome} não obtém a quantidade de propostas por unidade`, Boolean(q.error), true);
+}
+
 const cli = await as("cliente@teste.ouz.app.br");
 const units = (await cli.from("units").select("code, development_id")).data ?? [];
 expect("Cliente vê só a própria unidade", units.map((u) => u.code), ["DEMO-101"]);

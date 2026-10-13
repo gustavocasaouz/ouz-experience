@@ -4,7 +4,7 @@ import { requireViewer } from "@/server/auth/viewer";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { publicMediaUrl } from "@/server/db/supabase-public";
 import { SALES_MODE_LABELS, STAGE_LABELS, UNIT_STATUS_LABELS } from "@/lib/labels";
-import { listUnitsWithPrices, queueLabel } from "@/server/queries/commercial";
+import { listUnitsWithPrices } from "@/server/queries/commercial";
 import { formatBRL } from "@/lib/format";
 import Link from "next/link";
 
@@ -121,7 +121,7 @@ export default async function BrokerDevelopmentPage({ params }: { params: Promis
             {salesMode === "fechado" && "Este empreendimento não está recebendo propostas."}
           </p>
           {units.length ? (
-            <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área privativa", ...(prices ? ["Preço de tabela"] : []), "Situação", ...(units.some((u) => u.queueCount !== null) ? ["Fila"] : []), ""]} caption="Unidades do empreendimento">
+            <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área privativa", ...(prices ? ["Preço de tabela"] : []), "Situação", ""]} caption="Unidades do empreendimento">
               {units.map((u) => {
                 const canPropose = prices && (u.status === "disponivel" || u.status === "reservada") && u.price !== null;
                 return (
@@ -132,7 +132,6 @@ export default async function BrokerDevelopmentPage({ params }: { params: Promis
                     <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}</Td>
                     {prices && <Td className="whitespace-nowrap">{formatBRL(u.price)}</Td>}
                     <Td>{UNIT_STATUS_LABELS[u.status] ?? u.status}</Td>
-                    {units.some((x) => x.queueCount !== null) && <Td className="whitespace-nowrap text-sm text-ink-soft">{queueLabel(u.queueCount) ?? "—"}</Td>}
                     <Td>
                       {canPropose && (
                         <Link href={`/corretor/propostas/nova?unidade=${u.id}`} className="text-sm underline underline-offset-4 whitespace-nowrap">

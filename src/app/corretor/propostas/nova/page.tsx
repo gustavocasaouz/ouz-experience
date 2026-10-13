@@ -14,12 +14,10 @@ export default async function NewProposal({ searchParams }: { searchParams: Prom
   const supabase = await createSupabaseServerClient();
   const { data: unit } = await supabase.from("units").select("id, code, development_id, status, development:developments(name)").eq("id", unidade).maybeSingle();
   if (!unit) notFound();
-  const [{ data: canPrice }, { data: prices }, { data: counts }] = await Promise.all([
+  const [{ data: canPrice }, { data: prices }] = await Promise.all([
     supabase.rpc("broker_can_see_prices", { p_development_id: unit.development_id }),
     supabase.rpc("current_unit_prices", { p_development_id: unit.development_id }),
-    supabase.rpc("unit_queue_counts", { p_development_id: unit.development_id }),
   ]);
-  const inQueue = ((counts ?? []) as Array<{ unit_id: string; queue_count: number }>).find((c) => c.unit_id === unit.id)?.queue_count;
   if (canPrice !== true) return <RestrictedState>Este empreendimento não está recebendo propostas para o seu perfil no momento.</RestrictedState>;
   const price = ((prices ?? []) as Array<{ unit_id: string; price: string }>).find((p) => p.unit_id === unit.id)?.price;
   let registration: { id: string; client_name: string; client_document: string } | null = null;
@@ -33,11 +31,7 @@ export default async function NewProposal({ searchParams }: { searchParams: Prom
       <PageHeader
         eyebrow={devName}
         title={`Proposta · unidade ${unit.code}`}
-        description={
-          unit.status === "reservada"
-            ? `Esta unidade tem reserva ativa${inQueue ? ` e ${inQueue === 1 ? "1 proposta" : `${inQueue} propostas`} na fila` : ""}: sua proposta entrará na fila.`
-            : undefined
-        }
+        description={unit.status === "reservada" ? "Esta unidade tem reserva ativa: sua proposta entrará na fila." : undefined}
       />
       <div className="max-w-4xl">
         <ProposalForm
