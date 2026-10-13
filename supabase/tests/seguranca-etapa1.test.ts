@@ -214,6 +214,14 @@ describe("isolamento entre clientes", () => {
       `${a.unitId}/contrato.pdf`,
       `${b.unitId}/contrato.pdf`,
     ]);
+    // Etapa 3: arquivo só é legível se registrado como documento visível ao cliente.
+    for (const c of [a, b]) {
+      const [{ id }] = await db.admin<{ id: string }>(
+        `insert into public.documents (unit_id, category, title) values ($1, 'contrato', 'Contrato') returning id`,
+        [c.unitId],
+      );
+      await db.admin(`insert into public.document_versions (document_id, version_number, storage_path) values ($1, 1, $2)`, [id, `${c.unitId}/contrato.pdf`]);
+    }
   });
 
   it("cada cliente vê apenas o próprio cadastro, unidades, empreendimento e arquivos", async () => {
