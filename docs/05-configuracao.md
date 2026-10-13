@@ -75,6 +75,7 @@ node --env-file=.env.local scripts/criar-contas-teste.mjs   # cria/atualiza 4 co
 node --env-file=.env.local scripts/testar-acessos.mjs       # entra com cada conta e confere o isolamento no Supabase real
 node --env-file=.env.local scripts/verificar-supabase.mjs   # confere conexão, bloqueios do visitante e buckets
 node --env-file=.env.local scripts/testar-concorrencia.mjs  # duas propostas simultâneas na mesma unidade: só uma reserva
+node --env-file=.env.local scripts/aplicar-seed.mjs supabase/seed-etapa3.sql  # dados demonstrativos da Etapa 3 (idempotente)
 ```
 
 O script de criação recusa rodar se `APP_ENV` não for `development`, devolve as contas ao estado-base (desfaz aprovações e concessões feitas manualmente) e gera senhas novas a cada execução.

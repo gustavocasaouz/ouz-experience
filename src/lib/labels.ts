@@ -101,3 +101,60 @@ export const ANALYSIS_REASON_LABELS: Record<string, string> = {
   duplicidade_cliente: "Cliente com outra proposta ativa (verificação)",
   reavaliacao_fila: "Reavaliada na fila",
 };
+
+export const MILESTONE_STAGE_LABELS: Record<string, string> = { lancamento: "Lançamento", obra: "Obra", entrega: "Entrega", pos_entrega: "Pós-entrega" };
+export const DOCUMENT_CATEGORY_LABELS: Record<string, string> = {
+  contrato: "Contrato",
+  aditivo: "Aditivos",
+  comprovante: "Comprovantes",
+  documento_unidade: "Documentos da unidade",
+  vistoria_entrega: "Vistoria e entrega",
+  manual: "Manuais e orientações",
+  outro: "Outros",
+};
+export const INSTALLMENT_STATUS_LABELS: Record<string, string> = {
+  a_vencer: "A vencer",
+  vencida: "Vencida",
+  paga: "Paga",
+  parcialmente_paga: "Paga parcialmente",
+  renegociada: "Renegociada",
+  cancelada: "Cancelada",
+  aberta: "Em aberto",
+};
+export const INSTALLMENT_KIND_LABELS: Record<string, string> = { entrada: "Entrada", parcela: "Parcela", reforco: "Reforço", chaves: "Chaves", outro: "Outro" };
+export const RECEIPT_STATUS_LABELS: Record<string, string> = { enviado: "Em conferência", validado: "Validado", recusado: "Não validado" };
+export const CUSTOMIZATION_STATUS_LABELS: Record<string, string> = {
+  recebida: "Recebida",
+  em_analise: "Em análise",
+  orcamento_enviado: "Orçamento enviado",
+  aprovada: "Aprovada",
+  recusada: "Recusada",
+  concluida: "Concluída",
+  cancelada: "Cancelada",
+};
+export const PUNCH_STATUS_LABELS: Record<string, string> = {
+  aberta: "Aberta",
+  em_andamento: "Em andamento",
+  resolvida: "Resolvida — aguardando sua confirmação",
+  aceita_cliente: "Aceita",
+  contestada: "Contestada",
+};
+export const TICKET_CATEGORY_LABELS: Record<string, string> = {
+  assistencia_tecnica: "Assistência técnica",
+  duvida_administrativa: "Dúvidas administrativas",
+  solicitacao_unidade: "Solicitações sobre a unidade",
+  pos_entrega: "Pós-entrega",
+  concierge: "Concierge",
+};
+export const TICKET_STATUS_LABELS: Record<string, string> = {
+  aberto: "Aberto",
+  em_analise: "Em análise",
+  agendado: "Agendado",
+  em_atendimento: "Em atendimento",
+  aguardando_cliente: "Aguardando sua resposta",
+  resolvido: "Resolvido",
+  encerrado: "Encerrado",
+  cancelado: "Cancelado",
+};
+export const TICKET_PRIORITY_LABELS: Record<string, string> = { baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente" };
+export const COVERAGE_LABELS: Record<string, string> = { nao_avaliado: "Não avaliado", coberto: "Coberto pela garantia", nao_coberto: "Não coberto", parcial: "Parcialmente coberto" };

@@ -47,6 +47,20 @@ export default async function AdminHome() {
       href: "/admin/clientes",
     });
   }
+  if (hasPermission(viewer, "atendimento")) {
+    tiles.push({
+      label: "Chamados em aberto",
+      value: await count(supabase.from("tickets").select("id", { count: "exact", head: true }).in("status", ["aberto", "em_analise", "agendado", "em_atendimento"])),
+      href: "/admin/chamados",
+    });
+  }
+  if (hasPermission(viewer, "financeiro")) {
+    tiles.push({
+      label: "Comprovantes para conferir",
+      value: await count(supabase.from("payment_receipts").select("id", { count: "exact", head: true }).eq("status", "enviado")),
+      href: "/admin/financeiro",
+    });
+  }
   if (hasPermission(viewer, "notificacoes")) {
     tiles.push({
       label: "Notificações com falha",

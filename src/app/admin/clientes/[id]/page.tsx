@@ -74,11 +74,11 @@ export default async function ClientDetail({ params, searchParams }: { params: P
             ) : (
               <ul className="divide-y divide-line border-y border-line">
                 {links.map((l) => {
-                  const u = l.unit as unknown as { code: string; development: { name: string } };
+                  const u = l.unit as unknown as { id: string; code: string; development: { name: string } };
                   return (
                     <li key={l.id} className={`py-3 flex items-center justify-between gap-3 ${l.active ? "" : "opacity-60"}`}>
                       <span>
-                        {u.development.name} — <strong>{u.code}</strong> · {CLIENT_RELATION_LABELS[l.relation]}
+                        {u.development.name} — <a className="underline" href={`/admin/unidades/${u.id}`}><strong>{u.code}</strong></a> · {CLIENT_RELATION_LABELS[l.relation]}
                         <span className="block text-xs text-ink-mute">
                           Vinculado em {formatDateTime(l.linked_at)}
                           {l.unlinked_at ? ` · encerrado em ${formatDateTime(l.unlinked_at)}` : ""}

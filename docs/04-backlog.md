@@ -42,7 +42,21 @@ Legenda: ✅ feito · 🔨 em andamento · ⬜ a fazer
 | Teste de concorrência real (duas propostas simultâneas no Supabase) — `scripts/testar-concorrencia.mjs` | ✅ |
 
 ## Etapa 3 — Experiência do cliente
-Linha do tempo e atualizações · evolução física · comunicados · previsões com histórico · personalização · vistoria · pendências · chaves · manuais · documentos versionados · financeiro (manual + importação validada) · comprovantes sem baixa automática · esclarecimentos · chamados · eventos com capacidade/lista de espera/lembretes · central de notificações.
+| Item | Status |
+|---|---|
+| Linha do tempo com previsões e histórico de alterações (motivo obrigatório) | ✅ |
+| Atualizações com fotos, vídeos (arquivo ou link) e texto; evolução física por etapa; comunicados por empreendimento ou unidade | ✅ |
+| Personalização: solicitação, orçamento da OUZ, aprovação do cliente | ✅ |
+| Agenda de vistoria e entrega de chaves (um horário por unidade, reagendamento), pendências com aceite/contestação, registro de entrega | ✅ |
+| Documentos privados com versões imutáveis, autor e controle arquivo a arquivo; manuais do empreendimento | ✅ |
+| Financeiro: contratado, pago, a pagar, vencidas, a vencer, histórico, demonstrativo, última atualização; original/atualização/juros/multa/atualizado separados | ✅ |
+| Comprovante sem baixa automática; baixa só por validação autorizada (auditada) | ✅ |
+| Lançamento manual e importação CSV validada (tudo ou nada) | ✅ |
+| Pedido de esclarecimento financeiro | ✅ |
+| Chamados: categorias, anexos, mensagens, nota interna, responsável, prioridade, agendamento, prazo, avaliação de garantia manual (oculta ao cliente), nota do atendimento | ✅ |
+| Eventos: públicos (geral, clientes, corretores/grupo, empreendimento, convidados), presença, capacidade, lista de espera com promoção, lembretes automáticos, participantes sigilosos | ✅ |
+| Central de notificações (aplicativo) e e-mails sem duplicidade | ✅ |
+| Testes: isolamento entre clientes e perfis, documentos ocultos, baixa, importação, chamados, eventos | ✅ |
 
 ## Etapa 4 — Concierge
 Catálogo por empreendimento · prestadores · solicitações · orçamento e taxa OUZ · aprovação do cliente · agendamento · execução · conclusão e avaliação · cancelamentos e ocorrências.

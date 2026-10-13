@@ -13,7 +13,7 @@ import Link from "next/link";
 const STATUS_OPTIONS = Object.entries(UNIT_STATUS_LABELS).map(([value, label]) => ({ value, label }));
 
 export default async function DevelopmentUnits({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
-  const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas"], "/admin/empreendimentos");
+  const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas", "documentos"], "/admin/empreendimentos");
   if (denied) return denied;
   const dev = await loadDevelopment((await params).id);
   if (!hasPermission(viewer, "comercial")) {
@@ -65,7 +65,7 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
           <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área", "Reserva (visão OUZ)", "Fila", "Situação para corretores"]} caption="Unidades">
             {units.map((u) => (
               <tr key={u.id}>
-                <Td className="font-medium">{u.code}{u.is_demo ? " · demo" : ""}</Td>
+                <Td className="font-medium"><Link className="hover:underline underline-offset-4" href={`/admin/unidades/${u.id}`}>{u.code}</Link>{u.is_demo ? " · demo" : ""}</Td>
                 <Td>{[u.tower, u.floor].filter((v) => v !== null && v !== "").join(" / ") || "—"}</Td>
                 <Td>{u.typology ?? "—"}{u.bedrooms !== null ? ` · ${u.bedrooms} dorm.` : ""}</Td>
                 <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}</Td>

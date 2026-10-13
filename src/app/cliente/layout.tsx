@@ -5,7 +5,12 @@ import { requireViewer } from "@/server/auth/viewer";
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const viewer = await requireViewer("/cliente");
   return (
-    <AppShell viewer={viewer} area="cliente" nav={[{ href: "/cliente", label: "Minhas unidades" }]}>
+    <AppShell viewer={viewer} area="cliente" nav={[
+        { href: "/cliente", label: "Minhas unidades" },
+        { href: "/cliente/chamados", label: "Chamados" },
+        { href: "/agenda", label: "Agenda" },
+        { href: "/notificacoes", label: "Notificações" },
+      ]}>
       {viewer.isClient ? (
         children
       ) : (

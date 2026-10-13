@@ -74,6 +74,21 @@ expect("Cliente não vê clientes, CPF de outros nem conteúdo de corretor", [
   await count(cli.from("development_broker_content").select("development_id")),
   await count(cli.from("broker_profiles").select("user_id")),
 ], [1, 0, 0]);
+// Etapa 3: financeiro, acompanhamento e sigilo entre perfis
+expect("Cliente vê as parcelas da própria unidade", (await cli.from("installments_view").select("id")).data?.length > 0, true);
+expect("Cliente vê a linha do tempo publicada do empreendimento", (await cli.from("development_milestones").select("id")).data?.length > 0, true);
+for (const [nome, c] of [["corretor sem UMAN", sem], ["corretor com UMAN", com]]) {
+  expect(`${nome}: não vê financeiro, chamados, documentos nem acompanhamento de clientes`, [
+    await count(c.from("installments").select("id")),
+    await count(c.from("tickets").select("id")),
+    await count(c.from("documents").select("id")),
+    await count(c.from("development_milestones").select("id")),
+  ], [0, 0, 0, 0]);
+}
+const cov = await cli.from("tickets").select("coverage").limit(1);
+expect("Cliente não lê a avaliação interna de garantia dos chamados", Boolean(cov.error), true);
+expect("Cliente não lê confirmações de presença de outras pessoas", await count(cli.from("event_rsvps").select("id").neq("user_id", (await cli.auth.getUser()).data.user.id)), 0);
+
 const staff = await cli.from("staff_members").insert({ user_id: (await cli.auth.getUser()).data.user.id, role: "administrador" });
 expect("Cliente não vira staff", Boolean(staff.error), true);
 const { data: sst } = await cli.rpc("staff_status");

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { isSupabaseConfigured } from "@/lib/env";
 
-const PRIVATE_BUCKETS = new Set(["broker-content", "broker-documents", "client-documents", "proposal-documents", "ticket-attachments"]);
+const PRIVATE_BUCKETS = new Set(["broker-content", "broker-documents", "client-documents", "client-media", "proposal-documents", "ticket-attachments"]);
 
 /**
  * Gera URL assinada de curta duração COM A SESSÃO DO USUÁRIO: a política de Storage decide.

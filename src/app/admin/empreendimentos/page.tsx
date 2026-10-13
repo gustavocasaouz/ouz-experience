@@ -11,7 +11,7 @@ import { ACCESS_MODE_LABELS, STAGE_LABELS, type BrokerAccessMode, type Developme
 export const metadata = { title: "Empreendimentos" };
 
 export default async function AdminDevelopments({ searchParams }: { searchParams: SP }) {
-  const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas"], "/admin/empreendimentos");
+  const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas", "documentos"], "/admin/empreendimentos");
   if (denied) return denied;
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.from("developments").select("id, name, slug, stage, is_published, broker_access_mode, is_demo").order("sort_order");

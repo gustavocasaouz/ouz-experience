@@ -13,6 +13,8 @@ export default async function BrokerLayout({ children }: { children: React.React
         ]
       : []),
     { href: "/corretor/cadastro", label: "Meu cadastro" },
+    ...(approved ? [{ href: "/agenda", label: "Agenda" }] : []),
+    { href: "/notificacoes", label: "Notificações" },
   ];
   return (
     <AppShell viewer={viewer} area="corretor" nav={nav}>

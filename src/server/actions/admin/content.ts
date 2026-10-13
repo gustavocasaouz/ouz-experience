@@ -70,7 +70,7 @@ export async function saveEvent(fd: FormData) {
   const path = "/admin/eventos";
   await guard("eventos", path);
   const audience = str(fd, "audience");
-  if (!["geral", "clientes", "corretores_aprovados", "empreendimento"].includes(audience)) back(path, "erro", "Público inválido.");
+  if (!["geral", "clientes", "corretores_aprovados", "empreendimento", "convidados"].includes(audience)) back(path, "erro", "Público inválido.");
   if (audience === "empreendimento" && !str(fd, "development_id")) back(path, "erro", "Selecione o empreendimento.");
   let starts: string;
   let ends: string | null = null;
@@ -93,13 +93,18 @@ export async function saveEvent(fd: FormData) {
     development_id: audience === "empreendimento" ? str(fd, "development_id") : null,
     capacity: capacity && capacity > 0 ? capacity : null,
     is_published: str(fd, "is_published") === "on",
+    broker_group_id: audience === "corretores_aprovados" ? optStr(fd, "broker_group_id") : null,
+    rsvp_enabled: str(fd, "rsvp_enabled") === "on",
+    reminder_hours: Math.min(Math.max(Number(str(fd, "reminder_hours") || 24), 0), 336),
   };
   if (!row.title) back(path, "erro", "Informe o título.");
   const id = str(fd, "id");
-  const { error } = id ? await supabase.from("events").update(row).eq("id", id) : await supabase.from("events").insert(row);
+  const { data: saved, error } = id
+    ? await supabase.from("events").update(row).eq("id", id).select("id").single()
+    : await supabase.from("events").insert(row).select("id").single();
   failOn(error, path);
   revalidatePath("/", "layout");
-  back(path, "ok", "Evento salvo.");
+  back(audience === "convidados" ? `/admin/eventos/${saved!.id}` : path, "ok", audience === "convidados" ? "Evento salvo. Adicione os convidados." : "Evento salvo.");
 }
 
 export async function setLeadStatus(fd: FormData) {

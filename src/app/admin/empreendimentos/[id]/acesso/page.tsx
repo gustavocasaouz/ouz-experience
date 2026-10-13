@@ -10,7 +10,7 @@ import { ACCESS_MODE_LABELS, type BrokerAccessMode } from "@/lib/labels";
 import { formatDateTime } from "@/lib/format";
 
 export default async function DevelopmentAccess({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
-  const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas"], "/admin/empreendimentos");
+  const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas", "documentos"], "/admin/empreendimentos");
   if (denied) return denied;
   const dev = await loadDevelopment((await params).id);
   if (!hasPermission(viewer, "comercial")) {
