@@ -9,6 +9,9 @@ create table private.app_secrets (
   value text not null,
   created_at timestamptz not null default now()
 );
+-- Camada extra: além do esquema sem acesso, RLS ligado e sem policies (só o dono/funções security definer leem).
+alter table private.app_secrets enable row level security;
+revoke all on private.app_secrets from public, anon, authenticated;
 insert into private.app_secrets (key, value)
 values ('document_pepper', encode(extensions.gen_random_bytes(32), 'hex'))
 on conflict (key) do nothing;
@@ -80,7 +83,7 @@ end $$;
 create trigger client_identities_hash before insert or update of document_number, document_hash on public.client_identities
   for each row execute function public.set_client_document_hash();
 
--- Recalcula registros existentes com o pepper do banco.
+-- Recalcula registros existentes com o pepper do banco (UPDATE sem WHERE é intencional: todas as linhas).
 update public.broker_profiles set cpf_hash = cpf_hash;
 update public.client_identities set document_hash = document_hash;
 
