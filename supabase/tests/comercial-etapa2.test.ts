@@ -408,3 +408,14 @@ describe("hash de documento no banco", () => {
     ).rejects.toThrow(/cpf_valido/);
   });
 });
+
+describe("consultas comerciais", () => {
+  it("preços vigentes só para quem pode ver; fila só para a OUZ", async () => {
+    expect((await db.as(A.claims, `select * from public.current_unit_prices($1)`, [SOHO])).length).toBe(4);
+    expect(await db.as(B.claims, `select * from public.current_unit_prices($1)`, [UMAN])).toHaveLength(0);
+    const u = await unitId(SOHO, "DEMO-101");
+    await expect(db.as(A.claims, `select * from public.admin_unit_queue($1)`, [u])).rejects.toThrow(/acesso negado/);
+    const q = await db.as<{ queue_position: number }>(comercial.aal2, `select * from public.admin_unit_queue($1)`, [u]);
+    expect(q.map((r) => r.queue_position)).toEqual(q.map((_, i) => i + 1));
+  });
+});

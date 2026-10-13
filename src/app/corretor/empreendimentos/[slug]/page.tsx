@@ -3,7 +3,10 @@ import { Badge, DataList, EmptyState, ImagePlaceholder, PageHeader, RestrictedSt
 import { requireViewer } from "@/server/auth/viewer";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { publicMediaUrl } from "@/server/db/supabase-public";
-import { STAGE_LABELS, UNIT_STATUS_LABELS } from "@/lib/labels";
+import { SALES_MODE_LABELS, STAGE_LABELS, UNIT_STATUS_LABELS } from "@/lib/labels";
+import { listUnitsWithPrices } from "@/server/queries/commercial";
+import { formatBRL } from "@/lib/format";
+import Link from "next/link";
 
 const MATERIAL_LABELS: Record<string, string> = {
   apresentacao: "Apresentação",
@@ -51,11 +54,15 @@ export default async function BrokerDevelopmentPage({ params }: { params: Promis
     );
   }
 
-  const [{ data: content }, { data: units }, { data: materials }] = await Promise.all([
+  const [{ data: content }, units, { data: materials }, { data: settings }, { data: canPrice }] = await Promise.all([
     supabase.from("development_broker_content").select("presentation, highlights, payment_conditions, early_information").eq("development_id", dev.id).maybeSingle(),
-    supabase.from("units").select("id, code, tower, floor, typology, bedrooms, private_area_m2, status").eq("development_id", dev.id).order("code"),
+    listUnitsWithPrices(dev.id),
     supabase.from("broker_materials").select("id, kind, title, storage_path").eq("development_id", dev.id).eq("is_published", true).order("created_at"),
+    supabase.from("development_commercial_settings").select("sales_mode").eq("development_id", dev.id).maybeSingle(),
+    supabase.rpc("broker_can_see_prices", { p_development_id: dev.id }),
   ]);
+  const salesMode = (settings?.sales_mode ?? "fechado") as keyof typeof SALES_MODE_LABELS;
+  const prices = canPrice === true;
   const highlights = (content?.highlights ?? []) as string[];
 
   return (
@@ -106,19 +113,35 @@ export default async function BrokerDevelopmentPage({ params }: { params: Promis
         </section>
         <section>
           <SectionTitle title="Unidades" />
-          <p className="text-sm text-ink-mute mb-4">Tabela de preços, propostas e reservas estarão disponíveis na Etapa 2 (Comercial).</p>
-          {units?.length ? (
-            <Table head={["Unidade", "Torre", "Andar", "Tipologia", "Área privativa", "Situação"]} caption="Unidades do empreendimento">
-              {units.map((u) => (
-                <tr key={u.id}>
-                  <Td className="font-medium">{u.code}</Td>
-                  <Td>{u.tower ?? "—"}</Td>
-                  <Td>{u.floor ?? "—"}</Td>
-                  <Td>{u.typology ?? "—"}</Td>
-                  <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}</Td>
-                  <Td>{UNIT_STATUS_LABELS[u.status] ?? u.status}</Td>
-                </tr>
-              ))}
+          <p className="text-sm text-ink-mute mb-4">
+            Vendas: {SALES_MODE_LABELS[salesMode]?.label ?? "—"}.{" "}
+            {salesMode === "pre_lancamento" && !prices && (
+              <>Preços liberados somente nas janelas do pré-lançamento. <Link className="underline" href="/corretor/pre-lancamento">Registrar interesse</Link>.</>
+            )}
+            {salesMode === "fechado" && "Este empreendimento não está recebendo propostas."}
+          </p>
+          {units.length ? (
+            <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área privativa", ...(prices ? ["Preço de tabela"] : []), "Situação", ""]} caption="Unidades do empreendimento">
+              {units.map((u) => {
+                const canPropose = prices && (u.status === "disponivel" || u.status === "reservada") && u.price !== null;
+                return (
+                  <tr key={u.id}>
+                    <Td className="font-medium">{u.code}</Td>
+                    <Td>{[u.tower, u.floor].filter((v) => v !== null && v !== "").join(" / ") || "—"}</Td>
+                    <Td>{u.typology ?? "—"}</Td>
+                    <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}</Td>
+                    {prices && <Td className="whitespace-nowrap">{formatBRL(u.price)}</Td>}
+                    <Td>{UNIT_STATUS_LABELS[u.status] ?? u.status}</Td>
+                    <Td>
+                      {canPropose && (
+                        <Link href={`/corretor/propostas/nova?unidade=${u.id}`} className="text-sm underline underline-offset-4 whitespace-nowrap">
+                          {u.status === "reservada" ? "Entrar na fila" : "Fazer proposta"}
+                        </Link>
+                      )}
+                    </Td>
+                  </tr>
+                );
+              })}
             </Table>
           ) : (
             <EmptyState title="Unidades ainda não cadastradas" />

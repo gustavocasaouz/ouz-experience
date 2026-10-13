@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { getViewer } from "@/server/auth/viewer";
-import { documentHash } from "@/server/security/document-hash";
 import { checkRateLimit } from "@/server/security/rate-limit";
 import { enqueueEmail } from "@/server/notifications/outbox";
 import { ALLOWED_DOC_TYPES, filesFrom, objectPath, validateUpload } from "@/server/files";
@@ -75,7 +74,7 @@ export async function saveBrokerProfile(_prev: ActionState, fd: FormData): Promi
     user_id: viewer.userId,
     full_name: d.full_name,
     cpf: d.cpf,
-    cpf_hash: documentHash(d.cpf),
+    cpf_hash: "calculado-no-banco",
     creci_number: d.creci_number,
     creci_uf: d.creci_uf,
     email: viewer.email,

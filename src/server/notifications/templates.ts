@@ -50,6 +50,13 @@ export function renderTemplate(template: string, payload: Payload, appUrl: strin
         "Seu cadastro de corretor foi recebido e será analisado pela equipe da OUZ.",
         "Você receberá um aviso quando houver atualização.",
       ]);
+    case "aviso_generico": {
+      const link = typeof payload.link === "string" && payload.link.startsWith("/") ? `${appUrl}${payload.link}` : appUrl;
+      return wrap(String(payload.title ?? "Atualização no OUZ Experience"), [String(payload.body ?? "Há uma nova atualização na sua conta.")], {
+        label: "Abrir no OUZ Experience",
+        url: link,
+      });
+    }
     default:
       return wrap("Atualização no OUZ Experience", ["Há uma nova atualização na sua conta."], { label: "Abrir", url: appUrl });
   }

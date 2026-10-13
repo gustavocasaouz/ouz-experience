@@ -12,7 +12,7 @@ import { STAGE_LABELS } from "@/lib/labels";
 const fileInput = "text-sm file:mr-4 file:border file:border-ink file:bg-transparent file:px-4 file:py-2 file:text-sm";
 
 export default async function DevelopmentGeneral({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
-  const { viewer, denied } = await staffWith(["conteudo", "comercial"], "/admin/empreendimentos");
+  const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas"], "/admin/empreendimentos");
   if (denied) return denied;
   const dev = await loadDevelopment((await params).id);
   const canEdit = hasPermission(viewer, "conteudo");

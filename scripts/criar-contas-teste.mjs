@@ -2,7 +2,7 @@
 // Uso: node --env-file=.env.local scripts/criar-contas-teste.mjs
 // Senhas geradas aleatoriamente e gravadas em contas-teste.local.txt (fora do Git). Nada é impresso.
 import { createClient } from "@supabase/supabase-js";
-import { createHmac, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
 
 if ((process.env.APP_ENV ?? "development") !== "development") {
@@ -11,7 +11,6 @@ if ((process.env.APP_ENV ?? "development") !== "development") {
 }
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/(rest|auth)\/v1\/?$/, "").replace(/\/+$/, "");
 const db = createClient(url, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
-const hash = (v) => createHmac("sha256", process.env.DOCUMENT_HASH_PEPPER).update(v).digest("hex");
 const UMAN = "00000000-0000-4000-8000-000000000003";
 const SOHO = "00000000-0000-4000-8000-000000000001";
 
@@ -60,7 +59,7 @@ for (const acc of ACCOUNTS) {
     if (!prev) {
       must(
         await db.from("broker_profiles").insert({
-          user_id: user.id, full_name: acc.name, cpf: b.cpf, cpf_hash: hash(b.cpf), creci_number: b.creci, creci_uf: "SC",
+          user_id: user.id, full_name: acc.name, cpf: b.cpf, cpf_hash: "calculado-no-banco", creci_number: b.creci, creci_uf: "SC",
           email: acc.email, phone: "+5548900000000", city: "Florianópolis", region: "SC", country: "Brasil",
           agency_name: "[Teste] Imobiliária Fictícia", terms_version: "teste", privacy_version: "teste", terms_accepted_at: new Date().toISOString(),
         }),

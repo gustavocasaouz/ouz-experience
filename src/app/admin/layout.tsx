@@ -5,8 +5,11 @@ import type { StaffPermission } from "@/server/auth/permissions";
 const NAV: Array<{ href: string; label: string; perm?: StaffPermission[] }> = [
   { href: "/admin", label: "Painel" },
   { href: "/admin/corretores", label: "Corretores", perm: ["corretores"] },
-  { href: "/admin/empreendimentos", label: "Empreendimentos", perm: ["conteudo", "comercial"] },
+  { href: "/admin/empreendimentos", label: "Empreendimentos", perm: ["conteudo", "comercial", "politicas"] },
   { href: "/admin/grupos", label: "Grupos de corretores", perm: ["comercial"] },
+  { href: "/admin/propostas", label: "Propostas", perm: ["comercial"] },
+  { href: "/admin/reservas", label: "Reservas", perm: ["comercial", "documentos"] },
+  { href: "/admin/pre-lancamento", label: "Pré-lançamento", perm: ["comercial"] },
   { href: "/admin/clientes", label: "Clientes", perm: ["clientes", "atendimento"] },
   { href: "/admin/conteudo", label: "Conteúdo do site", perm: ["conteudo"] },
   { href: "/admin/eventos", label: "Eventos", perm: ["eventos"] },

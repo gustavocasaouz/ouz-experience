@@ -6,7 +6,7 @@
 2. Sem banco compartilhado com o OUZ Gestão; integração futura por API autenticada.
 3. Login por e-mail + senha (com verificação de e-mail) e link de recuperação. Login social fica fora.
 4. MFA TOTP obrigatório para operadores e administradores; opcional para clientes e corretores.
-5. CPF/CNPJ armazenados em texto normalizado em colunas protegidas por RLS + `document_hash` (SHA-256 com pepper do servidor) para detectar duplicidades sem expor o número. Criptografia em nível de coluna (pgsodium/Vault) avaliada depois.
+5. CPF/CNPJ armazenados em texto normalizado em colunas protegidas por RLS + hash HMAC calculado **pelo próprio banco** (pepper em esquema privado), para detectar duplicidades sem expor o número e sem confiar em valor enviado pelo cliente. Dígitos verificadores também são checados no banco. Criptografia em nível de coluna avaliada depois.
 6. Validação de CPF/CNPJ por dígito verificador e de CRECI apenas por formato + UF. A interface deixa claro que isso **não** comprova identidade nem regularidade no CRECI.
 7. SOHO, MAUI e UMAN entram como referências editáveis, marcadas `is_demo` no seed de desenvolvimento, sem preços, prazos, áreas ou disponibilidade reais.
 8. Fotografias: até o envio do acervo da OUZ, a interface usa espaços reservados neutros (sem imagens de terceiros apresentadas como obras da OUZ).

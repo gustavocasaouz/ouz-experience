@@ -46,3 +46,24 @@ export function utcToBrasiliaLocalInput(iso: string | null | undefined): string 
   }).format(new Date(iso));
   return parts.replace(" ", "T");
 }
+
+/** Interpreta valores digitados em reais ("1.234.567,89", "1234567.89", "R$ 1.000"). Retorna null se inválido. */
+export function parseBRL(input: string | null | undefined): number | null {
+  if (!input) return null;
+  let s = input.replace(/[R$\s]/g, "");
+  if (!s) return null;
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+  const n = Number(s);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
+}
+
+export function formatPercent(v: number | string | null | undefined, digits = 2) {
+  if (v === null || v === undefined || v === "") return "—";
+  return `${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: digits })}%`;
+}
+
+/** Instante atual da requisição (componentes de servidor são renderizados por requisição). */
+export function requestNow(): number {
+  return new Date().getTime();
+}

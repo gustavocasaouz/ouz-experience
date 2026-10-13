@@ -10,7 +10,6 @@ function appEnv(): AppEnv {
 export const serverEnv = {
   appEnv: appEnv(),
   secretKey: process.env.SUPABASE_SECRET_KEY ?? "",
-  documentPepper: process.env.DOCUMENT_HASH_PEPPER ?? "",
   /** E-mail só sai de verdade com EMAIL_MODE=resend E APP_ENV=production. */
   emailMode: process.env.EMAIL_MODE === "resend" && appEnv() === "production" ? ("resend" as const) : ("log" as const),
   resendApiKey: process.env.RESEND_API_KEY ?? "",

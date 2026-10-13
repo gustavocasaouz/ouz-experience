@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { assertStaff, AuthorizationError } from "@/server/auth/viewer";
-import { documentHash } from "@/server/security/document-hash";
 import { enqueueEmail } from "@/server/notifications/outbox";
 import { detectDocument, isPlausiblePhone, normalizePhone } from "@/domain/documentos";
 import { publicEnv } from "@/lib/env";
@@ -37,7 +36,7 @@ export async function createClientRecord(fd: FormData) {
   if (doc) {
     const { error: e2 } = await supabase
       .from("client_identities")
-      .insert({ client_id: data!.id, document_type: doc.kind, document_number: doc.value, document_hash: documentHash(doc.value) });
+      .insert({ client_id: data!.id, document_type: doc.kind, document_number: doc.value, document_hash: "calculado-no-banco" });
     if (e2) back(`/admin/clientes/${data!.id}`, "erro", e2.code === "23505" ? "Cliente criado, mas já existe outro cadastro com este CPF/CNPJ. Verifique duplicidade." : dbErrorMessage(e2));
   }
   back(`/admin/clientes/${data!.id}`, "ok", "Cliente cadastrado. Vincule as unidades e envie o convite.");
@@ -52,7 +51,7 @@ export async function updateClientIdentity(fd: FormData) {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("client_identities")
-    .upsert({ client_id: id, document_type: doc!.kind, document_number: doc!.value, document_hash: documentHash(doc!.value), updated_at: new Date().toISOString() });
+    .upsert({ client_id: id, document_type: doc!.kind, document_number: doc!.value, document_hash: "calculado-no-banco", updated_at: new Date().toISOString() });
   failOn(error, path, "Não foi possível salvar o documento.");
   back(path, "ok", "Documento salvo.");
 }

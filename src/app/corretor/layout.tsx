@@ -6,7 +6,12 @@ export default async function BrokerLayout({ children }: { children: React.React
   const approved = viewer.broker?.status === "aprovado";
   const nav = [
     { href: "/corretor", label: "Início" },
-    ...(approved ? [{ href: "/corretor/empreendimentos", label: "Empreendimentos" }] : []),
+    ...(approved
+      ? [
+          { href: "/corretor/propostas", label: "Minhas propostas" },
+          { href: "/corretor/pre-lancamento", label: "Pré-lançamento" },
+        ]
+      : []),
     { href: "/corretor/cadastro", label: "Meu cadastro" },
   ];
   return (

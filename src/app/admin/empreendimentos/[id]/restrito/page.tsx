@@ -18,7 +18,7 @@ const KINDS = [
 ];
 
 export default async function DevelopmentRestricted({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
-  const { viewer, denied } = await staffWith(["conteudo", "comercial"], "/admin/empreendimentos");
+  const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas"], "/admin/empreendimentos");
   if (denied) return denied;
   const dev = await loadDevelopment((await params).id);
   const canEdit = hasPermission(viewer, "conteudo");

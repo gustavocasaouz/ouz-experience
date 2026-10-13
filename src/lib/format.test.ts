@@ -15,3 +15,15 @@ describe("formatação brasileira", () => {
     expect(utcToBrasiliaLocalInput(iso)).toBe("2026-10-13T23:30");
   });
 });
+
+import { parseBRL } from "./format";
+describe("parseBRL", () => {
+  it.each([
+    ["1.234.567,89", 1234567.89],
+    ["R$ 1.000", 1000],
+    ["1000.5", 1000.5],
+    ["250.000", 250000],
+    ["12,3", 12.3],
+  ])("%s → %d", (i, o) => expect(parseBRL(i)).toBe(o));
+  it.each(["", "abc", "-5"])("rejeita %s", (i) => expect(parseBRL(i)).toBeNull());
+});

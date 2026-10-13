@@ -27,7 +27,19 @@ Legenda: ✅ feito · 🔨 em andamento · ⬜ a fazer
 | 19 | PWA (manifest, ícone provisório; service worker offline fica para depois) | ✅ |
 
 ## Etapa 2 — Comercial
-Unidades e tabelas versionadas · políticas versionadas · propostas com snapshot · avaliação automática · análise · reserva 48 h · checklist PF/PJ · fila com lock · pg_cron de prazos · pré-lançamento. Testes: concorrência, início das 48 h, documentação no prazo, expiração e avanço, versões preservadas.
+| Item | Status |
+|---|---|
+| Validação de CPF/CNPJ e hash de documento no banco (anti-fraude de duplicidade) | ✅ |
+| Configuração comercial por empreendimento (modo de venda, prazos, previsão de chaves, exibição da posição) | ✅ |
+| Tabelas de preço versionadas e imutáveis após publicação (com importação colada de planilha) | ✅ |
+| Políticas de venda versionadas por empreendimento/tipologia/unidade | ✅ |
+| Propostas com snapshot, avaliação automática, análise e decisão da OUZ | ✅ |
+| Fila por unidade com lock, prioridade manual auditada e reavaliação na promoção | ✅ |
+| Reserva com prazo configurável (48 h), checklist PF/PJ, envio, conferência, pendências, prorrogação, cancelamento, venda | ✅ |
+| Rotina de prazos no pg_cron (a cada minuto) | ✅ |
+| Pré-lançamento: campanhas, registros, duplicidade, ondas, janelas e propostas | ✅ |
+| Testes: 48 h, documentação no prazo, expiração e avanço, versões, duplicidade, notificações, pré-lançamento | ✅ |
+| Teste de concorrência real (duas propostas simultâneas no Supabase) | ⬜ após aplicar as migrações no Supabase |
 
 ## Etapa 3 — Experiência do cliente
 Linha do tempo e atualizações · evolução física · comunicados · previsões com histórico · personalização · vistoria · pendências · chaves · manuais · documentos versionados · financeiro (manual + importação validada) · comprovantes sem baixa automática · esclarecimentos · chamados · eventos com capacidade/lista de espera/lembretes · central de notificações.

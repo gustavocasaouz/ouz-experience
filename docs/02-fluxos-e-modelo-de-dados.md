@@ -51,54 +51,61 @@ staff (perm clientes) cadastra clients (nome, e-mail, CPF opcional) e client_uni
 ```
 CPF nunca é critério de acesso. Não existe busca por CPF exposta ao cliente.
 
-## 2. Fluxo comercial (Etapa 2 — regras definidas agora)
+## 2. Fluxo comercial (Etapa 2 — implementado)
+
+Fonte única das regras: funções SQL em `supabase/migrations/20261014000300_propostas_reservas_fila.sql`. As telas apenas chamam essas funções.
 
 ### 2.1 Proposta
-Estados: `rascunho` → `enviada` → (`apta_aprovacao_automatica` | `em_analise`) → `aprovada` | `reprovada` | `retirada` | `expirada` | `substituida`.
+Estados: `rascunho` → `em_analise` | `na_fila` | `reservada` → `reprovada` | `retirada` | `expirada` | `substituida` | `concluida`.
 
-- Sem nome **e** CPF/CNPJ válido: só `rascunho`; não entra na fila.
-- Ao enviar: grava snapshot imutável `price_table_version_id`, `sales_policy_version_id`, valores e resultado da avaliação (`policy_evaluation jsonb` com cada critério: atendido/não atendido).
-- Dentro da política → apta à aprovação automática (sujeita à disponibilidade e à fila).
-- Fora → lista os critérios não atendidos; corretor pode enviar para análise da OUZ.
-- Aprovação comercial ≠ contrato.
+- Rascunhos podem ficar incompletos. Sem nome **e** CPF/CNPJ válido (dígitos conferidos no banco), o envio é recusado: a proposta não entra na fila.
+- No envio a proposta é avaliada por `evaluate_terms` contra a **tabela vigente** e a **política vigente** (resolvida por empreendimento → tipologia → unidade). Ficam gravados: `price_table_id`, `table_price`, `sales_policy_id`, `policy_rules` (snapshot resolvido) e `evaluation` (critério a critério).
+- Dentro da política → apta à aprovação automática: recebe reserva se a unidade estiver livre **e** sem fila; senão entra na fila.
+- Fora da política → nada muda e o corretor vê os critérios não atendidos; ele pode reenviar pedindo análise (`em_analise`).
+- A OUZ aprova (→ reserva ou fila) ou reprova, com justificativa. Aprovação comercial ≠ contrato.
+- Critérios avaliados: estrutura (soma = valor ofertado, datas futuras), preço de tabela existente, preço mínimo, desconto máximo, entrada mínima, % até as chaves (exige previsão de chaves informada pela OUZ; sem ela o critério fica "não avaliável" e a proposta vai para análise), prazo máximo, nº máximo de parcelas e reforços, permuta (permitida/máxima) e condições que sempre exigem análise (permuta, PJ, todas).
+- Permuta entra no total, mas não conta como pagamento "até as chaves".
 
 ### 2.2 Fila da unidade
-- `unit_queue_entries(unit_id, proposal_id, position_seq bigserial, queued_at, status)`; ordem = `queued_at, position_seq` gravados pelo servidor.
-- **Uma reserva ativa por unidade**: índice único parcial `reservations(unit_id) WHERE status IN ('aguardando_documentos','documentacao_enviada','aguardando_conferencia','pendencias_documentacao','documentacao_validada')`.
-- Proposta na fila não tem prazo de 48 h.
-- Mudança manual de prioridade: perm `comercial` + justificativa + auditoria.
-- Promoção: quando a reserva termina (expirada, desistência, reprovação), `promote_next_in_queue(unit_id)` percorre a fila em ordem, **reavalia** cada proposta (tabela vigente, política, validade dos dados, cliente duplicado) e entrega a reserva à primeira elegível. Inelegíveis vão para `em_analise` ou saem da fila com motivo.
-- Tudo em uma transação com `SELECT … FROM units WHERE id = $1 FOR UPDATE`. Duas propostas simultâneas: a segunda espera o lock, vê a reserva ativa e entra na fila. O índice único é a última barreira.
-- Idempotência: `proposals.idempotency_key` único por corretor.
+- Ordem registrada no servidor: `queue_priority desc, queue_entered_at, queue_seq` (sequência do banco).
+- Uma única reserva ativa por unidade: índice único parcial `reservations_one_active_per_unit` (última barreira) + lock da unidade (`SELECT … FOR UPDATE`) em toda função que cria/encerra reserva. Duas propostas simultâneas se serializam no lock: a segunda vê a reserva e entra na fila.
+- Proposta na fila **não** tem prazo de 48 h.
+- Prioridade manual: só `comercial`, com justificativa (≥ 5 caracteres) e auditoria.
+- Promoção (`promote_next_in_queue`): ao encerrar uma reserva, percorre a fila em ordem e **reavalia** cada proposta com a tabela/política vigentes, o cadastro do corretor e a situação da unidade. A primeira elegível recebe a reserva com prazo novo; as inelegíveis vão para `em_analise` (motivo `reavaliacao_fila`) e saem da fila, com aviso ao corretor e à OUZ.
+- Idempotência: rascunho com a mesma `idempotency_key` devolve a mesma proposta; reenviar uma proposta já enviada não altera nada.
 
-### 2.3 Reserva de 48 h e documentação
+### 2.3 Reserva e documentação
 ```
-aprovada + unidade livre → reservations(status=aguardando_documentos, starts_at=now(), expires_at=now()+48h)
-  → notifica corretor e OUZ (outbox, dedupe)
-  → corretor envia itens do checklist (PF ou PJ, configurável)
-  → todos os obrigatórios enviados antes de expires_at → documentacao_enviada → aguardando_conferencia
-      (a partir daqui o prazo de 48 h NÃO se aplica: não expira por demora da OUZ)
-  → OUZ confere → documentacao_validada | pendencias_documentacao
-      pendencias: prazo de regularização configurável (regularization_hours por empreendimento; padrão sugerido 24 h — pendente de decisão)
-  → prazo vencido em aguardando_documentos ou pendencias → expirada → promote_next_in_queue
+reserva criada (prazo = agora + reservation_hours, padrão 48 h)
+  aguardando_documentos ──envio completo no prazo──▶ documentacao_enviada ──OUZ inicia──▶ aguardando_conferencia
+        │ prazo vence                                     (não expira mais)                │
+        ▼                                                                      ┌──────────┴──────────┐
+     expirada → fila avança                                         documentacao_validada   pendencias_documentacao
+                                                                         │ venda registrada        │ prazo = regularization_hours
+                                                                         ▼                         │ reenvio completo → documentacao_enviada
+                                                                     convertida (unidade vendida)  ▼ vence (se configurado) → expirada → fila avança
 ```
-- `expires_at` é calculado no servidor no momento da criação da reserva (não no da proposta, nem da fila).
-- Extensão: perm `comercial`, motivo obrigatório, registra `reservation_extensions` + auditoria.
-- `process_reservation_deadlines()` roda via pg_cron a cada minuto, com `FOR UPDATE SKIP LOCKED`, idempotente.
+- Checklist PF/PJ configurável por empreendimento (ou global); é copiado para a reserva no momento em que ela nasce.
+- Extensão de prazo: só `comercial`, motivo obrigatório, registro em `reservation_extensions` e auditoria.
+- `regularization_expires = false` faz a pendência não expirar sozinha (a OUZ decide).
+- Rotina `process_reservation_deadlines()` via **pg_cron a cada minuto**, com `FOR UPDATE SKIP LOCKED`, idempotente; também encerra janelas de pré-lançamento vencidas.
 
 ### 2.4 Casos tratados
-| Caso | Regra |
+| Caso | Regra implementada |
 |---|---|
-| Proposta sob análise na frente da fila | Mantém posição por até `analysis_hold_hours` (configurável). A unidade fica livre para reserva? **Não**: a próxima só é promovida se a análise reprovar ou expirar. Para não bloquear indefinidamente, a análise tem prazo; ao vencer, volta para OUZ como alerta e a fila avança. |
-| Desistência | Corretor retira; se tinha reserva → encerra e promove o próximo; se estava na fila → sai da fila. |
-| Reprovação | Sai da fila com motivo; corretor vê só o próprio status. |
-| Mudança de tabela | Propostas já aprovadas mantêm o snapshot. Propostas na fila são reavaliadas contra a tabela vigente na promoção; se não atenderem, vão para análise. |
-| Mesmo cliente por corretores diferentes | Chave `client_document_hash` (hash do CPF/CNPJ normalizado). Ao enviar, se houver outra proposta ativa para o mesmo cliente/empreendimento por outro corretor → status `em_analise` com motivo `duplicidade_cliente`; nenhum corretor vê dados do outro. Regra de desempate: decisão da OUZ (primeiro envio válido é o padrão sugerido — pendente). |
-| Alteração relevante após entrar na fila | Valor, condições, unidade ou cliente alterados → nova versão da proposta, sai da posição e reentra no fim da fila. Observações não alteram posição. |
-| Proposta incompleta | Rascunho não entra na fila; reserva sem documentação expira; análise tem prazo. Nada bloqueia indefinidamente. |
+| Proposta sob análise | **Não ocupa posição na fila.** Entra na fila (ou recebe a reserva) no momento da aprovação da OUZ. Assim, nenhuma análise bloqueia a unidade. Se a OUZ quiser respeitar a ordem original, usa a prioridade manual (com justificativa). |
+| Desistência | Corretor retira a proposta. Com reserva: a reserva é cancelada e a fila avança na mesma transação. Na fila: sai da fila. |
+| Reprovação | `reprovada` com justificativa visível ao corretor; sai de qualquer fila. |
+| Mudança de tabela | Propostas já enviadas mantêm o snapshot. Na promoção, quem está na fila é reavaliado na tabela nova; aprovações manuais da OUZ só continuam válidas se a tabela não mudou desde a aprovação. |
+| Mesmo cliente por corretores diferentes | Detectado pelo hash do CPF/CNPJ calculado no banco. A nova proposta vai para análise (motivo "verificação de cadastro"), sem revelar ao corretor a existência ou os dados do outro. Mesmo corretor, mesmo cliente e mesma unidade com proposta ativa: envio recusado. |
+| Alteração relevante após a fila | "Alterar condições" marca a proposta como `substituida` (sai da fila) e cria um rascunho novo; ao reenviar, entra no fim da fila. Observações podem mudar sem perder posição. |
+| Venda concluída | `convertida`: unidade `vendida`, propostas restantes da fila encerradas com aviso. |
 
 ### 2.5 Pré-lançamento (UMAN)
-`prelaunch_campaigns` (aberta/encerrada, limite por cliente), `prelaunch_waves`, `prelaunch_registrations` (cliente, corretor, documento hash, preferências, criado em, status, critério de prioridade, histórico). Liberar preços para uma onda cria uma janela (`window_starts_at/ends_at`) em que as propostas daquela onda são aceitas no fluxo normal. Registro ≠ proposta ≠ reserva; nada é cobrado nem prometido.
+- Modo de venda `pre_lancamento`: corretores registram interesse (cliente, CPF/CNPJ, preferências) — não é proposta nem reserva, não há cobrança nem promessa.
+- Limite de registros por cliente (configurável) para o mesmo corretor; cliente já registrado por **outro** corretor → `em_analise_duplicidade` para a OUZ decidir.
+- A OUZ cria ondas, inclui os próximos N registros (ordem: rank manual, depois cronológica) e abre a **janela**: preços e unidades passam a ser visíveis só para os corretores convidados, que podem enviar proposta para o **mesmo cliente** do registro, no fluxo normal (avaliação, fila, reserva).
+- Janela vencida sem proposta → `janela_encerrada` (rotina agendada).
 
 ## 3. Modelo de dados — Etapa 1 (implementado em `supabase/migrations`)
 

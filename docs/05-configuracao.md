@@ -33,7 +33,6 @@ Ver `.env.example`. Em desenvolvimento, copie para `.env.local`.
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase › Project Settings › API | |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | idem (publishable / anon) | pode ir ao navegador |
 | `SUPABASE_SECRET_KEY` | idem (secret / service_role) | **somente servidor** |
-| `DOCUMENT_HASH_PEPPER` | gerar: `openssl rand -hex 32` | diferente por ambiente; não trocar depois de ter dados |
 | `CRON_SECRET` | gerar: `openssl rand -hex 32` | |
 | `EMAIL_MODE` | `log` ou `resend` | e-mail real só com `resend` **e** `APP_ENV=production` |
 | `RESEND_API_KEY`, `EMAIL_FROM` | Resend, após verificar o domínio | |
