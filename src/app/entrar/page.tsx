@@ -13,17 +13,28 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   const target = safeNext(next);
   if (await getViewer()) redirect(target);
   const signupHref = `/entrar/cadastro?next=${encodeURIComponent(target)}`;
+  // Título conforme o acesso escolhido na página inicial.
+  const area = target.startsWith("/admin") ? "equipe" : target.startsWith("/corretor") ? "corretor" : target.startsWith("/cliente") ? "cliente" : null;
+  const copy = {
+    cliente: { eyebrow: "Área do cliente", description: "Acompanhe sua unidade, a obra, documentos e o financeiro." },
+    corretor: { eyebrow: "Portal do corretor", description: "Empreendimentos liberados, tabelas e propostas." },
+    equipe: { eyebrow: "Equipe OUZ", description: "Acesso restrito à equipe, com verificação em duas etapas." },
+  }[area ?? "cliente"];
   return (
     <AuthCard
-      eyebrow="OUZ Experience"
+      eyebrow={area ? copy.eyebrow : "OUZ Experience"}
       title="Entrar"
-      description="Clientes, corretores e equipe OUZ usam o mesmo acesso."
+      description={area ? copy.description : "Clientes, corretores e equipe OUZ usam o mesmo acesso."}
       footer={
         <>
           <Link href="/entrar/recuperar" className="underline underline-offset-4">Esqueci minha senha</Link>
-          <span>
-            Não tem conta? <Link href={signupHref} className="underline underline-offset-4">Criar conta</Link>
-          </span>
+          {area === "cliente" && <span>Primeiro acesso? Use o link do convite enviado pela OUZ por e-mail.</span>}
+          {area === "corretor" && (
+            <span>Ainda não tem cadastro? <Link href={signupHref} className="underline underline-offset-4">Cadastre-se</Link></span>
+          )}
+          {area === null && (
+            <span>Não tem conta? <Link href={signupHref} className="underline underline-offset-4">Criar conta</Link></span>
+          )}
         </>
       }
     >

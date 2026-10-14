@@ -1,33 +1,39 @@
 import { expect, test } from "@playwright/test";
-import { expectAccessible, purgeE2eData } from "./helpers";
+import { expectAccessible } from "./helpers";
 
-test.afterAll(purgeE2eData);
+// Pula a animação de abertura (exibida uma vez por sessão).
+test.beforeEach(async ({ page }) => page.addInitScript(() => sessionStorage.setItem("ouz_intro", "1")));
 
-test("página inicial com identidade OUZ e empreendimentos publicados", async ({ page }) => {
+test("página inicial é só a porta de acesso: cliente, corretor e equipe", async ({ page, isMobile }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/criamos empreendimentos com significado/i);
-  await expect(page.getByRole("img", { name: "OUZ" }).first()).toBeVisible();
-  for (const nome of ["SOHO", "MAUI", "UMAN"]) await expect(page.getByRole("heading", { name: nome, exact: true })).toBeVisible();
+  const acessos = page.getByRole("navigation", { name: "Acessos" });
+  await expect(acessos.getByRole("link", { name: /Área do cliente/ })).toHaveAttribute("href", "/entrar?next=/cliente");
+  await expect(acessos.getByRole("link", { name: /Portal do corretor/ })).toHaveAttribute("href", "/entrar?next=/corretor");
+  await expect(page.getByRole("link", { name: "Acesso da equipe OUZ" })).toHaveAttribute("href", "/entrar?next=/admin");
+  // "Voltar ao site" só no computador (no celular/app levaria para fora do app).
+  const site = page.getByRole("link", { name: /Voltar ao site da OUZ/ });
+  if (isMobile) await expect(site).toBeHidden();
+  else await expect(site).toHaveAttribute("href", "https://ouzgroup.com.br");
   await expectAccessible(page);
 });
 
-test("página do empreendimento mostra só conteúdo público (sem preços)", async ({ page }) => {
-  await page.goto("/empreendimentos/soho");
-  await expect(page.getByRole("heading", { name: "SOHO", level: 1 })).toBeVisible();
-  await expect(page.getByText("Rooftop 360º").first()).toBeVisible();
-  await expect(page.locator("body")).not.toContainText("R$");
+test("login mostra o acesso escolhido e volta para o início (não para o site)", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Acessos" }).getByRole("link", { name: /Portal do corretor/ }).click();
+  await expect(page).toHaveURL(/\/entrar\?next=%2Fcorretor|\/entrar\?next=\/corretor/);
+  await expect(page.getByText("Portal do corretor")).toBeVisible();
+  await page.getByRole("link", { name: /Voltar ao início/ }).click();
+  await expect(page).toHaveURL(/\/$/);
   await expectAccessible(page);
 });
 
-test("formulário de interesse valida e registra o contato", async ({ page }) => {
-  await page.goto("/interesse");
-  await page.getByRole("button", { name: "Enviar" }).click();
-  await expect(page.getByText("Revise os campos destacados.")).toBeVisible();
-  await page.getByLabel("Nome completo").fill("[E2E] Visitante");
-  await page.getByLabel("E-mail").fill(`e2e+${Date.now()}@teste.ouz.app.br`);
-  await page.getByLabel(/política de privacidade/).check();
-  await page.getByRole("button", { name: "Enviar" }).click();
-  await expect(page.getByText(/Recebemos seu contato/)).toBeVisible();
+test("páginas institucionais antigas levam ao site oficial", async ({ request }) => {
+  for (const path of ["/empreendimentos", "/empreendimentos/soho", "/novidades", "/eventos", "/interesse"]) {
+    const r = await request.get(path, { maxRedirects: 0 });
+    expect(r.status(), path).toBe(307);
+    expect(r.headers().location, path).toMatch(/^https:\/\/ouzgroup\.com\.br\/?$/);
+  }
 });
 
 test("áreas restritas exigem login", async ({ page }) => {

@@ -59,7 +59,7 @@ export function AppShell({ viewer, area, nav, children }: { viewer: Viewer; area
                   </Link>
                 ))}
               <Link href="/conta" className="block px-3 py-2 hover:bg-sand">Minha conta</Link>
-              <Link href="/" className="block px-3 py-2 hover:bg-sand">Site OUZ</Link>
+              <Link href="/" className="block px-3 py-2 hover:bg-sand">Início</Link>
               <form action={signOut}>
                 <button type="submit" className="w-full text-left px-3 py-2 hover:bg-sand">Sair</button>
               </form>

@@ -16,6 +16,12 @@ const nextConfig: NextConfig = {
     remotePatterns: supabaseHost ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }] : [],
   },
   experimental: { serverActions: { bodySizeLimit: "12mb" } },
+  // O conteúdo institucional fica em ouzgroup.com.br; o app é só a porta de acesso.
+  async redirects() {
+    return ["/empreendimentos/:path*", "/novidades/:path*", "/eventos/:path*", "/interesse"].map((source) => ({
+      source, destination: "https://ouzgroup.com.br", permanent: false,
+    }));
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
