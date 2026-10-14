@@ -89,6 +89,19 @@ const cov = await cli.from("tickets").select("coverage").limit(1);
 expect("Cliente não lê a avaliação interna de garantia dos chamados", Boolean(cov.error), true);
 expect("Cliente não lê confirmações de presença de outras pessoas", await count(cli.from("event_rsvps").select("id").neq("user_id", (await cli.auth.getUser()).data.user.id)), 0);
 
+// Etapa 4: concierge
+expect("Cliente vê o catálogo de concierge do seu empreendimento", (await cli.from("concierge_services").select("id")).data?.length > 0, true);
+expect("Cliente não vê prestadores", await count(cli.from("concierge_providers").select("id")), 0);
+const provCol = await cli.from("concierge_requests").select("provider_id").limit(1);
+expect("Cliente não lê o prestador da solicitação", Boolean(provCol.error), true);
+for (const [nome, c] of [["corretor sem UMAN", sem], ["corretor com UMAN", com]]) {
+  expect(`${nome}: não vê catálogo, solicitações nem prestadores do concierge`, [
+    await count(c.from("concierge_services").select("id")),
+    await count(c.from("concierge_requests").select("id")),
+    await count(c.from("concierge_providers").select("id")),
+  ], [0, 0, 0]);
+}
+
 const staff = await cli.from("staff_members").insert({ user_id: (await cli.auth.getUser()).data.user.id, role: "administrador" });
 expect("Cliente não vira staff", Boolean(staff.error), true);
 const { data: sst } = await cli.rpc("staff_status");

@@ -61,6 +61,13 @@ export default async function AdminHome() {
       href: "/admin/financeiro",
     });
   }
+  if (hasPermission(viewer, "concierge")) {
+    tiles.push({
+      label: "Concierge aguardando a OUZ",
+      value: await count(supabase.from("concierge_requests").select("id", { count: "exact", head: true }).in("status", ["solicitada", "em_analise", "aprovada_cliente"])),
+      href: "/admin/concierge",
+    });
+  }
   if (hasPermission(viewer, "notificacoes")) {
     tiles.push({
       label: "Notificações com falha",

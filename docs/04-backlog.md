@@ -59,4 +59,12 @@ Legenda: ✅ feito · 🔨 em andamento · ⬜ a fazer
 | Testes: isolamento entre clientes e perfis, documentos ocultos, baixa, importação, chamados, eventos | ✅ |
 
 ## Etapa 4 — Concierge
-Catálogo por empreendimento · prestadores · solicitações · orçamento e taxa OUZ · aprovação do cliente · agendamento · execução · conclusão e avaliação · cancelamentos e ocorrências.
+| Item | Status |
+|---|---|
+| Catálogo administrável por empreendimento (flores, passeio com cachorro, compras, limpeza, lavanderia, manutenção, recebimento de entregas, outros) | ✅ |
+| Prestadores (internos, ocultos ao cliente), com categorias atendidas | ✅ |
+| Solicitação → análise → orçamento com valor do serviço e taxa OUZ → aprovação do cliente → agendamento → execução → conclusão → avaliação | ✅ |
+| Nada automático: sem contratação, cobrança ou confirmação pelo sistema; agendamento exige aprovação (salvo serviço sem orçamento) | ✅ |
+| Cancelamentos (cliente e OUZ, com motivo), ocorrências internas ou visíveis, orçamento com validade | ✅ |
+| Separado da assistência técnica (chamados) | ✅ |
+| Testes: fluxo completo, isolamento, prestador oculto, orçamento vencido | ✅ |

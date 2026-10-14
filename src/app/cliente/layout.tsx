@@ -8,6 +8,7 @@ export default async function ClientLayout({ children }: { children: React.React
     <AppShell viewer={viewer} area="cliente" nav={[
         { href: "/cliente", label: "Minhas unidades" },
         { href: "/cliente/chamados", label: "Chamados" },
+        { href: "/cliente/concierge", label: "Concierge" },
         { href: "/agenda", label: "Agenda" },
         { href: "/notificacoes", label: "Notificações" },
       ]}>

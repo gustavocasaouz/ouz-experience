@@ -158,3 +158,46 @@ export const TICKET_STATUS_LABELS: Record<string, string> = {
 };
 export const TICKET_PRIORITY_LABELS: Record<string, string> = { baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente" };
 export const COVERAGE_LABELS: Record<string, string> = { nao_avaliado: "Não avaliado", coberto: "Coberto pela garantia", nao_coberto: "Não coberto", parcial: "Parcialmente coberto" };
+
+export const CONCIERGE_CATEGORY_LABELS: Record<string, string> = {
+  flores: "Flores",
+  passeio_cachorro: "Passeio com cachorro",
+  compras_mercado: "Compras de mercado",
+  limpeza: "Limpeza",
+  lavanderia: "Lavanderia",
+  manutencao: "Manutenção",
+  recebimento_entregas: "Recebimento de entregas",
+  outros: "Outros serviços",
+};
+export const CONCIERGE_STATUS_LABELS: Record<string, string> = {
+  solicitada: "Solicitada",
+  em_analise: "Verificando disponibilidade",
+  indisponivel: "Indisponível",
+  orcamento_enviado: "Orçamento aguardando sua aprovação",
+  aprovada_cliente: "Aprovada — aguardando agendamento",
+  recusada_cliente: "Orçamento recusado",
+  agendada: "Agendada",
+  em_execucao: "Em execução",
+  concluida: "Concluída",
+  cancelada: "Cancelada",
+};
+export const CONCIERGE_STATUS_TONE: Record<string, "neutral" | "success" | "warning" | "danger" | "info"> = {
+  solicitada: "info",
+  em_analise: "info",
+  indisponivel: "neutral",
+  orcamento_enviado: "warning",
+  aprovada_cliente: "info",
+  recusada_cliente: "neutral",
+  agendada: "success",
+  em_execucao: "success",
+  concluida: "success",
+  cancelada: "neutral",
+};
+export const OCCURRENCE_LABELS: Record<string, string> = {
+  atraso: "Atraso",
+  nao_comparecimento: "Não comparecimento",
+  dano: "Dano",
+  reclamacao: "Reclamação",
+  reagendamento: "Reagendamento",
+  outro: "Outro",
+};

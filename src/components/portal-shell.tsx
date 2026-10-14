@@ -9,6 +9,7 @@ export function PortalShell({ viewer, children }: { viewer: Viewer; children: Re
       ? [
           { href: "/cliente", label: "Minhas unidades" },
           { href: "/cliente/chamados", label: "Chamados" },
+          { href: "/cliente/concierge", label: "Concierge" },
           { href: "/agenda", label: "Agenda" },
           { href: "/notificacoes", label: "Notificações" },
         ]

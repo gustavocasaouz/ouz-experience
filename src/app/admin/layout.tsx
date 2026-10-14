@@ -15,6 +15,7 @@ const NAV: Array<{ href: string; label: string; perm?: StaffPermission[] }> = [
   { href: "/admin/personalizacoes", label: "Personalizações", perm: ["atendimento"] },
   { href: "/admin/entregas", label: "Vistorias e entregas", perm: ["atendimento"] },
   { href: "/admin/financeiro", label: "Financeiro", perm: ["financeiro"] },
+  { href: "/admin/concierge", label: "Concierge", perm: ["concierge"] },
   { href: "/admin/conteudo", label: "Conteúdo do site", perm: ["conteudo"] },
   { href: "/admin/eventos", label: "Eventos", perm: ["eventos"] },
   { href: "/admin/interessados", label: "Interessados", perm: ["atendimento", "comercial"] },

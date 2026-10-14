@@ -7,7 +7,7 @@ import { getViewer } from "@/server/auth/viewer";
 import { processOutbox } from "@/server/notifications/outbox";
 import { checkRateLimit } from "@/server/security/rate-limit";
 import { ALLOWED_DOC_TYPES, ALLOWED_IMAGE_TYPES, filesFrom, objectPath, validateUpload } from "@/server/files";
-import { parseBRL } from "@/lib/format";
+import { brasiliaLocalToUtcIso, parseBRL } from "@/lib/format";
 import { dbErrorMessage } from "./types";
 
 const flush = () => after(() => processOutbox(10).catch(() => undefined));
@@ -187,4 +187,56 @@ export async function markNotificationsRead(fd: FormData) {
   const link = s(fd, "link");
   if (link.startsWith("/") && !link.startsWith("//")) redirect(link);
   redirect("/notificacoes");
+}
+
+// ---------------------------------------------------------------------------
+// Concierge
+// ---------------------------------------------------------------------------
+export async function requestConcierge(fd: FormData) {
+  const path = "/cliente/concierge";
+  if (!(await limited("concierge"))) back(path, "erro", "Muitas solicitações. Tente mais tarde.");
+  const preferred = s(fd, "preferred_at");
+  let preferredIso: string | null = null;
+  if (preferred) {
+    try {
+      preferredIso = brasiliaLocalToUtcIso(preferred);
+    } catch {
+      back(path, "erro", "Data preferida inválida.");
+    }
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data: id, error } = await supabase.rpc("client_request_concierge", {
+    p_unit_id: s(fd, "unit_id"),
+    p_service_id: s(fd, "service_id"),
+    p_details: s(fd, "details"),
+    p_preferred_at: preferredIso,
+  });
+  if (error || typeof id !== "string") back(path, "erro", dbErrorMessage(error, "Descreva o que você precisa."));
+  flush();
+  back(`/cliente/concierge/${id}`, "ok", "Solicitação enviada. A OUZ verificará a disponibilidade e retornará por aqui.");
+}
+
+export async function decideConciergeQuote(fd: FormData) {
+  const id = s(fd, "id");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("client_decide_concierge_quote", { p_id: id, p_approve: s(fd, "decision") === "aprovar" });
+  if (error) back(`/cliente/concierge/${id}`, "erro", dbErrorMessage(error));
+  flush();
+  back(`/cliente/concierge/${id}`, "ok", s(fd, "decision") === "aprovar" ? "Orçamento aprovado. A OUZ fará o agendamento." : "Orçamento recusado.");
+}
+
+export async function cancelConcierge(fd: FormData) {
+  const id = s(fd, "id");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("client_cancel_concierge", { p_id: id, p_reason: s(fd, "reason") });
+  if (error) back(`/cliente/concierge/${id}`, "erro", dbErrorMessage(error));
+  flush();
+  back(`/cliente/concierge/${id}`, "ok", "Solicitação cancelada.");
+}
+
+export async function rateConcierge(fd: FormData) {
+  const id = s(fd, "id");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("client_rate_concierge", { p_id: id, p_rating: Number(s(fd, "rating")), p_comment: s(fd, "comment") });
+  back(`/cliente/concierge/${id}`, error ? "erro" : "ok", error ? dbErrorMessage(error) : "Obrigado pela avaliação.");
 }
