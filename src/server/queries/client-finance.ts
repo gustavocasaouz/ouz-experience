@@ -2,16 +2,16 @@ import "server-only";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 
 export type InstallmentRow = {
-  id: string; number: number; kind: string; due_date: string; original_amount: string; monetary_update: string | null;
+  id: string; number: number; kind: string; due_date: string | null; original_amount: string; monetary_update: string | null;
   interest: string | null; fine: string | null; updated_amount: string | null; paid_amount: string; paid_on: string | null;
-  status: string; display_status: string;
+  status: string; display_status: string; indexed: boolean; is_estimate: boolean; index_month: string | null;
 };
 
 export async function unitFinance(unitId: string) {
   const supabase = await createSupabaseServerClient();
   const { data: contract } = await supabase
     .from("financial_contracts")
-    .select("id, contract_value, signed_on, last_updated_at, notes")
+    .select("id, contract_value, signed_on, last_updated_at, notes, index_name")
     .eq("unit_id", unitId)
     .maybeSingle();
   if (!contract) return null;
@@ -31,6 +31,8 @@ export async function unitFinance(unitId: string) {
     overdueCount: live.filter((i) => i.display_status === "vencida").length,
     overdueAmount: live.filter((i) => i.display_status === "vencida").reduce((a, i) => a + Math.max(due(i) - n(i.paid_amount), 0), 0),
     upcomingCount: live.filter((i) => i.display_status === "a_vencer").length,
+    hasEstimate: live.some((i) => i.status !== "paga" && i.is_estimate),
+    lastIndexMonth: live.filter((i) => i.is_estimate && i.index_month).map((i) => i.index_month as string).sort().at(-1) ?? null,
   };
   return { contract, installments, receipts: receipts ?? [], inquiries: inquiries ?? [], totals };
 }

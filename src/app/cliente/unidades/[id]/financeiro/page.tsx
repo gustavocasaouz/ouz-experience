@@ -7,9 +7,10 @@ import { myUnit } from "@/server/queries/client-unit";
 import { unitFinance } from "@/server/queries/client-finance";
 import { askFinancialQuestion, submitReceipt } from "@/server/actions/client";
 import { INSTALLMENT_KIND_LABELS, INSTALLMENT_STATUS_LABELS, RECEIPT_STATUS_LABELS } from "@/lib/labels";
-import { formatBRL, formatDate, formatDateTime } from "@/lib/format";
+import { formatBRL, formatDate, formatDateTime, formatDue } from "@/lib/format";
 
 const d = (v: string | null) => (v ? formatDate(v + "T12:00:00Z") : "—");
+const monthYear = (v: string) => `${v.slice(5, 7)}/${v.slice(0, 4)}`;
 const tone = (s: string) => (s === "paga" ? "success" : s === "vencida" ? "danger" : s === "parcialmente_paga" ? "warning" : "neutral") as "success" | "danger" | "warning" | "neutral";
 
 export default async function ClientFinance({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
@@ -32,7 +33,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
         {[
           { l: "Valor contratado", v: formatBRL(f.totals.contracted) },
           { l: "Valores pagos", v: formatBRL(f.totals.paid) },
-          { l: "Valores a pagar", v: formatBRL(f.totals.toPay), s: `${f.totals.upcomingCount} parcela(s) a vencer` },
+          { l: "Valores a pagar", v: formatBRL(f.totals.toPay), s: `${f.totals.upcomingCount} parcela(s) a vencer${f.totals.hasEstimate ? " · inclui estimativas" : ""}` },
           { l: "Vencidas", v: formatBRL(f.totals.overdueAmount), s: `${f.totals.overdueCount} parcela(s)`, danger: f.totals.overdueCount > 0 },
         ].map((c) => (
           <Card key={c.l} className={`p-5 ${c.danger ? "border-danger/40" : ""}`}>
@@ -53,7 +54,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
               <tr key={i.id}>
                 <Td>{i.number}</Td>
                 <Td>{INSTALLMENT_KIND_LABELS[i.kind]}</Td>
-                <Td className="whitespace-nowrap">{d(i.due_date)}</Td>
+                <Td className="whitespace-nowrap">{formatDue(i.due_date)}</Td>
                 <Td className="whitespace-nowrap">{formatBRL(i.original_amount)}</Td>
                 {hasBreakdown && (
                   <>
@@ -62,12 +63,18 @@ export default async function ClientFinance({ params, searchParams }: { params: 
                     <Td className="whitespace-nowrap">{i.fine ? formatBRL(i.fine) : "—"}</Td>
                   </>
                 )}
-                <Td className="whitespace-nowrap">{i.updated_amount ? formatBRL(i.updated_amount) : "—"}</Td>
+                <Td className="whitespace-nowrap">{i.updated_amount ? formatBRL(i.updated_amount) : "—"}{i.is_estimate && i.status !== "paga" && <span className="block text-xs text-ink-mute">estimativa</span>}</Td>
                 <Td className="whitespace-nowrap">{Number(i.paid_amount) > 0 ? `${formatBRL(i.paid_amount)}${i.paid_on ? ` em ${d(i.paid_on)}` : ""}` : "—"}</Td>
                 <Td><Badge tone={tone(i.display_status)}>{INSTALLMENT_STATUS_LABELS[i.display_status] ?? i.display_status}</Badge></Td>
               </tr>
             ))}
           </Table>
+        )}
+        {f.contract.index_name && (
+          <p className="text-sm text-ink-soft mt-4">
+            Parcelas corrigidas pelo {f.contract.index_name}: valor em CUBs multiplicado pelo CUB do mês do vencimento.
+            {f.totals.hasEstimate && <> Onde aparece <strong>estimativa</strong>, o CUB do mês ainda não foi publicado e o cálculo usa o último CUB cadastrado{f.totals.lastIndexMonth ? ` (${monthYear(f.totals.lastIndexMonth)})` : ""}; o valor final depende do CUB do mês do pagamento.</>}
+          </p>
         )}
         <p className="text-xs text-ink-mute mt-3">Atualização, juros e multa são informados pela OUZ quando existirem. Valores sujeitos a conferência.</p>
       </section>
@@ -79,7 +86,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
           <form action={submitReceipt} className="flex flex-col gap-4">
             <input type="hidden" name="unit_id" value={id} />
             <input type="hidden" name="contract_id" value={f.contract.id} />
-            <SelectField label="Parcela" name="installment_id" id="rc-inst" placeholder="Não sei / outra" options={open.map((i) => ({ value: i.id, label: `Nº ${i.number} · vence ${d(i.due_date)} · ${formatBRL(i.updated_amount ?? i.original_amount)}` }))} />
+            <SelectField label="Parcela" name="installment_id" id="rc-inst" placeholder="Não sei / outra" options={open.map((i) => ({ value: i.id, label: `Nº ${i.number} · ${i.due_date ? `vence ${d(i.due_date)}` : formatDue(null).toLowerCase()} · ${formatBRL(i.updated_amount ?? i.original_amount)}` }))} />
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField label="Valor pago (R$)" name="amount" id="rc-amount" inputMode="decimal" />
               <TextField label="Data do pagamento" name="paid_on" id="rc-date" type="date" />
@@ -108,7 +115,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
           <form action={askFinancialQuestion} className="flex flex-col gap-4">
             <input type="hidden" name="unit_id" value={id} />
             <input type="hidden" name="contract_id" value={f.contract.id} />
-            <SelectField label="Sobre a parcela" name="installment_id" id="iq-inst" placeholder="Geral" options={f.installments.map((i) => ({ value: i.id, label: `Nº ${i.number} · ${d(i.due_date)}` }))} />
+            <SelectField label="Sobre a parcela" name="installment_id" id="iq-inst" placeholder="Geral" options={f.installments.map((i) => ({ value: i.id, label: `Nº ${i.number} · ${formatDue(i.due_date)}` }))} />
             <TextArea label="Sua dúvida" name="message" id="iq-msg" required rows={4} maxLength={4000} />
             <SubmitButton className="self-start">Enviar</SubmitButton>
           </form>

@@ -226,6 +226,51 @@ export async function addInstallment(fd: FormData) {
   back(path, "ok", "Parcela lançada.");
 }
 
+// Correção pelo CUB-SC: o banco calcula os CUBs e o valor reajustado (estimado até o CUB do mês ser cadastrado).
+export async function setContractIndex(fd: FormData) {
+  const unit = str(fd, "unit_id");
+  const path = unitHub(unit, "#financeiro");
+  await guard("financeiro", path);
+  const indexed = str(fd, "index_name") === "CUB-SC";
+  const base = indexed ? parseBRL(str(fd, "base_index_value")) : null;
+  if (indexed && !base) back(path, "erro", "Informe o CUB-base do contrato.");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("admin_set_contract_index", { p_contract_id: str(fd, "contract_id"), p_index: indexed ? "CUB-SC" : null, p_base: base });
+  failOn(error, path);
+  back(path, "ok", indexed ? "Correção pelo CUB-SC configurada." : "Correção pelo índice removida.");
+}
+
+export async function addIndexedInstallment(fd: FormData) {
+  const unit = str(fd, "unit_id");
+  const path = unitHub(unit, "#financeiro");
+  await guard("financeiro", path);
+  const original = parseBRL(str(fd, "original_amount"));
+  if (!original) back(path, "erro", "Informe o valor original.");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("admin_add_indexed_installment", {
+    p_contract_id: str(fd, "contract_id"),
+    p_number: Number(str(fd, "number")),
+    p_kind: str(fd, "kind") || "parcela",
+    p_due: optStr(fd, "due_date"),
+    p_original: original,
+    p_indexed: str(fd, "indexed") === "on",
+  });
+  failOn(error, path);
+  back(path, "ok", "Parcela lançada.");
+}
+
+export async function setIndexValue(fd: FormData) {
+  const path = "/admin/financeiro#cub";
+  await guard("financeiro", path);
+  const month = str(fd, "month"); // AAAA-MM
+  const value = parseBRL(str(fd, "value"));
+  if (!/^\d{4}-\d{2}$/.test(month) || !value) back(path, "erro", "Informe o mês e o valor do CUB.");
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("admin_set_index_value", { p_index: "CUB-SC", p_month: `${month}-01`, p_value: value, p_note: optStr(fd, "note") });
+  failOn(error, path);
+  back(path, "ok", `CUB-SC de ${month.slice(5)}/${month.slice(0, 4)} salvo; ${data ?? 0} parcela(s) em aberto recalculada(s).`);
+}
+
 export async function registerPayment(fd: FormData) {
   const unit = str(fd, "unit_id");
   const path = unitHub(unit, "#financeiro");

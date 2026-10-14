@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import { myUnit } from "@/server/queries/client-unit";
 import { unitFinance } from "@/server/queries/client-finance";
-import { formatBRL, formatDate, formatDateTime, requestNow } from "@/lib/format";
+import { formatBRL, formatDateTime, formatDue, requestNow } from "@/lib/format";
 import { INSTALLMENT_KIND_LABELS, INSTALLMENT_STATUS_LABELS } from "@/lib/labels";
 
-const d = (v: string | null) => (v ? formatDate(v + "T12:00:00Z") : "—");
 
 export default async function Statement({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -40,19 +39,19 @@ export default async function Statement({ params }: { params: Promise<{ id: stri
             <tr key={i.id} className="border-b border-line/60">
               <td className="py-1">{i.number}</td>
               <td>{INSTALLMENT_KIND_LABELS[i.kind]}</td>
-              <td>{d(i.due_date)}</td>
+              <td>{formatDue(i.due_date)}</td>
               <td>{formatBRL(i.original_amount)}</td>
               <td>{i.monetary_update ? formatBRL(i.monetary_update) : "—"}</td>
               <td>{i.interest ? formatBRL(i.interest) : "—"}</td>
               <td>{i.fine ? formatBRL(i.fine) : "—"}</td>
-              <td>{i.updated_amount ? formatBRL(i.updated_amount) : "—"}</td>
+              <td>{i.updated_amount ? formatBRL(i.updated_amount) : "—"}{i.is_estimate && i.status !== "paga" ? " *" : ""}</td>
               <td>{Number(i.paid_amount) > 0 ? formatBRL(i.paid_amount) : "—"}</td>
               <td>{INSTALLMENT_STATUS_LABELS[i.display_status]}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="text-xs text-ink-mute mt-6">Documento informativo. Não substitui o contrato nem quitação formal. Atualizações, juros e multas são os informados pela OUZ.</p>
+      <p className="text-xs text-ink-mute mt-6">Documento informativo. Não substitui o contrato nem quitação formal. Atualizações, juros e multas são os informados pela OUZ.{f.totals.hasEstimate ? ` * Estimativa pelo último CUB cadastrado; o valor final depende do CUB do mês do pagamento.` : ""}</p>
     </article>
   );
 }

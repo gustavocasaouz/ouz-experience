@@ -58,6 +58,16 @@ Legenda: ✅ feito · 🔨 em andamento · ⬜ a fazer
 | Central de notificações (aplicativo) e e-mails sem duplicidade | ✅ |
 | Testes: isolamento entre clientes e perfis, documentos ocultos, baixa, importação, chamados, eventos | ✅ |
 
+## Migração da base ativa
+| Item | Status |
+|---|---|
+| Financeiro corrigido pelo CUB-SC: CUB mensal, CUB-base, CUBs por parcela, estimativa visível ao cliente, parcela das chaves sem data | ✅ |
+| Importação da planilha "Fluxo de Pagamentos Clientes" (simulação + gravação tudo ou nada, conferência com os totais da planilha) | ✅ |
+| Importação do MAUI (13 clientes) — após corrigir e-mail do Apto 107 e conferir o Apto 211; em produção só após o plano Pro | ⬜ |
+| Planilhas do SOHO e demais empreendimentos | ⬜ (aguardando arquivos) |
+| Corretores ativos (aprovados, com acesso por empreendimento) | ⬜ (aguardando lista) |
+| Convites aos clientes em lotes, quando a OUZ decidir | ⬜ |
+
 ## Etapa 4 — Concierge
 | Item | Status |
 |---|---|

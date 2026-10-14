@@ -91,6 +91,20 @@ npx playwright show-report e2e-report
 
 Cobrem: área pública (desktop e celular), bloqueio de áreas restritas, portal do corretor, portal do cliente (unidade, acompanhamento, financeiro), administração com MFA e verificação automática de acessibilidade WCAG AA (axe). Usam somente as contas de teste e o banco de desenvolvimento; antes de rodar, execute `criar-contas-teste.mjs`. Nenhum e-mail real é enviado (`EMAIL_MODE=log`).
 
+## 6.1 Importação da base ativa (planilha "Fluxo de Pagamentos Clientes")
+
+Uma vez por empreendimento. Cria unidades (vendidas), clientes, vínculos, contratos corrigidos pelo CUB-SC, parcelas (pagas até a fórmula "Total já pago") e o histórico do CUB. **Não** envia convites e **não** guarda CPF/CNPJ nem endereço.
+
+```bash
+node --env-file=.env.local scripts/importar-fluxo-cub.mjs "arquivo.xlsx" --empreendimento maui           # simulação: confere tudo e desfaz
+node --env-file=.env.local scripts/importar-fluxo-cub.mjs "arquivo.xlsx" --empreendimento maui --gravar  # grava (tudo ou nada)
+```
+
+- A simulação mostra, por apartamento, parcelas, pagas, contrato, total pago e saldo calculado × saldo da planilha, além de avisos (diferenças) e erros (ex.: e-mail inválido). Com erro, nada é gravado.
+- Em produção exige `--confirmo-producao`, e só depois do plano Pro do Supabase (backup).
+- A planilha real nunca entra no projeto: `*.xlsx` está no `.gitignore`.
+- Depois da importação, o CUB do mês é cadastrado em **Administração → Financeiro → CUB-SC mensal**, e as baixas na ficha da unidade.
+
 ## 7. Produção (estado em 14/10/2026)
 
 - Supabase **OUZ Experience Produção** criado em São Paulo; 23 migrações aplicadas; `seed-producao.sql` + `seed-conteudo-oficial.sql` (sem dados demonstrativos); vendas fechadas.

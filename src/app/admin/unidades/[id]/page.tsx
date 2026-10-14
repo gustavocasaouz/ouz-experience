@@ -8,12 +8,12 @@ import { staffWith } from "@/components/admin/require-perm";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { hasPermission } from "@/server/auth/viewer";
 import {
-  addInstallment, addPunchItem, createDocument, registerPayment, answerInquiry, updateBooking, updateCustomization, updateDelivery, updatePunchItem, upsertContract,
+  addIndexedInstallment, addInstallment, addPunchItem, setContractIndex, createDocument, registerPayment, answerInquiry, updateBooking, updateCustomization, updateDelivery, updatePunchItem, upsertContract,
 } from "@/server/actions/admin/experience";
 import {
   CUSTOMIZATION_STATUS_LABELS, DOCUMENT_CATEGORY_LABELS, INSTALLMENT_KIND_LABELS, INSTALLMENT_STATUS_LABELS, PUNCH_STATUS_LABELS, RECEIPT_STATUS_LABELS,
 } from "@/lib/labels";
-import { formatBRL, formatDate, formatDateTime, utcToBrasiliaLocalInput } from "@/lib/format";
+import { formatBRL, formatDate, formatDateTime, formatDue, utcToBrasiliaLocalInput } from "@/lib/format";
 
 const d = (v: string | null) => (v ? formatDate(v + "T12:00:00Z") : "—");
 
@@ -36,13 +36,13 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
   const [clients, docs, contract, custom, bookings, punch, delivery] = await Promise.all([
     can.cli ? supabase.from("client_units").select("relation, active, client:clients(id, full_name, email)").eq("unit_id", id).eq("active", true) : Promise.resolve({ data: null }),
     can.docs ? supabase.from("documents").select("id, category, title, visible_to_client, versions:document_versions(version_number, storage_path, uploaded_at)").eq("unit_id", id).order("created_at") : Promise.resolve({ data: null }),
-    can.fin ? supabase.from("financial_contracts").select("id, contract_value, signed_on, notes, last_updated_at").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
+    can.fin ? supabase.from("financial_contracts").select("id, contract_value, signed_on, notes, last_updated_at, index_name, base_index_value").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
     can.att ? supabase.from("customization_requests").select("*").eq("unit_id", id).order("created_at", { ascending: false }) : Promise.resolve({ data: null }),
     can.att ? supabase.from("appointment_bookings").select("id, kind, status, slot:appointment_slots(starts_at, location)").eq("unit_id", id).order("created_at", { ascending: false }) : Promise.resolve({ data: null }),
     can.att ? supabase.from("punch_list_items").select("*").eq("unit_id", id).order("created_at") : Promise.resolve({ data: null }),
     can.att ? supabase.from("unit_deliveries").select("*").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
-  const c = contract.data as { id: string; contract_value: string; signed_on: string | null; notes: string | null; last_updated_at: string } | null;
+  const c = contract.data as { id: string; contract_value: string; signed_on: string | null; notes: string | null; last_updated_at: string; index_name: string | null; base_index_value: string | null } | null;
   const [inst, receipts, inquiries] = c
     ? await Promise.all([
         supabase.from("installments_view").select("*").eq("contract_id", c.id).order("due_date").order("number"),
@@ -50,7 +50,7 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
         supabase.from("financial_inquiries").select("*").eq("contract_id", c.id).order("created_at", { ascending: false }),
       ])
     : [{ data: [] }, { data: [] }, { data: [] }];
-  type I = { id: string; number: number; kind: string; due_date: string; original_amount: string; monetary_update: string | null; interest: string | null; fine: string | null; updated_amount: string | null; paid_amount: string; paid_on: string | null; display_status: string; data_source: string };
+  type I = { id: string; number: number; kind: string; due_date: string | null; indexed: boolean; index_quantity: string | null; index_value: string | null; is_estimate: boolean; original_amount: string; monetary_update: string | null; interest: string | null; fine: string | null; updated_amount: string | null; paid_amount: string; paid_on: string | null; display_status: string; data_source: string };
 
   return (
     <>
@@ -129,6 +129,15 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                 <SubmitButton size="sm" variant="secondary" className="self-start">{c ? "Atualizar contrato" : "Cadastrar contrato"}</SubmitButton>
               </form>
               {c && <p className="text-xs text-ink-mute mt-3">Última atualização exibida ao cliente: {formatDateTime(c.last_updated_at)}</p>}
+              {c && (
+                <form action={setContractIndex} className="grid gap-4 sm:grid-cols-3 mt-6 pt-6 border-t border-line">
+                  <input type="hidden" name="unit_id" value={id} />
+                  <input type="hidden" name="contract_id" value={c.id} />
+                  <SelectField label="Correção monetária" name="index_name" id="fc-idx" defaultValue={c.index_name ?? ""} placeholder="Sem índice (valores informados)" options={[{ value: "CUB-SC", label: "CUB-SC (mensal)" }]} />
+                  <TextField label="CUB-base do contrato (R$)" name="base_index_value" id="fc-base" inputMode="decimal" defaultValue={c.base_index_value ? Number(c.base_index_value).toFixed(2).replace(".", ",") : ""} />
+                  <SubmitButton size="sm" variant="secondary" className="self-end">Salvar correção</SubmitButton>
+                </form>
+              )}
             </Card>
             {c && (
               <>
@@ -138,11 +147,11 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                       <tr key={i.id}>
                         <Td>{i.number}</Td>
                         <Td>{INSTALLMENT_KIND_LABELS[i.kind]}</Td>
-                        <Td className="whitespace-nowrap">{d(i.due_date)}</Td>
-                        <Td className="whitespace-nowrap">{formatBRL(i.original_amount)}</Td>
+                        <Td className="whitespace-nowrap">{formatDue(i.due_date)}</Td>
+                        <Td className="whitespace-nowrap">{formatBRL(i.original_amount)}{i.index_quantity && <span className="block text-xs text-ink-mute">{Number(i.index_quantity).toLocaleString("pt-BR", { maximumFractionDigits: 4 })} CUB{i.indexed ? "" : " · sem reajuste"}</span>}</Td>
                         <Td className="text-xs whitespace-nowrap">{[i.monetary_update, i.interest, i.fine].map((v) => (v ? formatBRL(v) : "—")).join(" / ")}</Td>
-                        <Td className="whitespace-nowrap">{i.updated_amount ? formatBRL(i.updated_amount) : "—"}</Td>
-                        <Td className="whitespace-nowrap">{Number(i.paid_amount) > 0 ? `${formatBRL(i.paid_amount)} ${d(i.paid_on)}` : "—"}</Td>
+                        <Td className="whitespace-nowrap">{i.updated_amount ? formatBRL(i.updated_amount) : "—"}{i.is_estimate && !["paga", "cancelada", "renegociada"].includes(i.display_status) && <span className="block text-xs text-warning">estimativa{i.index_value ? ` (CUB ${formatBRL(i.index_value)})` : ""}</span>}</Td>
+                        <Td className="whitespace-nowrap">{Number(i.paid_amount) > 0 ? `${formatBRL(i.paid_amount)}${i.paid_on ? ` ${d(i.paid_on)}` : ""}` : "—"}</Td>
                         <Td>{INSTALLMENT_STATUS_LABELS[i.display_status]}<span className="block text-xs text-ink-mute">{i.data_source}</span></Td>
                         <Td>
                           {!["paga", "cancelada", "renegociada"].includes(i.display_status) && (
@@ -162,6 +171,22 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                 )}
                 <Card className="p-6 my-6">
                   <h3 className="font-medium mb-3">Lançar parcela</h3>
+                  {c.index_name ? (
+                    <>
+                      <form action={addIndexedInstallment} className="grid gap-3 sm:grid-cols-4">
+                        <input type="hidden" name="unit_id" value={id} />
+                        <input type="hidden" name="contract_id" value={c.id} />
+                        <TextField label="Nº" name="number" id="ix-n" type="number" min={1} required />
+                        <SelectField label="Tipo" name="kind" id="ix-k" options={Object.entries(INSTALLMENT_KIND_LABELS).map(([value, label]) => ({ value, label }))} defaultValue="parcela" />
+                        <TextField label="Vencimento (vazio = na entrega das chaves)" name="due_date" id="ix-d" type="date" />
+                        <TextField label="Valor original (R$)" name="original_amount" id="ix-o" inputMode="decimal" required />
+                        <CheckboxField label="Reajusta pelo CUB" name="indexed" id="ix-i" defaultChecked />
+                        <SubmitButton size="sm" className="self-start">Lançar</SubmitButton>
+                      </form>
+                      <p className="text-xs text-ink-mute mt-3">Os CUBs são calculados pelo CUB-base do contrato; o valor reajustado é calculado com o CUB do mês do vencimento.</p>
+                    </>
+                  ) : (
+                  <>
                   <form action={addInstallment} className="grid gap-3 sm:grid-cols-4">
                     <input type="hidden" name="unit_id" value={id} />
                     <input type="hidden" name="contract_id" value={c.id} />
@@ -175,7 +200,9 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                     <TextField label="Valor atualizado" name="updated_amount" id="in-a" inputMode="decimal" />
                     <SubmitButton size="sm" className="self-start">Lançar</SubmitButton>
                   </form>
-                  <p className="text-xs text-ink-mute mt-3">O sistema não calcula correção, juros ou multa: informe os valores da OUZ. Para muitas parcelas, use a importação em Financeiro.</p>
+                  <p className="text-xs text-ink-mute mt-3">Sem índice configurado, o sistema não calcula correção, juros ou multa: informe os valores da OUZ. Para muitas parcelas, use a importação em Financeiro.</p>
+                  </>
+                  )}
                 </Card>
                 <ReceiptsAndInquiries ret={ret} receipts={receipts.data ?? []} inquiries={inquiries.data ?? []} />
               </>

@@ -121,7 +121,7 @@ export const INSTALLMENT_STATUS_LABELS: Record<string, string> = {
   cancelada: "Cancelada",
   aberta: "Em aberto",
 };
-export const INSTALLMENT_KIND_LABELS: Record<string, string> = { entrada: "Entrada", parcela: "Parcela", reforco: "Reforço", chaves: "Chaves", outro: "Outro" };
+export const INSTALLMENT_KIND_LABELS: Record<string, string> = { entrada: "Entrada", parcela: "Parcela", reforco: "Reforço", chaves: "Chaves", outro: "Outro / antecipação" };
 export const RECEIPT_STATUS_LABELS: Record<string, string> = { enviado: "Em conferência", validado: "Validado", recusado: "Não validado" };
 export const CUSTOMIZATION_STATUS_LABELS: Record<string, string> = {
   recebida: "Recebida",

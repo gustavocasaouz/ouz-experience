@@ -58,6 +58,11 @@ export function parseBRL(input: string | null | undefined): number | null {
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
 }
 
+/** Vencimento de parcela (data civil); sem data = parcela das chaves. */
+export function formatDue(v: string | null | undefined) {
+  return v ? formatDate(v + "T12:00:00Z") : "Na entrega das chaves";
+}
+
 export function formatPercent(v: number | string | null | undefined, digits = 2) {
   if (v === null || v === undefined || v === "") return "—";
   return `${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: digits })}%`;

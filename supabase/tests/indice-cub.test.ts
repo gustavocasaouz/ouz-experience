@@ -1,0 +1,123 @@
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createTestDb, type Claims, type TestDb } from "./harness";
+import { MAUI, makeAdmin, makeOperator } from "./fixtures";
+
+let db: TestDb;
+let financeiro: Claims, atendimento: Claims;
+
+const one = async <T,>(p: Promise<T[]>) => (await p)[0] as T;
+const month = (offset: number) => {
+  const d = new Date();
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + offset, 1)).toISOString().slice(0, 10);
+};
+const day10 = (offset: number) => month(offset).slice(0, 8) + "10";
+
+// Planilha fictícia no formato do "Fluxo de Pagamentos": CUB-base 2000; parcelas de 10.000 (= 5 CUBs).
+const payload = (unit: string, email: string) => ({
+  development_id: MAUI,
+  file_name: "fluxo-teste.xlsx",
+  index_values: [{ month: month(-2), value: 2100 }, { month: month(-1), value: 2200 }],
+  clients: [{
+    ref: `maui:${unit}`, unit_code: unit, parking: "Vaga 1", full_name: "Cliente Importado", email, phone: "48999990000",
+    contract_value: 40000, base_index: 2000, note: "Vagas: Vaga 1",
+    installments: [
+      { number: 1, kind: "entrada", due_date: day10(-2), original_amount: 10000, indexed: false, index_quantity: 5, paid: true, paid_amount: 10000 },
+      { number: 2, kind: "parcela", due_date: day10(-1), original_amount: 10000, indexed: true, index_quantity: 5, paid: true, paid_amount: 11000 },
+      { number: 3, kind: "parcela", due_date: day10(0), original_amount: 10000, indexed: true, index_quantity: 5, paid: false },
+      { number: 4, kind: "chaves", due_date: day10(3), original_amount: 10000, indexed: true, index_quantity: 5, paid: false },
+    ],
+  }],
+});
+
+beforeAll(async () => {
+  db = await createTestDb({ seed: true });
+  const admin = await makeAdmin(db);
+  financeiro = (await makeOperator(db, admin.aal2, "fin@t.ouz", ["financeiro"])).aal2;
+  atendimento = (await makeOperator(db, admin.aal2, "atd@t.ouz", ["atendimento"])).aal2;
+});
+afterAll(async () => db.close());
+
+describe("financeiro corrigido pelo CUB", () => {
+  it("importação só roda pelo servidor (nunca pela equipe no navegador)", async () => {
+    await expect(db.as(financeiro, `select public.import_indexed_flow($1::jsonb)`, [JSON.stringify(payload("CUB-1", "x@cli.ouz"))])).rejects.toThrow(/permission denied/);
+  });
+
+  it("importa unidade, cliente, vínculo e parcelas; pagas congeladas, futuras estimadas pelo último CUB", async () => {
+    const { r } = await one(db.admin<{ r: Record<string, number> }>(`select public.import_indexed_flow($1::jsonb) as r`, [JSON.stringify(payload("CUB-1", "Imp@Cli.ouz"))]));
+    expect(r).toEqual({ unidades_criadas: 1, clientes_criados: 1, parcelas: 4, indices: 2 });
+    const rows = await db.admin<{ number: number; status: string; updated_amount: string; is_estimate: boolean; index_value: string | null }>(
+      `select i.number, i.status, i.updated_amount, i.is_estimate, i.index_value from public.installments i
+         join public.financial_contracts c on c.id = i.contract_id join public.units u on u.id = c.unit_id
+        where u.code = 'CUB-1' order by number`);
+    expect(rows).toEqual([
+      { number: 1, status: "paga", updated_amount: "10000.00", is_estimate: false, index_value: null },
+      { number: 2, status: "paga", updated_amount: "11000.00", is_estimate: false, index_value: null },
+      { number: 3, status: "aberta", updated_amount: "11000.00", is_estimate: true, index_value: "2200.00" }, // CUB do mês ainda não cadastrado
+      { number: 4, status: "aberta", updated_amount: "11000.00", is_estimate: true, index_value: "2200.00" },
+    ]);
+    const u = await one(db.admin<{ status: string; email: string }>(`select u.status, c.email from public.units u join public.client_units cu on cu.unit_id = u.id join public.clients c on c.id = cu.client_id where u.code = 'CUB-1'`));
+    expect(u).toEqual({ status: "vendida", email: "imp@cli.ouz" });
+  });
+
+  it("CUB do mês cadastrado pelo financeiro firma a parcela do mês e reestima as futuras", async () => {
+    await expect(db.as(atendimento, `select public.admin_set_index_value('CUB-SC', $1, 2300, null)`, [month(0)])).rejects.toThrow(/acesso negado/);
+    await expect(db.as(financeiro, `select public.admin_set_index_value('CUB-SC', $1, 2300, null)`, [month(1)])).rejects.toThrow(/mês futuro/);
+    await db.as(financeiro, `select public.admin_set_index_value('CUB-SC', $1, 2300, 'Sinduscon')`, [month(0)]);
+    const rows = await db.admin<{ number: number; updated_amount: string; monetary_update: string; is_estimate: boolean }>(
+      `select i.number, i.updated_amount, i.monetary_update, i.is_estimate from public.installments i
+         join public.financial_contracts c on c.id = i.contract_id join public.units u on u.id = c.unit_id
+        where u.code = 'CUB-1' and i.number >= 2 order by number`);
+    expect(rows).toEqual([
+      { number: 2, updated_amount: "11000.00", monetary_update: "1000.00", is_estimate: false }, // paga: não muda
+      { number: 3, updated_amount: "11500.00", monetary_update: "1500.00", is_estimate: false },
+      { number: 4, updated_amount: "11500.00", monetary_update: "1500.00", is_estimate: true },
+    ]);
+  });
+
+  it("juros e multa informados somam-se ao valor reajustado", async () => {
+    const { id } = await one(db.admin<{ id: string }>(`select i.id from public.installments i join public.financial_contracts c on c.id = i.contract_id join public.units u on u.id = c.unit_id where u.code = 'CUB-1' and i.number = 3`));
+    await db.as(financeiro, `update public.installments set interest = 100, fine = 50 where id = $1`, [id]);
+    await db.as(financeiro, `select public.admin_set_index_value('CUB-SC', $1, 2300, 'Sinduscon')`, [month(0)]);
+    expect(await one(db.admin<{ updated_amount: string; monetary_update: string }>(`select updated_amount, monetary_update from public.installments where id = $1`, [id])))
+      .toEqual({ updated_amount: "11650.00", monetary_update: "1500.00" });
+    await db.as(financeiro, `update public.installments set interest = null, fine = null where id = $1`, [id]);
+    await db.as(financeiro, `select public.admin_set_index_value('CUB-SC', $1, 2300, 'Sinduscon')`, [month(0)]);
+  });
+
+  it("parcela sem reajuste (N) fica no valor original", async () => {
+    const { id: contract } = await one(db.admin<{ id: string }>(`select c.id from public.financial_contracts c join public.units u on u.id = c.unit_id where u.code = 'CUB-1'`));
+    await db.as(financeiro, `select public.admin_add_indexed_installment($1, 5, 'parcela', $2, 8000, false)`, [contract, day10(4)]);
+    const r = await one(db.admin<{ updated_amount: string; is_estimate: boolean; index_quantity: string }>(`select updated_amount, is_estimate, index_quantity from public.installments where contract_id = $1 and number = 5`, [contract]));
+    expect(r).toEqual({ updated_amount: "8000.00", is_estimate: false, index_quantity: "4.0000000000" });
+  });
+
+  it("cliente vê a marcação de estimativa; índices são só da equipe financeira", async () => {
+    const { id: clientId } = await one(db.admin<{ id: string }>(`select id from public.clients where email = 'imp@cli.ouz'`));
+    const uid = await db.createUser("imp@cli.ouz");
+    await db.admin(`update public.clients set user_id = $1 where id = $2`, [uid, clientId]);
+    const me: Claims = { sub: uid };
+    const rows = await db.as<{ number: number; is_estimate: boolean }>(me, `select number, is_estimate from public.installments_view order by number`);
+    expect(rows.map((x) => x.is_estimate)).toEqual([false, false, false, true, false]); // antes da parcela das chaves
+    expect(await db.as(me, `select * from public.index_values`)).toHaveLength(0);
+    expect(await db.as(atendimento, `select * from public.index_values`)).toHaveLength(0);
+    expect((await db.as(financeiro, `select * from public.index_values`)).length).toBe(3);
+  });
+
+  it("parcela das chaves pode vencer na entrega (sem data); as demais exigem data", async () => {
+    const { id: contract } = await one(db.admin<{ id: string }>(`select c.id from public.financial_contracts c join public.units u on u.id = c.unit_id where u.code = 'CUB-1'`));
+    await db.as(financeiro, `select public.admin_add_indexed_installment($1, 6, 'chaves', null, 20000, true)`, [contract]);
+    const r = await one(db.as<{ display_status: string; is_estimate: boolean; updated_amount: string }>(financeiro,
+      `select display_status, is_estimate, updated_amount from public.installments_view where contract_id = $1 and number = 6`, [contract]));
+    expect(r).toEqual({ display_status: "a_vencer", is_estimate: true, updated_amount: "23000.00" }); // 10 CUBs × último CUB (2300)
+    await expect(db.as(financeiro, `select public.admin_add_indexed_installment($1, 7, 'parcela', null, 20000, true)`, [contract])).rejects.toThrow(/incompletos/);
+    await expect(db.as(financeiro, `insert into public.installments (contract_id, number, kind, original_amount) values ($1, 8, 'parcela', 1)`, [contract])).rejects.toThrow(/installments_due_ck/);
+  });
+
+  it("tudo ou nada: unidade já com financeiro aborta a importação inteira", async () => {
+    const p = payload("CUB-2", "novo@cli.ouz");
+    p.clients.push({ ...payload("CUB-1", "outro@cli.ouz").clients[0] });
+    await expect(db.admin(`select public.import_indexed_flow($1::jsonb)`, [JSON.stringify(p)])).rejects.toThrow(/já tem financeiro/);
+    expect(await db.admin(`select 1 from public.units where code = 'CUB-2'`)).toHaveLength(0);
+    expect(await db.admin(`select 1 from public.clients where email = 'novo@cli.ouz'`)).toHaveLength(0);
+  });
+});

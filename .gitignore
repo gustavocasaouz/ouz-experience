@@ -25,3 +25,7 @@ supabase/.bundle/
 e2e-report/
 test-results/
 e2e/.auth/
+
+# Planilhas reais (dados de clientes) nunca entram no Git
+*.xlsx
+*.xls
