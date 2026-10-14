@@ -24,7 +24,7 @@ export function AppShell({ viewer, area, nav, children }: { viewer: Viewer; area
     <>
       <EnvironmentBanner />
       <CloseMenusOnNavigate />
-      <header className="border-b border-line bg-surface">
+      <header className="border-b border-line bg-surface pt-[env(safe-area-inset-top)]">
         <div className="container-page flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-6 min-w-0">
             <Wordmark href={`/${area}`} subtitle={AREA_LABEL[area]} />

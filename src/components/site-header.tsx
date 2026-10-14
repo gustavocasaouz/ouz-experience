@@ -14,7 +14,7 @@ const NAV = [
 export async function SiteHeader() {
   const viewer = await getViewer().catch(() => null);
   return (
-    <header className="sticky top-0 z-30 bg-paper/90 backdrop-blur border-b border-line">
+    <header className="sticky top-0 z-30 bg-paper/90 backdrop-blur border-b border-line pt-[env(safe-area-inset-top)]">
       <CloseMenusOnNavigate />
       <div className="container-page flex h-16 items-center justify-between gap-6">
         <Wordmark />

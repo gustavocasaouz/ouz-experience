@@ -6,6 +6,7 @@ import { requireViewer } from "@/server/auth/viewer";
 import { BROKER_STATUS_LABELS } from "@/server/auth/permissions";
 import { signOut } from "@/server/actions/auth";
 import { availableContexts } from "@/components/app-shell";
+import { InstallPrompt } from "@/components/pwa";
 
 export const metadata = { title: "Minha conta" };
 
@@ -31,6 +32,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <h1 className="font-display text-4xl">Olá{viewer.fullName ? `, ${viewer.fullName.split(" ")[0]}` : ""}</h1>
           <p className="text-ink-soft mt-2">{viewer.email}</p>
         </div>
+
+        <InstallPrompt />
 
         {restrito === "admin" && <RestrictedState>A administração é exclusiva da equipe OUZ, com acesso concedido por convite.</RestrictedState>}
 

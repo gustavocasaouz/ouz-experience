@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <EnvironmentBanner />
-      <header className="container-page flex h-16 items-center justify-between">
+      <header className="container-page flex h-16 items-center justify-between mt-[env(safe-area-inset-top)]">
         <Wordmark subtitle="Experience" />
         <Link href="/" className="text-sm text-ink-soft hover:text-ink">
           Voltar ao site

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Albert_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { OfflineBanner, ServiceWorkerRegister } from "@/components/pwa";
 
 // Tipografia oficial OUZ (ouzgroup.com.br): General Sans (títulos; ITF Free Font License, via Fontshare) e Albert Sans (texto).
 const heading = localFont({
@@ -20,8 +21,8 @@ export const metadata: Metadata = {
   title: { default: "OUZ Experience", template: "%s · OUZ" },
   description: "OUZ — vamos além do metro quadrado. Empreendimentos com design e tecnologia em Florianópolis. Área do cliente e portal do corretor.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icons/icon.svg", apple: "/icons/icon.svg" },
   appleWebApp: { capable: true, title: "OUZ", statusBarStyle: "default" },
+  applicationName: "OUZ Experience",
   formatDetection: { telephone: false },
 };
 
@@ -29,6 +30,7 @@ export const viewport: Viewport = {
   themeColor: "#f2f0eb",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover", // conteúdo respeita o entalhe/barra do iPhone via env(safe-area-inset-*)
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -39,6 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Pular para o conteúdo
         </a>
         {children}
+        <OfflineBanner />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
