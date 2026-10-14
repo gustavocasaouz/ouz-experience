@@ -77,6 +77,7 @@ export async function createTestDb(opts: { seed?: boolean } = {}) {
   if (opts.seed) {
     await db.exec(readFileSync(join(ROOT, "seed.sql"), "utf8"));
     await db.exec(readFileSync(join(ROOT, "seed-etapa2.sql"), "utf8"));
+    await db.exec(readFileSync(join(ROOT, "seed-etapa4.sql"), "utf8"));
   }
   return new TestDb(db);
 }
