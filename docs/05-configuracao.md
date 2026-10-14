@@ -131,5 +131,7 @@ node --env-file=.env.local scripts/importar-fluxo-cub.mjs "arquivo.xlsx" --empre
 2. Plano Pro na Vercel e no Supabase.
 3. Vercel › variáveis de Production trocadas para as do Supabase de produção; `APP_ENV=production`; `EMAIL_MODE=resend`; novo `CRON_SECRET`.
 4. Primeiro administrador: criar a conta em ouz.app.br, confirmar o e-mail e executar `bootstrap_first_admin` no banco de produção.
-5. OUZ cadastra unidades, tabela, política, checklist e abre as vendas na administração.
-6. Homologação passa a usar um endereço próprio (ex.: `homologacao.ouz.app.br`) com o Supabase de desenvolvimento.
+5. Aplicar as migrações pendentes (`migrar.mjs --confirmo-producao`) e os dados oficiais: `seed-unidades-oficiais.sql`; deixar o **UMAN oculto** (Empreendimentos › UMAN › Acesso de corretores: "Oculto"; portal do cliente fechado — a produção foi criada com o UMAN "Restrito").
+6. Importar o MAUI (`importar-fluxo-cub.mjs … --ajustes importacao/maui-ajustes.json --gravar --confirmo-producao`) e a tabela de vendas do mês; publicar tabelas e políticas na administração.
+7. OUZ cadastra o restante (corretores, proprietários, checklist) e abre as vendas na administração.
+8. Homologação passa a usar um endereço próprio (ex.: `homologacao.ouz.app.br`) com o Supabase de desenvolvimento.

@@ -42,14 +42,14 @@ export default async function DevelopmentGeneral({ params, searchParams }: { par
                 <SelectField label="Fase" name="stage" required defaultValue={dev.stage} options={Object.entries(STAGE_LABELS).map(([value, label]) => ({ value, label }))} />
                 <TextField label="Cidade" name="city" required defaultValue={dev.city} />
                 <TextField label="Ordem de exibição" name="sort_order" type="number" min={0} defaultValue={String(dev.sort_order)} />
-                <CheckboxField name="is_published" label="Publicado na área pública" defaultChecked={dev.is_published} className="sm:mt-8" />
+                <CheckboxField name="client_portal_enabled" label="Visível no portal do cliente (para quem tem unidade aqui)" defaultChecked={dev.client_portal_enabled} className="sm:mt-8" />
                 <SubmitButton className="self-start">Salvar dados gerais</SubmitButton>
               </form>
             </Card>
           </section>
 
           <section>
-            <SectionTitle eyebrow="Visível a qualquer visitante" title="Conteúdo público" />
+            <SectionTitle eyebrow="Portal do cliente" title="Capa e apresentação" />
             <Card className="p-6">
               <form action={updatePublicContent} className="flex flex-col gap-5">
                 <input type="hidden" name="id" value={dev.id} />

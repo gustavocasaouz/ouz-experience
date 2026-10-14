@@ -15,6 +15,22 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
       <div className="flex flex-col gap-10">
+        {u.development.stage === "entregue" ? (
+          <section className="grid gap-4 sm:grid-cols-2">
+            <Card className="p-6">
+              <p className="eyebrow mb-2">Empreendimento entregue</p>
+              <p className="font-display text-2xl">{u.development.name}</p>
+              <p className="text-sm text-ink-soft mt-1">
+                {u.development.habite_se_date ? `Habite-se em ${formatDate(u.development.habite_se_date + "T12:00:00Z")}` : "Obra concluída"}
+              </p>
+            </Card>
+            <Card className="p-6">
+              <p className="eyebrow mb-2">Assistência técnica</p>
+              <p className="text-sm text-ink-soft">Precisa de algo na unidade? Abra um chamado: a OUZ avalia cada caso.</p>
+              <Link href="/cliente/chamados/novo" className="text-sm underline underline-offset-4 mt-3 inline-block">Abrir chamado</Link>
+            </Card>
+          </section>
+        ) : (
         <section className="grid gap-4 sm:grid-cols-2">
           <Card className="p-6">
             <p className="eyebrow mb-2">Evolução física</p>
@@ -44,6 +60,7 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
             )}
           </Card>
         </section>
+        )}
 
         <section>
           <SectionTitle title="Comunicados" />

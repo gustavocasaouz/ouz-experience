@@ -55,8 +55,9 @@ export async function importInstallments(_prev: ActionState, fd: FormData): Prom
     if (!Number.isInteger(number) || number < 1) err("número da parcela inválido");
     const kind = (c[3] || "parcela").toLowerCase();
     if (!KINDS.includes(kind)) err(`tipo "${c[3]}" inválido`);
-    const due = date(c[4] ?? "");
-    if (!due) err("vencimento inválido (use DD/MM/AAAA)");
+    // Parcela das chaves pode ficar sem data (vence na entrega).
+    const due = c[4] ? date(c[4]) : null;
+    if (!due && !(kind === "chaves" && !c[4])) err("vencimento inválido (use DD/MM/AAAA; vazio só para chaves)");
     const money = (v: string | undefined, required = false) => {
       if (!v) {
         if (required) err("valor original obrigatório");

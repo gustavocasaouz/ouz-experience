@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { createSupabaseAdminClient } from "@/server/db/supabase-admin";
-import { checkRateLimit } from "@/server/security/rate-limit";
+import { checkRateLimit, clientIpHash } from "@/server/security/rate-limit";
 import { publicEnv } from "@/lib/env";
 import { safeNext } from "@/lib/safe-next";
 import { formValues, fromZodError, type ActionState } from "./types";
@@ -21,7 +21,13 @@ export async function signIn(_prev: ActionState, fd: FormData): Promise<ActionSt
   const parsed = z.object({ email, password: z.string().min(1, "Informe a senha.") }).safeParse(values);
   if (!parsed.success) return fromZodError(parsed.error, { email: values.email ?? "" });
 
-  if (!(await checkRateLimit("login-ip", 20, 900)) || !(await checkRateLimit("login-email", 8, 900, parsed.data.email))) {
+  // Limite por e-mail + IP (quem erra a senha de outra pessoa não bloqueia o dono da conta) e um teto alto só por e-mail.
+  const ip = await clientIpHash();
+  if (
+    !(await checkRateLimit("login-ip", 20, 900)) ||
+    !(await checkRateLimit("login-email-ip", 8, 900, `${parsed.data.email}:${ip}`)) ||
+    !(await checkRateLimit("login-email", 50, 3600, parsed.data.email))
+  ) {
     return { error: "Muitas tentativas. Aguarde alguns minutos.", values: { email: parsed.data.email } };
   }
 

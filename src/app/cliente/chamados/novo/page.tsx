@@ -9,6 +9,11 @@ export const metadata = { title: "Novo chamado" };
 
 export default async function NewTicket({ searchParams }: { searchParams: SP }) {
   const units = await listMyUnits();
+  // Assistência técnica e pós-entrega só fazem sentido para unidades em entrega ou entregues.
+  const delivered = units.some((u) => u.development.stage === "em_entrega" || u.development.stage === "entregue");
+  const categories = Object.entries(TICKET_CATEGORY_LABELS).filter(
+    ([v]) => v !== "concierge" && (delivered || (v !== "assistencia_tecnica" && v !== "pos_entrega")),
+  );
   return (
     <>
       <PageHeader eyebrow="Chamados" title="Abrir chamado" description="A OUZ analisa cada caso. A cobertura de garantia é avaliada pela equipe técnica, não automaticamente." />
@@ -17,7 +22,7 @@ export default async function NewTicket({ searchParams }: { searchParams: SP }) 
         <form action={openTicket} className="flex flex-col gap-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <SelectField label="Unidade" name="unit_id" required options={units.map((u) => ({ value: u.unit.id, label: `${u.development.name} · ${u.unit.code}` }))} />
-            <SelectField label="Categoria" name="category" required options={Object.entries(TICKET_CATEGORY_LABELS).filter(([v]) => v !== "concierge").map(([value, label]) => ({ value, label }))} />
+            <SelectField label="Categoria" name="category" required options={categories.map(([value, label]) => ({ value, label }))} />
           </div>
           <TextField label="Assunto" name="title" required maxLength={200} />
           <TextArea label="Descreva a situação" name="description" required rows={6} maxLength={4000} hint="Inclua local, desde quando ocorre e o que já foi tentado." />

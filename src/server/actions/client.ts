@@ -9,6 +9,7 @@ import { checkRateLimit } from "@/server/security/rate-limit";
 import { ALLOWED_DOC_TYPES, ALLOWED_IMAGE_TYPES, filesFrom, objectPath, validateUpload } from "@/server/files";
 import { brasiliaLocalToUtcIso, parseBRL } from "@/lib/format";
 import { dbErrorMessage } from "./types";
+import { safeNext } from "@/lib/safe-next";
 
 const flush = () => after(() => processOutbox(10).catch(() => undefined));
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -184,9 +185,7 @@ export async function markNotificationsRead(fd: FormData) {
   let q = supabase.from("notifications").update({ read_at: new Date().toISOString() }).is("read_at", null);
   if (id) q = q.eq("id", id);
   await q;
-  const link = s(fd, "link");
-  if (link.startsWith("/") && !link.startsWith("//")) redirect(link);
-  redirect("/notificacoes");
+  redirect(safeNext(s(fd, "link"), "/notificacoes"));
 }
 
 // ---------------------------------------------------------------------------

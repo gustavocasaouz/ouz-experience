@@ -215,7 +215,7 @@ export async function addInstallment(fd: FormData) {
     contract_id: str(fd, "contract_id"),
     number: Number(str(fd, "number")),
     kind: str(fd, "kind") || "parcela",
-    due_date: str(fd, "due_date"),
+    due_date: optStr(fd, "due_date"), // vazio só é aceito para a parcela das chaves (regra do banco)
     original_amount: original,
     monetary_update: money("monetary_update"),
     interest: money("interest"),

@@ -64,7 +64,8 @@ export async function updateDevelopment(fd: FormData) {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("developments")
-    .update({ ...parsed.data, is_published: str(fd, "is_published") === "on" })
+    // O site institucional fica em ouzgroup.com.br: aqui controla-se só se os clientes enxergam o empreendimento.
+    .update({ ...parsed.data, client_portal_enabled: str(fd, "client_portal_enabled") === "on" })
     .eq("id", id);
   failOn(error, path);
   revalidatePublic();

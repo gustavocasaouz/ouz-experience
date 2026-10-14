@@ -33,13 +33,12 @@ export default async function AdminHome() {
       href: "/admin/reservas?status=documentacao_enviada",
     });
   }
-  if (hasPermission(viewer, "atendimento") || hasPermission(viewer, "comercial")) {
-    tiles.push({
-      label: "Interessados novos",
-      value: await count(supabase.from("leads").select("*", { count: "exact", head: true }).eq("status", "novo")),
-      href: "/admin/interessados",
-    });
-  }
+  // Avisos para a equipe (nova proposta, reserva, chamado, comprovante…) ficam em "Minhas notificações".
+  tiles.push({
+    label: "Minhas notificações não lidas",
+    value: await count(supabase.from("notifications").select("*", { count: "exact", head: true }).is("read_at", null)),
+    href: "/notificacoes",
+  });
   if (hasPermission(viewer, "clientes")) {
     tiles.push({
       label: "Clientes sem conta ativada",

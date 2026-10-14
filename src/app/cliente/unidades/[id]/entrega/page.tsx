@@ -56,7 +56,11 @@ export default async function ClientDelivery({ params, searchParams }: { params:
               </Card>
             )}
             {slots[k].length === 0 ? (
-              <p className="text-sm text-ink-soft">Nenhum horário disponível no momento. A OUZ publicará os horários quando a {KIND[k].toLowerCase()} estiver liberada.</p>
+              <p className="text-sm text-ink-soft">
+                {u.development.stage === "entregue"
+                  ? "Nenhum agendamento em aberto."
+                  : `Nenhum horário disponível no momento. A OUZ publicará os horários quando a ${KIND[k].toLowerCase()} estiver liberada.`}
+              </p>
             ) : (
               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {slots[k].map((s) => (

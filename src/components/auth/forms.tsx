@@ -64,7 +64,7 @@ export function NewPasswordForm() {
   const [state, action] = useActionState<ActionState, FormData>(updatePassword, {});
   if (state.ok)
     return (
-      <SuccessState title="Senha atualizada" action={<Link href="/conta" className="underline">Ir para minha conta</Link>}>
+      <SuccessState title="Senha atualizada" action={<Link href="/conta?escolher" className="underline">Ir para minha conta</Link>}>
         Use a nova senha nos próximos acessos.
       </SuccessState>
     );

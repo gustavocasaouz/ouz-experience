@@ -6,7 +6,9 @@ import { dbErrorMessage } from "../types";
 
 /** Volta para a página com mensagem (não sensível) na URL. */
 export function back(path: string, kind: "ok" | "erro", msg: string): never {
-  redirect(`${path}${path.includes("?") ? "&" : "?"}${kind}=${encodeURIComponent(msg)}`);
+  // A mensagem vai na query, antes da âncora (#financeiro etc.), senão a página não a recebe.
+  const [base = path, hash] = path.split("#");
+  redirect(`${base}${base.includes("?") ? "&" : "?"}${kind}=${encodeURIComponent(msg)}${hash ? `#${hash}` : ""}`);
 }
 
 /** Exige a permissão; em caso negativo, volta com erro. O banco verifica novamente (RLS/funções). */

@@ -6,6 +6,7 @@ import { staffWith } from "@/components/admin/require-perm";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { inviteToEvent } from "@/server/actions/admin/experience";
 import { formatDateTime } from "@/lib/format";
+import { EVENT_AUDIENCE_LABELS } from "@/lib/labels";
 
 const RSVP = { confirmado: "Confirmado", lista_espera: "Lista de espera", cancelado: "Cancelado" } as const;
 
@@ -69,7 +70,7 @@ export default async function AdminEvent({ params, searchParams }: { params: Pro
               </ul>
             </Card>
           ) : (
-            <Card className="p-5 text-sm text-ink-soft">Público: {e.audience}. Para convidar pessoas específicas, mude o público para “Convidados específicos”.</Card>
+            <Card className="p-5 text-sm text-ink-soft">Público: {EVENT_AUDIENCE_LABELS[e.audience] ?? e.audience}. Para convidar pessoas específicas, mude o público para “Convidados específicos”.</Card>
           )}
         </aside>
       </div>

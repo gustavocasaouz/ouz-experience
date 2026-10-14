@@ -9,7 +9,7 @@ export async function loadDevelopment(id: string) {
   const { data } = await supabase.from("developments").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
   return data as {
-    id: string; slug: string; name: string; city: string; stage: DevelopmentStage; is_published: boolean;
+    id: string; slug: string; name: string; city: string; stage: DevelopmentStage; is_published: boolean; client_portal_enabled: boolean;
     broker_access_mode: BrokerAccessMode; sort_order: number; is_demo: boolean; data_source: string;
   };
 }
@@ -24,7 +24,7 @@ export function DevelopmentHeader({ dev, tab }: { dev: Awaited<ReturnType<typeof
         description={
           <span className="flex flex-wrap gap-2">
             <Badge tone="accent">{STAGE_LABELS[dev.stage]}</Badge>
-            <Badge tone={dev.is_published ? "success" : "neutral"}>{dev.is_published ? "Publicado no site" : "Não publicado"}</Badge>
+            <Badge tone={dev.client_portal_enabled ? "success" : "neutral"}>{dev.client_portal_enabled ? "Portal do cliente: liberado" : "Portal do cliente: fechado"}</Badge>
             <Badge>Corretores: {ACCESS_MODE_LABELS[dev.broker_access_mode].label}</Badge>
             {dev.is_demo && <Badge tone="warning">Demonstrativo</Badge>}
           </span>
@@ -33,7 +33,7 @@ export function DevelopmentHeader({ dev, tab }: { dev: Awaited<ReturnType<typeof
       <Tabs
         current={tab}
         items={[
-          { key: "geral", href: b, label: "Geral e site" },
+          { key: "geral", href: b, label: "Geral" },
           { key: "restrito", href: `${b}/restrito`, label: "Conteúdo para corretores" },
           { key: "acesso", href: `${b}/acesso`, label: "Acesso de corretores" },
           { key: "unidades", href: `${b}/unidades`, label: "Unidades" },

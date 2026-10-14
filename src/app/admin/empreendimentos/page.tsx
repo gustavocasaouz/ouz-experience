@@ -14,7 +14,7 @@ export default async function AdminDevelopments({ searchParams }: { searchParams
   const { viewer, denied } = await staffWith(["conteudo", "comercial", "politicas", "documentos"], "/admin/empreendimentos");
   if (denied) return denied;
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.from("developments").select("id, name, slug, stage, is_published, broker_access_mode, is_demo").order("sort_order");
+  const { data } = await supabase.from("developments").select("id, name, slug, stage, client_portal_enabled, broker_access_mode, is_demo").order("sort_order");
   return (
     <>
       <PageHeader eyebrow="Administração" title="Empreendimentos" />
@@ -22,7 +22,7 @@ export default async function AdminDevelopments({ searchParams }: { searchParams
       {!data?.length ? (
         <EmptyState title="Nenhum empreendimento cadastrado" />
       ) : (
-        <Table head={["Nome", "Fase", "Site", "Corretores"]} caption="Empreendimentos">
+        <Table head={["Nome", "Fase", "Portal do cliente", "Corretores"]} caption="Empreendimentos">
           {data.map((d) => (
             <tr key={d.id}>
               <Td>
@@ -30,7 +30,7 @@ export default async function AdminDevelopments({ searchParams }: { searchParams
                 {d.is_demo && <Badge tone="warning" className="ml-2">Demonstrativo</Badge>}
               </Td>
               <Td>{STAGE_LABELS[d.stage as DevelopmentStage]}</Td>
-              <Td>{d.is_published ? <Badge tone="success">Publicado</Badge> : <Badge>Não publicado</Badge>}</Td>
+              <Td>{d.client_portal_enabled ? <Badge tone="success">Liberado</Badge> : <Badge>Fechado</Badge>}</Td>
               <Td>{ACCESS_MODE_LABELS[d.broker_access_mode as BrokerAccessMode].label}</Td>
             </tr>
           ))}

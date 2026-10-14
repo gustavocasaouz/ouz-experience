@@ -3,7 +3,7 @@
 insert into public.developments (slug, name, stage, is_published, broker_access_mode, sort_order, is_demo) values
   ('soho', 'SOHO', 'entregue', true, 'aberto', 1, false),
   ('maui', 'MAUI', 'em_entrega', true, 'aberto', 2, false),
-  ('uman', 'UMAN', 'pre_lancamento', true, 'restrito', 3, false)
+  ('uman', 'UMAN', 'pre_lancamento', false, 'oculto', 3, false)
 on conflict (slug) do nothing;
 
 insert into public.development_public_content (development_id)

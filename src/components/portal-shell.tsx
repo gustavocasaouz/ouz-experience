@@ -1,9 +1,10 @@
 import { AppShell } from "@/components/app-shell";
+import { brokerNav } from "@/components/broker-nav";
 import type { Viewer } from "@/server/auth/viewer";
 
-/** Páginas comuns a clientes e corretores (agenda, notificações): usa o contexto principal da pessoa. */
+/** Páginas comuns (agenda, notificações): usa o contexto principal da pessoa — cliente, corretor ou equipe. */
 export function PortalShell({ viewer, children }: { viewer: Viewer; children: React.ReactNode }) {
-  const area = viewer.isClient ? "cliente" : viewer.broker ? "corretor" : "cliente";
+  const area = viewer.isClient ? "cliente" : viewer.broker ? "corretor" : viewer.staff ? "admin" : "cliente";
   const nav =
     area === "cliente"
       ? [
@@ -13,12 +14,12 @@ export function PortalShell({ viewer, children }: { viewer: Viewer; children: Re
           { href: "/agenda", label: "Agenda" },
           { href: "/notificacoes", label: "Notificações" },
         ]
-      : [
-          { href: "/corretor", label: "Início" },
-          { href: "/corretor/propostas", label: "Minhas propostas" },
-          { href: "/agenda", label: "Agenda" },
-          { href: "/notificacoes", label: "Notificações" },
-        ];
+      : area === "corretor"
+        ? brokerNav(viewer)
+        : [
+            { href: "/admin", label: "Painel" },
+            { href: "/notificacoes", label: "Minhas notificações" },
+          ];
   return (
     <AppShell viewer={viewer} area={area} nav={nav}>
       {children}

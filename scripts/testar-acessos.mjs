@@ -39,15 +39,24 @@ await pend.from("broker_profiles").update({ status: "aprovado" }).eq("user_id", 
 const { data: st } = await pend.from("broker_profiles").select("status").single();
 expect("Corretor pendente não se autoaprova", st?.status, "pendente");
 
+// O modo do UMAN muda conforme o lançamento (oculto → teaser → restrito): as expectativas acompanham.
+const service = createClient(url, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+const { data: umanDev } = await service.from("developments").select("broker_access_mode").eq("id", UMAN).single();
+const umanOculto = umanDev?.broker_access_mode === "oculto";
+console.log(`UMAN em modo "${umanDev?.broker_access_mode}"`);
+const { count: sohoUnits } = await service.from("units").select("id", { count: "exact", head: true }).eq("development_id", SOHO);
+
 const sem = await as("corretor.semuman@teste.ouz.app.br");
-expect("Corretor aprovado SEM UMAN: só teaser do UMAN, SOHO completo", await view(sem), { unidadesUMAN: 0, conteudoUMAN: 0, teaserUMAN: 1, unidadesSOHO: 4 });
+expect(`Corretor aprovado SEM UMAN: ${umanOculto ? "UMAN invisível" : "só teaser do UMAN"}, SOHO completo`, await view(sem),
+  { unidadesUMAN: 0, conteudoUMAN: 0, teaserUMAN: umanOculto ? 0 : 1, unidadesSOHO: sohoUnits });
 const { data: canSem } = await sem.rpc("broker_can_access_development", { p_development_id: UMAN });
 expect("Corretor sem UMAN: acesso completo negado", canSem, false);
 expect("Corretor não lista grupos nem autorizações", [await count(sem.from("broker_groups").select("id")), await count(sem.from("development_broker_grants").select("id"))], [0, 0]);
 expect("Corretor não vê outros corretores", await count(sem.from("broker_profiles").select("user_id")), 1);
 
 const com = await as("corretor.uman@teste.ouz.app.br");
-expect("Corretor aprovado COM UMAN (via grupo): conteúdo completo", await view(com), { unidadesUMAN: 4, conteudoUMAN: 1, teaserUMAN: 1, unidadesSOHO: 4 });
+expect(`Corretor aprovado COM UMAN (via grupo): ${umanOculto ? "nada enquanto oculto" : "conteúdo completo"}`, await view(com),
+  umanOculto ? { unidadesUMAN: 0, conteudoUMAN: 0, teaserUMAN: 0, unidadesSOHO: sohoUnits } : { unidadesUMAN: 4, conteudoUMAN: 1, teaserUMAN: 1, unidadesSOHO: sohoUnits });
 
 const prices = async (c, dev) => ((await c.rpc("current_unit_prices", { p_development_id: dev })).data ?? []).length;
 expect("Preços: corretor aprovado vê SOHO (aberto)", await prices(sem, SOHO) > 0, true);

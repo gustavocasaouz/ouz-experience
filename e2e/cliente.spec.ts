@@ -9,7 +9,11 @@ test("cliente vê a própria unidade, acompanhamento e financeiro", async ({ pag
   await page.goto("/cliente");
   await expect(page.getByRole("heading", { name: "Unidade DEMO-101" })).toBeVisible();
   await page.getByRole("link", { name: /Unidade DEMO-101/ }).click();
-  await expect(page.getByText("Evolução física").first()).toBeVisible();
+  // SOHO está entregue: visão de entregue, sem personalização, com "Entrega e garantia".
+  await expect(page.getByText("Empreendimento entregue")).toBeVisible();
+  const secoes = page.getByRole("navigation", { name: "Seções" });
+  await expect(secoes.getByRole("link", { name: "Entrega e garantia" })).toBeVisible();
+  await expect(secoes.getByRole("link", { name: "Personalização" })).toHaveCount(0);
   await expectAccessible(page);
   await page.getByRole("navigation", { name: "Seções" }).getByRole("link", { name: "Financeiro" }).click();
   await expect(page.getByText("Última atualização pela OUZ")).toBeVisible();

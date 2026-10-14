@@ -6,14 +6,10 @@ import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { saveEvent } from "@/server/actions/admin/content";
 import { formatDateTime, utcToBrasiliaLocalInput } from "@/lib/format";
 
+import { EVENT_AUDIENCE_LABELS } from "@/lib/labels";
+
 export const metadata = { title: "Eventos" };
-const AUDIENCES = [
-  { value: "geral", label: "Geral (público)" },
-  { value: "clientes", label: "Clientes" },
-  { value: "corretores_aprovados", label: "Corretores aprovados" },
-  { value: "empreendimento", label: "Pessoas vinculadas a um empreendimento" },
-  { value: "convidados", label: "Convidados específicos" },
-];
+const AUDIENCES = Object.entries(EVENT_AUDIENCE_LABELS).map(([value, label]) => ({ value, label }));
 
 type Ev = { id: string; title: string; description: string | null; location_text: string | null; online_url: string | null; starts_at: string; ends_at: string | null; audience: string; development_id: string | null; capacity: number | null; is_published: boolean; is_demo: boolean; broker_group_id: string | null; rsvp_enabled: boolean; reminder_hours: number };
 

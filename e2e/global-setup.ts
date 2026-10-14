@@ -9,8 +9,7 @@ export default async function globalSetup(config: FullConfig) {
   } catch {}
   // zera o limite de tentativas de login SÓ das contas de teste (banco de desenvolvimento)
   const db = adminDb();
-  for (const email of Object.values(CONTAS)) await db.from("rate_limits").delete().like("key", `%:${email}`);
-  await db.from("rate_limits").delete().like("key", "lead:%"); // formulário público (banco de desenvolvimento)
+  for (const email of Object.values(CONTAS)) await db.from("rate_limits").delete().like("key", `%:${email}%`); // inclui e-mail+IP
 
   mkdirSync("e2e/.auth", { recursive: true });
   const baseURL = config.projects[0]!.use.baseURL!;

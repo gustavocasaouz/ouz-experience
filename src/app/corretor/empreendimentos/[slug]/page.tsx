@@ -33,6 +33,9 @@ export default async function BrokerDevelopmentPage({ params }: { params: Promis
   const { data: full } = await supabase.rpc("broker_can_access_development", { p_development_id: dev.id });
 
   if (full !== true) {
+    // Empreendimento oculto (ex.: antes do lançamento) não existe para o corretor, nem como teaser.
+    const { data: card } = await supabase.rpc("broker_can_see_development_card", { p_development_id: dev.id });
+    if (card !== true) notFound();
     const { data: teaser } = await supabase.from("development_teasers").select("title, message, image_path").eq("development_id", dev.id).maybeSingle();
     const img = publicMediaUrl(teaser?.image_path);
     return (

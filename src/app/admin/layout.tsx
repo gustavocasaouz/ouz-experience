@@ -4,6 +4,7 @@ import type { StaffPermission } from "@/server/auth/permissions";
 
 const NAV: Array<{ href: string; label: string; perm?: StaffPermission[] }> = [
   { href: "/admin", label: "Painel" },
+  { href: "/notificacoes", label: "Minhas notificações" },
   { href: "/admin/corretores", label: "Corretores", perm: ["corretores"] },
   { href: "/admin/empreendimentos", label: "Empreendimentos", perm: ["conteudo", "comercial", "politicas", "documentos"] },
   { href: "/admin/grupos", label: "Grupos de corretores", perm: ["comercial"] },
@@ -16,11 +17,9 @@ const NAV: Array<{ href: string; label: string; perm?: StaffPermission[] }> = [
   { href: "/admin/entregas", label: "Vistorias e entregas", perm: ["atendimento"] },
   { href: "/admin/financeiro", label: "Financeiro", perm: ["financeiro"] },
   { href: "/admin/concierge", label: "Concierge", perm: ["concierge"] },
-  { href: "/admin/conteudo", label: "Conteúdo do site", perm: ["conteudo"] },
   { href: "/admin/eventos", label: "Eventos", perm: ["eventos"] },
-  { href: "/admin/interessados", label: "Interessados", perm: ["atendimento", "comercial"] },
   { href: "/admin/equipe", label: "Equipe", perm: ["administracao"] },
-  { href: "/admin/notificacoes", label: "Notificações", perm: ["notificacoes"] },
+  { href: "/admin/notificacoes", label: "Envios de e-mail", perm: ["notificacoes"] },
   { href: "/admin/auditoria", label: "Auditoria", perm: ["auditoria"] },
 ];
 

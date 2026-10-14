@@ -201,3 +201,11 @@ export const OCCURRENCE_LABELS: Record<string, string> = {
   reagendamento: "Reagendamento",
   outro: "Outro",
 };
+
+export const EVENT_AUDIENCE_LABELS: Record<string, string> = {
+  geral: "Todos (clientes e corretores)",
+  clientes: "Clientes",
+  corretores_aprovados: "Corretores aprovados",
+  empreendimento: "Pessoas vinculadas a um empreendimento",
+  convidados: "Convidados específicos",
+};

@@ -55,7 +55,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
               <tr key={i.id}>
                 <Td>{i.number}</Td>
                 <Td>{INSTALLMENT_KIND_LABELS[i.kind]}</Td>
-                <Td className="whitespace-nowrap">{formatDue(i.due_date)}{i.late_days && i.display_status === "vencida" ? <span className="block text-xs text-danger">{i.late_days} dia(s) de atraso</span> : null}</Td>
+                <Td className="whitespace-nowrap">{formatDue(i.due_date)}{i.late_days && i.late_days > 0 && i.display_status === "vencida" ? <span className="block text-xs text-danger">{i.late_days} dia(s) de atraso</span> : null}</Td>
                 <Td className="whitespace-nowrap">{formatBRL(i.original_amount)}</Td>
                 {hasBreakdown && (
                   <>
@@ -64,7 +64,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
                     <Td className="whitespace-nowrap">{i.fine ? formatBRL(i.fine) : "—"}</Td>
                   </>
                 )}
-                <Td className="whitespace-nowrap">{i.updated_amount ? formatBRL(i.updated_amount) : "—"}{i.is_estimate && i.status !== "paga" && <span className="block text-xs text-ink-mute">estimativa</span>}</Td>
+                <Td className="whitespace-nowrap">{i.updated_amount ? formatBRL(i.updated_amount) : "—"}{i.is_estimate && !["paga", "cancelada", "renegociada"].includes(i.status) && <span className="block text-xs text-ink-mute">estimativa</span>}</Td>
                 <Td className="whitespace-nowrap">{Number(i.paid_amount) > 0 ? `${formatBRL(i.paid_amount)}${i.paid_on ? ` em ${d(i.paid_on)}` : ""}` : "—"}</Td>
                 <Td><Badge tone={tone(i.display_status)}>{INSTALLMENT_STATUS_LABELS[i.display_status] ?? i.display_status}</Badge></Td>
               </tr>

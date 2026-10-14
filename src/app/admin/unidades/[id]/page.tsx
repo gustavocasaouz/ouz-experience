@@ -56,6 +56,7 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
 
   return (
     <>
+      <Link href={`/admin/empreendimentos/${dev.id}/unidades`} className="text-sm text-ink-soft hover:text-ink">← Unidades do {dev.name}</Link>
       <PageHeader eyebrow={dev.name} title={`Unidade ${unit.code}`} description={[unit.typology, unit.private_area_m2 ? `${Number(unit.private_area_m2).toLocaleString("pt-BR")} m²` : null, unit.parking].filter(Boolean).join(" · ") || undefined} />
       <Flash searchParams={searchParams} />
       <nav aria-label="Seções" className="flex flex-wrap gap-4 text-sm mb-10">
@@ -227,7 +228,7 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                     <input type="hidden" name="contract_id" value={c.id} />
                     <TextField label="Nº" name="number" id="in-n" type="number" min={1} required />
                     <SelectField label="Tipo" name="kind" id="in-k" options={Object.entries(INSTALLMENT_KIND_LABELS).map(([value, label]) => ({ value, label }))} defaultValue="parcela" />
-                    <TextField label="Vencimento" name="due_date" id="in-d" type="date" required />
+                    <TextField label="Vencimento (vazio = na entrega das chaves)" name="due_date" id="in-d" type="date" />
                     <TextField label="Valor original" name="original_amount" id="in-o" inputMode="decimal" required />
                     <TextField label="Atualização" name="monetary_update" id="in-u" inputMode="decimal" />
                     <TextField label="Juros" name="interest" id="in-j" inputMode="decimal" />

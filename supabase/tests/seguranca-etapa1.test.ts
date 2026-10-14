@@ -197,8 +197,9 @@ describe("acesso por empreendimento (UMAN restrito)", () => {
   it("visitante anônimo não vê unidades, teaser nem conteúdo restrito", async () => {
     await expect(db.as("anon", `select * from public.units`)).rejects.toThrow(/permission denied/);
     await expect(db.as("anon", `select * from public.development_broker_content`)).rejects.toThrow(/permission denied/);
-    const pub = await db.as("anon", `select slug from public.developments order by sort_order`);
-    expect(pub).toHaveLength(3);
+    // Sem área pública no app: visitante não lê nenhum empreendimento.
+    const pub = await db.as("anon", `select slug from public.developments order by sort_order`).catch(() => []);
+    expect(pub).toHaveLength(0);
   });
 });
 

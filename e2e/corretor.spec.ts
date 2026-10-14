@@ -6,11 +6,13 @@ test.afterAll(purgeE2eData);
 
 test.describe("corretor aprovado", () => {
 test.use(sessao("corretorSemUman"));
-test("corretor aprovado sem acesso ao UMAN vê só o teaser, sem preços", async ({ page }) => {
+test("empreendimento oculto (UMAN antes do lançamento) não aparece para o corretor", async ({ page }) => {
+  await page.goto("/corretor");
+  await expect(page.getByRole("heading", { name: "MAUI", exact: true })).toBeVisible();
+  await expect(page.locator("main")).not.toContainText("UMAN");
   await page.goto("/corretor/empreendimentos/uman");
-  await expect(page.getByText("Em breve").first()).toBeVisible();
+  await expect(page.getByText("Página não encontrada")).toBeVisible();
   await expect(page.locator("body")).not.toContainText("R$");
-  await expect(page.locator("body")).not.toContainText("Fila");
 });
 
 test("corretor envia proposta dentro da política e recebe a reserva de 48 h", async ({ page }) => {
