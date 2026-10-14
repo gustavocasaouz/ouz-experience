@@ -10,3 +10,10 @@ scripts/
 .claude/
 node_modules/
 .next/
+# testes no navegador e artefatos locais (não fazem parte do site)
+e2e/
+playwright.config.ts
+e2e-report/
+test-results/
+modelos/
+importacao/
