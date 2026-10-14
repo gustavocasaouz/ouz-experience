@@ -1,12 +1,12 @@
 /* OUZ Experience — service worker.
  * Princípio: NUNCA guardar páginas ou dados privados. Só arquivos estáticos (JS/CSS/fontes/ícones/fotos oficiais)
  * e uma página "sem conexão". Navegação sempre vai à rede; sem rede, mostra a página offline. */
-const VERSION = "ouz-v1";
+const VERSION = "ouz-v2"; // v2: ícones com fundo branco
 const STATIC_CACHE = `${VERSION}-static`;
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(STATIC_CACHE).then((c) => c.addAll([OFFLINE_URL, "/icons/icon.svg"])).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(STATIC_CACHE).then((c) => c.addAll([OFFLINE_URL, "/icons/icon.svg?v=2"])).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
