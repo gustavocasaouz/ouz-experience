@@ -23,7 +23,7 @@ Legenda: ✅ feito · 🔨 em andamento · ⬜ a fazer
 | 16 | Portal do cliente: minhas unidades (básico) | ✅ |
 | 17 | Outbox de notificações + provedor `log`/Resend + cron | ✅ |
 | 18 | Testes: isolamento de clientes, UMAN restrito, bloqueio de cadastro administrativo (banco/RLS) | ✅ |
-| 20 | Testes E2E (Playwright) contra o Supabase de desenvolvimento | ⬜ (depende do projeto Supabase) |
+| 20 | Testes E2E (Playwright) contra o Supabase de desenvolvimento: público (desktop e celular), corretor, cliente, admin com MFA, acessibilidade WCAG AA (axe) | ✅ |
 | 19 | PWA: manifesto com atalhos, ícones oficiais (Android, iPhone, maskable), service worker sem dados privados, página sem conexão, aviso de queda de rede, convite para instalar, áreas seguras do iPhone | ✅ |
 
 ## Etapa 2 — Comercial

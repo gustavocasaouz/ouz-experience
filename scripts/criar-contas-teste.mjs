@@ -5,6 +5,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
+import { totp } from "./lib/totp.mjs";
 
 if ((process.env.APP_ENV ?? "development") !== "development") {
   console.error("Recusado: APP_ENV precisa ser 'development'.");
@@ -36,6 +37,12 @@ const ACCOUNTS = [
   { key: "corretor_uman", email: "corretor.uman@teste.ouz.app.br", name: "[Teste] Corretor com UMAN", broker: { status: "aprovado", cpf: cpf(901000002), creci: "90002", uman: true } },
   { key: "corretor_sem_uman", email: "corretor.semuman@teste.ouz.app.br", name: "[Teste] Corretor sem UMAN", broker: { status: "aprovado", cpf: cpf(901000003), creci: "90003" } },
   { key: "cliente", email: "cliente@teste.ouz.app.br", name: "[Teste] Cliente SOHO", client: { unit: "DEMO-101", development: SOHO } },
+  {
+    key: "equipe",
+    email: "equipe@teste.ouz.app.br",
+    name: "[Teste] Equipe OUZ",
+    staff: ["corretores", "comercial", "politicas", "documentos", "financeiro", "atendimento", "conteudo", "eventos", "concierge"],
+  },
 ];
 
 const existing = must(await db.auth.admin.listUsers({ perPage: 1000 }), "listUsers").users;
@@ -97,7 +104,22 @@ for (const acc of ACCOUNTS) {
     await db.from("client_units").upsert({ client_id: client.id, unit_id: unit.id, relation: "titular", active: true }, { onConflict: "client_id,unit_id" });
   }
 
-  lines.push(`${acc.name}`, `  e-mail: ${acc.email}`, `  senha:  ${password}`, "");
+  let mfaSecret = null;
+  if (acc.staff) {
+    // Operador de teste (nunca administrador), com verificação em duas etapas configurada pelo script.
+    must(await db.from("staff_members").upsert({ user_id: user.id, role: "operador", active: true }, { onConflict: "user_id" }), "staff");
+    await db.from("staff_permissions").delete().eq("user_id", user.id);
+    must(await db.from("staff_permissions").insert(acc.staff.map((permission) => ({ user_id: user.id, permission }))), "perms");
+    const { data: factors } = await db.auth.admin.mfa.listFactors({ userId: user.id });
+    for (const f of factors?.factors ?? []) await db.auth.admin.mfa.deleteFactor({ id: f.id, userId: user.id });
+    const anon = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
+    must(await anon.auth.signInWithPassword({ email: acc.email, password }), "login equipe");
+    const enroll = must(await anon.auth.mfa.enroll({ factorType: "totp", friendlyName: "e2e" }), "enroll");
+    mfaSecret = enroll.totp.secret;
+    must(await anon.auth.mfa.challengeAndVerify({ factorId: enroll.id, code: totp(mfaSecret) }), "verify");
+  }
+
+  lines.push(`${acc.name}`, `  e-mail: ${acc.email}`, `  senha:  ${password}`, ...(mfaSecret ? [`  mfa:    ${mfaSecret}`] : []), "");
 }
 
 writeFileSync("contas-teste.local.txt", lines.join("\n"), { mode: 0o600 });

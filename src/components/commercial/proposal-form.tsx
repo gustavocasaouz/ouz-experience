@@ -117,7 +117,7 @@ export function ProposalForm({ defaults, tablePrice, unitLabel }: { defaults: Pr
         <p className="text-sm text-ink-soft">
           Preencha cada condição em <strong>reais</strong> ou em <strong>% do valor ofertado</strong> — um calcula o outro. Em séries (parcelas, reforços), o % é do total da série.
         </p>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Condições de pagamento">
           <table className="w-full text-sm min-w-[760px]">
             <caption className="sr-only">Condições de pagamento</caption>
             <thead className="text-left text-ink-mute">

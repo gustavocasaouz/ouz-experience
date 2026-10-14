@@ -70,7 +70,8 @@ export function DataList({ items }: { items: Array<{ label: string; value: React
 
 export function Table({ head, children, caption }: { head: string[]; children: ReactNode; caption?: string }) {
   return (
-    <div className="overflow-x-auto border border-line bg-surface rounded-[var(--radius-md)]">
+    // Região rolável acessível por teclado (WCAG): focável e nomeada.
+    <div className="overflow-x-auto border border-line bg-surface rounded-[var(--radius-md)] focus-visible:outline-2" tabIndex={0} role="region" aria-label={caption ?? "Tabela"}>
       <table className="w-full text-sm">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead className="bg-sand/60 text-left">

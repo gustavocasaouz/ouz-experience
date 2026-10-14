@@ -13,7 +13,7 @@
   --color-line: #dcd8cf;
   --color-ink: #000000;          /* preto OUZ */
   --color-ink-soft: #3d3d3b;     /* grafite */
-  --color-ink-mute: #77756f;
+  --color-ink-mute: #64625c;  /* contraste ≥ 4,5:1 (WCAG AA) sobre off-white, areia e branco */
   --color-accent: #262626;       /* grafite OUZ */
   --color-accent-soft: #d6d2c8;
   --color-success: #3f6b4f;

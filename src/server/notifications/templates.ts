@@ -12,7 +12,7 @@ const wrap = (title: string, paragraphs: string[], cta?: { label: string; url: s
 ${paragraphs.map((p) => `<p style="font-size:15px;line-height:1.6;margin:0 0 12px">${esc(p)}</p>`).join("")}
 ${cta ? `<p style="margin:24px 0 0"><a href="${esc(cta.url)}" style="display:inline-block;background:#000000;color:#fff;text-decoration:none;padding:12px 24px;font-size:14px">${esc(cta.label)}</a></p>` : ""}
 </td></tr></table>
-<p style="font-size:12px;color:#77756f;margin-top:16px">Mensagem automática do OUZ Experience.</p>
+<p style="font-size:12px;color:#64625c;margin-top:16px">Mensagem automática do OUZ Experience.</p>
 </td></tr></table></body></html>`;
   const text = [title, "", ...paragraphs, ...(cta ? ["", `${cta.label}: ${cta.url}`] : [])].join("\n");
   return { subject: title, text, html };
