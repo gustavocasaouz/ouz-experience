@@ -120,4 +120,31 @@ describe("financeiro corrigido pelo CUB", () => {
     expect(await db.admin(`select 1 from public.units where code = 'CUB-2'`)).toHaveLength(0);
     expect(await db.admin(`select 1 from public.clients where email = 'novo@cli.ouz'`)).toHaveLength(0);
   });
+
+  it("encargos de atraso automáticos: juros pro rata die + multa sobre o débito; parcela paga congela", async () => {
+    const { id: contract } = await one(db.admin<{ id: string }>(`select c.id from public.financial_contracts c join public.units u on u.id = c.unit_id where u.code = 'CUB-1'`));
+    const { d } = await one(db.admin<{ d: string }>(`select to_char((now() at time zone 'America/Sao_Paulo')::date - 30, 'YYYY-MM-DD') as d`));
+    const { id: inst } = await one(db.as<{ id: string }>(financeiro, `select public.admin_add_indexed_installment($1, 9, 'parcela', $2, 9000, false) as id`, [contract, d]));
+    await expect(db.as(atendimento, `select public.admin_set_contract_charges($1, 1, 2)`, [contract])).rejects.toThrow(/acesso negado/);
+    await expect(db.as(financeiro, `select public.admin_set_contract_charges($1, 1, null)`, [contract])).rejects.toThrow(/juros e multa/);
+    await db.as(financeiro, `select public.admin_set_contract_charges($1, 1, 2)`, [contract]);
+    const row = () => one(db.admin<{ interest: string; fine: string; updated_amount: string; late_days: number; status: string }>(
+      `select interest, fine, updated_amount, late_days, status from public.installments where id = $1`, [inst]));
+    // 9.000 × 1% × 30/30 = 90,00; multa 2% × 9.090 = 181,80
+    expect(await row()).toEqual({ interest: "90.00", fine: "181.80", updated_amount: "9271.80", late_days: 30, status: "aberta" });
+    // Parcela futura não tem encargos.
+    expect(await db.admin(`select 1 from public.installments where contract_id = $1 and due_date > current_date + 2 and (interest is not null or fine is not null)`, [contract])).toHaveLength(0);
+    await db.as(financeiro, `select public.admin_register_payment($1, 9271.80, current_date, 'teste')`, [inst]);
+    await db.admin(`select public._recalc_indexed_installments(null)`);
+    expect(await row()).toMatchObject({ status: "paga", updated_amount: "9271.80", interest: "90.00" });
+    await db.as(financeiro, `select public.admin_set_contract_charges($1, null, null)`, [contract]);
+  });
+
+  it("importação aplica os encargos do contrato", async () => {
+    const p = { ...payload("CUB-3", "enc@cli.ouz"), late_charges: { interest_monthly_pct: 1, fine_pct: 2 } };
+    await db.admin(`select public.import_indexed_flow($1::jsonb)`, [JSON.stringify(p)]);
+    expect(await one(db.admin(`select late_interest_monthly_pct, late_fine_pct from public.financial_contracts c join public.units u on u.id = c.unit_id where u.code = 'CUB-3'`)))
+      .toEqual({ late_interest_monthly_pct: "1.000", late_fine_pct: "2.000" });
+  });
 });
+

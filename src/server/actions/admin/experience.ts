@@ -234,10 +234,15 @@ export async function setContractIndex(fd: FormData) {
   const indexed = str(fd, "index_name") === "CUB-SC";
   const base = indexed ? parseBRL(str(fd, "base_index_value")) : null;
   if (indexed && !base) back(path, "erro", "Informe o CUB-base do contrato.");
+  const pct = (k: string) => (str(fd, k) ? Number(str(fd, k).replace(",", ".")) : null);
+  const interest = pct("late_interest"), fine = pct("late_fine");
+  if ((interest === null) !== (fine === null) || [interest, fine].some((v) => v !== null && !(v >= 0))) back(path, "erro", "Informe juros e multa (ou deixe ambos vazios).");
+  const contract = str(fd, "contract_id");
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("admin_set_contract_index", { p_contract_id: str(fd, "contract_id"), p_index: indexed ? "CUB-SC" : null, p_base: base });
-  failOn(error, path);
-  back(path, "ok", indexed ? "Correção pelo CUB-SC configurada." : "Correção pelo índice removida.");
+  if (!indexed) failOn((await supabase.rpc("admin_set_contract_charges", { p_contract_id: contract, p_interest_pct: null, p_fine_pct: null })).error, path);
+  failOn((await supabase.rpc("admin_set_contract_index", { p_contract_id: contract, p_index: indexed ? "CUB-SC" : null, p_base: base })).error, path);
+  if (indexed) failOn((await supabase.rpc("admin_set_contract_charges", { p_contract_id: contract, p_interest_pct: interest, p_fine_pct: fine })).error, path);
+  back(path, "ok", indexed ? "Correção e encargos salvos." : "Correção pelo índice removida.");
 }
 
 export async function addIndexedInstallment(fd: FormData) {

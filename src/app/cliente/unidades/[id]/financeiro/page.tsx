@@ -54,7 +54,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
               <tr key={i.id}>
                 <Td>{i.number}</Td>
                 <Td>{INSTALLMENT_KIND_LABELS[i.kind]}</Td>
-                <Td className="whitespace-nowrap">{formatDue(i.due_date)}</Td>
+                <Td className="whitespace-nowrap">{formatDue(i.due_date)}{i.late_days && i.display_status === "vencida" ? <span className="block text-xs text-danger">{i.late_days} dia(s) de atraso</span> : null}</Td>
                 <Td className="whitespace-nowrap">{formatBRL(i.original_amount)}</Td>
                 {hasBreakdown && (
                   <>
@@ -74,6 +74,11 @@ export default async function ClientFinance({ params, searchParams }: { params: 
           <p className="text-sm text-ink-soft mt-4">
             Parcelas corrigidas pelo {f.contract.index_name}: valor em CUBs multiplicado pelo CUB do mês do vencimento.
             {f.totals.hasEstimate && <> Onde aparece <strong>estimativa</strong>, o CUB do mês ainda não foi publicado e o cálculo usa o último CUB cadastrado{f.totals.lastIndexMonth ? ` (${monthYear(f.totals.lastIndexMonth)})` : ""}; o valor final depende do CUB do mês do pagamento.</>}
+          </p>
+        )}
+        {f.contract.late_interest_monthly_pct && f.totals.overdueCount > 0 && (
+          <p className="text-sm text-ink-soft mt-3">
+            Parcelas vencidas: juros de {Number(f.contract.late_interest_monthly_pct).toLocaleString("pt-BR")}% ao mês, proporcionais aos dias de atraso, e multa de {Number(f.contract.late_fine_pct).toLocaleString("pt-BR")}% sobre o débito, conforme contrato. Valores atualizados diariamente até o pagamento.
           </p>
         )}
         <p className="text-xs text-ink-mute mt-3">Atualização, juros e multa são informados pela OUZ quando existirem. Valores sujeitos a conferência.</p>

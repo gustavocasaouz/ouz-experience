@@ -101,6 +101,7 @@ node --env-file=.env.local scripts/importar-fluxo-cub.mjs "arquivo.xlsx" --empre
 ```
 
 - Correções informadas pela OUZ que não estão na planilha (e-mail, valor de parcela, parcela das chaves, parcela não paga, valor pago a mais, dia de vencimento) vão num arquivo de ajustes, passado com `--ajustes importacao/<empreendimento>-ajustes.json`. A pasta `importacao/` fica fora do Git (contém dados de clientes). Cada ajuste precisa encontrar o que corrigir; senão, a importação é recusada.
+- Encargos de atraso dos contratos importados vêm do arquivo de ajustes: `"encargos_atraso": { "juros_ao_mes": 1, "multa": 2 }`. A simulação lista as parcelas vencidas em aberto com juros e multa do dia — confira antes de gravar.
 - A simulação mostra, por apartamento, parcelas, pagas, contrato, total pago e saldo calculado × saldo da planilha, além de avisos (diferenças) e erros (ex.: e-mail inválido). Com erro, nada é gravado.
 - Em produção exige `--confirmo-producao`, e só depois do plano Pro do Supabase (backup).
 - A planilha real nunca entra no projeto: `*.xlsx` está no `.gitignore`.

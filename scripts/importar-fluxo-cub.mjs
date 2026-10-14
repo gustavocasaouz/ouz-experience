@@ -52,9 +52,24 @@ await db.connect();
 try {
   const dev = (await db.query(`select id, name from public.developments where slug = $1`, [slug])).rows[0];
   if (!dev) throw new Error(`empreendimento "${slug}" não encontrado`);
-  const payload = { development_id: dev.id, file_name: basename(file), ...r.payload };
+  const enc = ajustes?.encargos_atraso;
+  const payload = {
+    development_id: dev.id, file_name: basename(file), ...r.payload,
+    ...(enc ? { late_charges: { interest_monthly_pct: enc.juros_ao_mes, fine_pct: enc.multa } } : {}),
+  };
+  if (enc) console.log(`\nEncargos de atraso dos contratos: juros de ${enc.juros_ao_mes}% ao mês pro rata die + multa de ${enc.multa}% (atualizados diariamente)`);
   await db.query("begin");
   const res = (await db.query(`select public.import_indexed_flow($1::jsonb) as r`, [JSON.stringify(payload)])).rows[0].r;
+  const late = (await db.query(
+    `select u.code as apto, count(*)::int as parcelas, max(i.late_days) as dias, sum(i.updated_amount - coalesce(i.interest, 0) - coalesce(i.fine, 0)) as principal,
+            sum(coalesce(i.interest, 0)) as juros, sum(coalesce(i.fine, 0)) as multa, sum(i.updated_amount) as total
+       from public.installments i join public.financial_contracts c on c.id = i.contract_id join public.units u on u.id = c.unit_id
+      where u.development_id = $1 and i.status in ('aberta', 'parcialmente_paga') and i.due_date < (now() at time zone 'America/Sao_Paulo')::date
+      group by u.code order by u.code`, [dev.id])).rows;
+  if (late.length) {
+    console.log("\nParcelas vencidas em aberto (valores de hoje):");
+    console.table(late.map((l) => ({ apto: l.apto, parcelas: l.parcelas, "dias de atraso": l.dias, principal: brl(l.principal), juros: brl(l.juros), multa: brl(l.multa), total: brl(l.total) })));
+  }
   if (write) {
     await db.query("commit");
     console.log(`\n✓ Gravado em ${dev.name}:`, res);

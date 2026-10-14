@@ -4,14 +4,14 @@ import { createSupabaseServerClient } from "@/server/db/supabase-server";
 export type InstallmentRow = {
   id: string; number: number; kind: string; due_date: string | null; original_amount: string; monetary_update: string | null;
   interest: string | null; fine: string | null; updated_amount: string | null; paid_amount: string; paid_on: string | null;
-  status: string; display_status: string; indexed: boolean; is_estimate: boolean; index_month: string | null;
+  status: string; display_status: string; indexed: boolean; is_estimate: boolean; index_month: string | null; late_days: number | null;
 };
 
 export async function unitFinance(unitId: string) {
   const supabase = await createSupabaseServerClient();
   const { data: contract } = await supabase
     .from("financial_contracts")
-    .select("id, contract_value, signed_on, last_updated_at, notes, index_name")
+    .select("id, contract_value, signed_on, last_updated_at, notes, index_name, late_interest_monthly_pct, late_fine_pct")
     .eq("unit_id", unitId)
     .maybeSingle();
   if (!contract) return null;
