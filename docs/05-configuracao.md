@@ -94,6 +94,13 @@ npx playwright show-report e2e-report
 
 Cobrem: área pública (desktop e celular), bloqueio de áreas restritas, portal do corretor, portal do cliente (unidade, acompanhamento, financeiro), administração com MFA e verificação automática de acessibilidade WCAG AA (axe). Usam somente as contas de teste e o banco de desenvolvimento; antes de rodar, execute `criar-contas-teste.mjs`. Nenhum e-mail real é enviado (`EMAIL_MODE=log`).
 
+## 6.0 Unidades oficiais e modelos
+
+```bash
+node --env-file=.env.local scripts/aplicar-seed.mjs supabase/seed-unidades-oficiais.sql   # cria as unidades que faltam (não altera as existentes)
+node scripts/gerar-modelo-corretores.mjs "modelos/Cadastro de corretores ativos - OUZ.xlsx"   # planilha em branco para o comercial
+```
+
 ## 6.1 Importação da base ativa (planilha "Fluxo de Pagamentos Clientes")
 
 Uma vez por empreendimento. Cria unidades (vendidas), clientes, vínculos, contratos corrigidos pelo CUB-SC, parcelas (pagas até a fórmula "Total já pago") e o histórico do CUB. **Não** envia convites e **não** guarda CPF/CNPJ nem endereço.

@@ -16,7 +16,7 @@ test("corretor aprovado sem acesso ao UMAN vê só o teaser, sem preços", async
 test("corretor envia proposta dentro da política e recebe a reserva de 48 h", async ({ page }) => {
   const db = adminDb();
   const { data: soho } = await db.from("developments").select("id").eq("slug", "soho").single();
-  const { data: units } = await db.from("units").select("id, code").eq("development_id", soho!.id).eq("status", "disponivel").order("code");
+  const { data: units } = await db.from("units").select("id, code").eq("development_id", soho!.id).eq("status", "disponivel").eq("is_demo", true).order("code"); // só unidades demonstrativas
   let free: { id: string; code: string } | undefined;
   for (const u of units ?? []) {
     const { count } = await db.from("reservations").select("id", { count: "exact", head: true }).eq("unit_id", u.id)
