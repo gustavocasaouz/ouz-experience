@@ -151,6 +151,20 @@ function parseClient(sheet, opts) {
       applied.push(`parcela ${i.number}: + ${adj.acrescimo_pago.valor} no valor e no pago`);
     }
   }
+  if (adj.pagas_ate) {
+    // Parcelas vencidas até a data informada foram pagas (a planilha não estava atualizada).
+    for (const i of installments) {
+      if (i.paid || !i.due_date || i.due_date > adj.pagas_ate) continue;
+      let v = i.original_amount;
+      if (i.indexed) {
+        const c = opts.cub.find((x) => x.month === i.due_date.slice(0, 8) + "01");
+        if (!c) { errors.push(`ajuste: sem CUB de ${i.due_date.slice(0, 7)} para a parcela ${i.number}`); continue; }
+        v = round2(i.index_quantity * c.value);
+      }
+      i.paid = true; i.paid_amount = v;
+      applied.push(`parcela ${i.number} (${i.due_date}) marcada como paga: ${v.toFixed(2)}`);
+    }
+  }
   for (const due of adj.nao_pagas ?? []) {
     const i = installments.find((x) => x.due_date === due && x.paid);
     if (!i) errors.push(`ajuste: nenhuma parcela paga com vencimento ${due}`);

@@ -31,7 +31,7 @@ const serial = (iso) => Math.round((Date.parse(iso) - Date.UTC(1899, 11, 30)) / 
 
 function workbook() {
   const cub = { B3: "MÊS", C3: "CUB" };
-  ["2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01"].forEach((m, k) => { cub[`B${4 + k}`] = serial(m); cub[`C${4 + k}`] = 2000 + k * 100; });
+  ["2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01", "2026-05-01"].forEach((m, k) => { cub[`B${4 + k}`] = serial(m); cub[`C${4 + k}`] = 2000 + k * 100; });
   // Cliente A: entrada sem reajuste paga, P1 paga, P2 em aberto, FINAL nas chaves. CUB-base 2000.
   const a = {
     C3: "Apto 101", C4: "Nome ", D4: "Cliente  Fictício", E4: "Endereço", F4: "não importar", C5: "Cub", D5: 2000,
@@ -119,6 +119,10 @@ describe("importação do fluxo de pagamentos (CUB)", () => {
     ]);
     expect(inst[2].due_date).toBe("2026-03-15"); // dia do vencimento só muda em parcelas comuns, não em antecipações
     expect(a.summaries[0].ajustes).toHaveLength(5);
+    const late = parseFluxo(readXlsx(workbook()), { slug: "maui", today: "2026-06-20", ajustes: { padrao: { pagas_ate: "2026-05-31" } } });
+    expect(late.errors).toEqual([]);
+    expect(late.payload.clients[0].installments[3]).toMatchObject({ number: 4, paid: true, paid_amount: 12000 }); // 5 CUBs × CUB de maio (2400)
+    expect(late.payload.clients[0].installments[4]).toMatchObject({ kind: "chaves", paid: false });
     const bad = parseFluxo(readXlsx(workbook()), { slug: "maui", today: "2026-03-20", ajustes: { unidades: { "101": { nao_pagas: ["2030-01-10"] } } } });
     expect(bad.errors).toEqual(["CLIENTE A: ajuste: nenhuma parcela paga com vencimento 2030-01-10"]);
   });
