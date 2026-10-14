@@ -23,12 +23,16 @@ export async function updateCommercialSettings(fd: FormData) {
       reservation_hours: z.coerce.number().int().min(1).max(720),
       regularization_hours: z.coerce.number().int().min(1).max(720),
       keys_expected_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+      max_active_proposals_per_broker: z.coerce.number().int().min(1).max(50),
+      reservation_cooldown_days: z.coerce.number().int().min(0).max(90),
     })
     .safeParse({
       sales_mode: str(fd, "sales_mode"),
       reservation_hours: str(fd, "reservation_hours"),
       regularization_hours: str(fd, "regularization_hours"),
       keys_expected_date: optStr(fd, "keys_expected_date"),
+      max_active_proposals_per_broker: str(fd, "max_active_proposals_per_broker"),
+      reservation_cooldown_days: str(fd, "reservation_cooldown_days"),
     });
   if (!parsed.success) back(path, "erro", "Revise as configurações.");
   const supabase = await createSupabaseServerClient();

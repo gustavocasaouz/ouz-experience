@@ -19,15 +19,17 @@ export default async function AdminCampaign({ params, searchParams }: { params: 
   if (denied) return denied;
   const { id } = await params;
   const supabase = await createSupabaseServerClient();
-  const [{ data: c }, { data: waves }, { data: regs }] = await Promise.all([
+  const [{ data: c }, { data: waves }, { data: regs }, { data: flags }] = await Promise.all([
     supabase.from("prelaunch_campaigns").select("*, development:developments(name)").eq("id", id).maybeSingle(),
     supabase.from("prelaunch_waves").select("*").eq("campaign_id", id).order("sort_order").order("created_at"),
     supabase.from("prelaunch_registrations").select("id, client_name, client_document, preferences, status, registered_at, priority_rank, wave_id, broker:broker_profiles(full_name)").eq("campaign_id", id).order("priority_rank", { nullsFirst: false }).order("registered_at"),
+    supabase.rpc("admin_prelaunch_review_flags", { p_campaign_id: id }),
   ]);
+  const review = new Set(((flags ?? []) as Array<{ registration_id: string; review_required: boolean }>).filter((f) => f.review_required).map((f) => f.registration_id));
   if (!c) notFound();
   const registrations = (regs ?? []) as unknown as Reg[];
   const waveName = new Map((waves ?? []).map((w) => [w.id, w.name]));
-  const waiting = registrations.filter((r) => r.status === "registrado").length;
+  const waiting = registrations.filter((r) => r.status === "registrado" && !review.has(r.id)).length;
 
   return (
     <>
@@ -94,7 +96,8 @@ export default async function AdminCampaign({ params, searchParams }: { params: 
               <Td>{r.client_name}<span className="block text-xs text-ink-mute">{maskDocument(r.client_document)}</span></Td>
               <Td className="text-sm text-ink-soft max-w-56">{r.preferences ?? "—"}</Td>
               <Td>
-                <Badge tone={r.status === "em_analise_duplicidade" ? "warning" : r.status === "convidado" ? "success" : "neutral"}>{REGISTRATION_STATUS_LABELS[r.status]}</Badge>
+                <Badge tone={r.status === "convidado" ? "success" : "neutral"}>{REGISTRATION_STATUS_LABELS[r.status]}</Badge>
+                {review.has(r.id) && <Badge tone="warning" className="ml-1">Duplicidade: analisar</Badge>}
                 {r.wave_id && <span className="block text-xs text-ink-mute">{waveName.get(r.wave_id)}</span>}
               </Td>
               <Td>
@@ -107,7 +110,7 @@ export default async function AdminCampaign({ params, searchParams }: { params: 
                         <input type="hidden" name="registration_id" value={r.id} />
                         <TextField label="Motivo" name="reason" id={`rr-${r.id}`} required minLength={3} />
                         <div className="flex gap-2">
-                          {r.status === "em_analise_duplicidade" && <SubmitButton size="sm" name="decision" value="aceitar">Aceitar</SubmitButton>}
+                          {review.has(r.id) && <SubmitButton size="sm" name="decision" value="aceitar">Aceitar</SubmitButton>}
                           <SubmitButton size="sm" name="decision" value="cancelar" variant="danger">Cancelar registro</SubmitButton>
                         </div>
                       </form>

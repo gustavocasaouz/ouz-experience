@@ -31,6 +31,18 @@ const iso = (d) => d.toISOString().slice(0, 10);
 
 const [b1, b2] = await Promise.all([login("corretor.uman@teste.ouz.app.br"), login("corretor.semuman@teste.ouz.app.br")]);
 
+// Remove restos de execuções anteriores (somente dados deste teste, em desenvolvimento).
+async function purgeTestData() {
+  const { data: old } = await admin.from("proposals").select("id, unit_id").eq("client_name", "[Teste] Concorrência");
+  const ids = (old ?? []).map((p) => p.id);
+  if (ids.length) {
+    await admin.from("reservations").delete().in("proposal_id", ids);
+    await admin.from("proposals").delete().in("id", ids);
+    await admin.from("units").update({ status: "disponivel" }).in("id", [...new Set(old.map((p) => p.unit_id))]).eq("status", "reservada");
+  }
+}
+await purgeTestData();
+
 // unidade livre, sem reserva e sem fila
 const { data: units } = await admin.from("units").select("id, code, status").eq("development_id", SOHO).eq("status", "disponivel").order("code");
 let unit = null;
@@ -75,9 +87,8 @@ const { data: active } = await admin.from("reservations").select("id").eq("unit_
 const ok = errors.length === 0 && active.length === 1 && statuses.sort().join(",") === "na_fila,reservada";
 console.log(ok ? "OK   Exatamente uma reserva; a outra proposta entrou na fila; reenvios não duplicaram." : `FALHA ${JSON.stringify({ errors, statuses, reservasAtivas: active.length })}`);
 
-// limpeza: retira as duas (a fila é processada e a unidade volta a ficar disponível)
-await b2.rpc("broker_withdraw_proposal", { p_proposal_id: p2, p_reason: "limpeza do teste" });
-await b1.rpc("broker_withdraw_proposal", { p_proposal_id: p1, p_reason: "limpeza do teste" });
+// limpeza: apaga os dados do teste (sem gerar carência para os corretores de teste)
+await purgeTestData();
 const { data: after } = await admin.from("units").select("status").eq("id", unit.id).single();
 console.log(after.status === "disponivel" ? "OK   Limpeza concluída; unidade disponível." : `ATENÇÃO unidade ficou ${after.status}`);
 process.exit(ok ? 0 : 1);

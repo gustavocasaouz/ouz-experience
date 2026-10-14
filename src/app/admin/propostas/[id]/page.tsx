@@ -19,15 +19,16 @@ export default async function AdminProposal({ params, searchParams }: { params: 
   const supabase = await createSupabaseServerClient();
   const { data: p } = await supabase
     .from("proposals")
-    .select("id, status, client_name, client_document, client_document_type, offered_price, table_price, payments, observations, submitted_at, analysis_reasons, decision_reason, queue_priority, broker:broker_profiles(full_name, email, creci_number, creci_uf), unit:units(id, code, status), development:developments(name), reservation:reservations(id, status, expires_at)")
+    .select("id, status, client_name, client_document, client_document_type, offered_price, table_price, payments, observations, submitted_at, decision_reason, queue_priority, broker:broker_profiles(full_name, email, creci_number, creci_uf), unit:units(id, code, status), development:developments(name), reservation:reservations(id, status, expires_at)")
     .eq("id", id)
     .maybeSingle();
   if (!p) notFound();
   const unit = p.unit as unknown as { id: string; code: string; status: string };
-  const [{ data: events }, { data: queue }, { data: evalRows }] = await Promise.all([
+  const [{ data: events }, { data: queue }, { data: evalRows }, { data: reasons }] = await Promise.all([
     supabase.from("proposal_events").select("occurred_at, to_status, note, visible_to_broker").eq("proposal_id", id).order("occurred_at", { ascending: false }),
     supabase.rpc("admin_unit_queue", { p_unit_id: unit.id }),
     supabase.rpc("admin_proposal_evaluation", { p_proposal_id: id }),
+    supabase.rpc("admin_proposal_reasons", { p_proposal_id: id }),
   ]);
   const evaluation = ((evalRows ?? []) as Array<{ evaluation: Evaluation | null }>)[0]?.evaluation ?? null;
   const broker = p.broker as unknown as { full_name: string; email: string; creci_number: string; creci_uf: string };
@@ -51,7 +52,7 @@ export default async function AdminProposal({ params, searchParams }: { params: 
               { label: "Valor ofertado", value: formatBRL(p.offered_price) },
               { label: "Tabela no envio", value: formatBRL(p.table_price) },
               { label: "Enviada em", value: formatDateTime(p.submitted_at) },
-              { label: "Motivos de análise", value: (p.analysis_reasons as string[])?.map((r) => ANALYSIS_REASON_LABELS[r] ?? r).join(", ") || "—" },
+              { label: "Motivos de análise", value: ((reasons ?? []) as string[]).map((r) => ANALYSIS_REASON_LABELS[r] ?? r).join(", ") || "—" },
               ...(reservation ? [{ label: "Reserva", value: <Link className="underline" href={`/admin/reservas/${reservation.id}`}>{RESERVATION_STATUS_LABELS[reservation.status]}</Link> }] : []),
               ...(p.decision_reason ? [{ label: "Decisão", value: p.decision_reason }] : []),
             ]}

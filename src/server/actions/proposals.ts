@@ -188,9 +188,7 @@ export async function registerPrelaunch(_prev: ActionState, fd: FormData): Promi
   return {
     ok: true,
     message:
-      status === "em_analise_duplicidade"
-        ? "Registro recebido e encaminhado para análise da OUZ."
-        : "Interesse registrado. Isto não é proposta nem reserva, e não garante unidade ou preço.",
+      status === "cancelado" ? "Registro não aceito." : "Interesse registrado. Isto não é proposta nem reserva, e não garante unidade ou preço.",
   };
 }
 

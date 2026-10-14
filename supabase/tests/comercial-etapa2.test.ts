@@ -391,8 +391,10 @@ describe("visibilidade de preços e pré-lançamento (UMAN)", () => {
     await expect(reg(A.claims, CLIENT_1, "u2")).rejects.toThrow(/limite/);
     const rb = await reg(B.claims, CLIENT_2, "u3");
     const rc = await reg(C.claims, CLIENT_2, "u4");
-    expect(rc.status).toBe("em_analise_duplicidade");
-    expect(await db.as(C.claims, `select * from public.prelaunch_registrations`)).toHaveLength(1);
+    expect(rc.status).toBe("registrado"); // duplicidade fica oculta ao corretor
+    const flags = await db.as<{ registration_id: string; review_required: boolean }>(comercial.aal2, `select * from public.admin_prelaunch_review_flags($1)`, [campaign]);
+    expect(flags.find((f) => f.registration_id === rc.id)?.review_required).toBe(true);
+    expect(await db.as(C.claims, `select id from public.prelaunch_registrations`)).toHaveLength(1);
 
     const [{ id: wave }] = await db.as<{ id: string }>(comercial.aal2, `insert into public.prelaunch_waves (campaign_id, name) values ($1, 'Onda 1') returning id`, [campaign]);
     const [{ n }] = await db.as<{ n: number }>(comercial.aal2, `select public.admin_fill_wave($1, 1) as n`, [wave]);

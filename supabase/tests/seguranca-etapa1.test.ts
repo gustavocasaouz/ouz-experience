@@ -130,6 +130,9 @@ describe("acesso por empreendimento (UMAN restrito)", () => {
     await db.as(admin.aal2, `select public.admin_grant_development_access($1, null, $2, 'Onda 1')`, [UMAN, g.id]);
     await db.admin(`insert into storage.objects (bucket_id, name) values ('broker-content', $1)`, [`${UMAN}/planta.pdf`]);
     await db.admin(`insert into storage.objects (bucket_id, name) values ('broker-content', $1)`, [`${SOHO}/planta.pdf`]);
+    // arquivos de corretor só são lidos se registrados como material publicado (apresentação: não depende de preço)
+    await db.admin(`insert into public.broker_materials (development_id, kind, title, storage_path, is_published) values
+      ($1, 'apresentacao', 'UMAN', $2, true), ($3, 'apresentacao', 'SOHO', $4, true)`, [UMAN, `${UMAN}/planta.pdf`, SOHO, `${SOHO}/planta.pdf`]);
   });
 
   const restrito = async (claims: { sub?: string }) => ({

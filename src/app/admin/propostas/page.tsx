@@ -4,7 +4,7 @@ import { cx } from "@/design-system/cx";
 import { Flash, type SP } from "@/components/admin/flash";
 import { staffWith } from "@/components/admin/require-perm";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
-import { ANALYSIS_REASON_LABELS, PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_TONE } from "@/lib/labels";
+import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_TONE } from "@/lib/labels";
 import { formatBRL, formatDateTime } from "@/lib/format";
 
 export const metadata = { title: "Propostas" };
@@ -18,7 +18,7 @@ export default async function AdminProposals({ searchParams }: { searchParams: S
   const supabase = await createSupabaseServerClient();
   let q = supabase
     .from("proposals")
-    .select("id, status, client_name, offered_price, table_price, within_policy, analysis_reasons, submitted_at, broker:broker_profiles(full_name), unit:units(code), development:developments(name)")
+    .select("id, status, client_name, offered_price, table_price, within_policy, submitted_at, broker:broker_profiles(full_name), unit:units(code), development:developments(name)")
     .neq("status", "rascunho")
     .order("submitted_at", { ascending: status === "em_analise" })
     .limit(300);
@@ -53,9 +53,7 @@ export default async function AdminProposals({ searchParams }: { searchParams: S
               <Td className="whitespace-nowrap text-sm">{formatBRL(p.offered_price)}<span className="block text-xs text-ink-mute">{formatBRL(p.table_price)}</span></Td>
               <Td>
                 <Badge tone={PROPOSAL_STATUS_TONE[p.status]}>{PROPOSAL_STATUS_LABELS[p.status]}</Badge>
-                {p.analysis_reasons?.length ? (
-                  <span className="block text-xs text-ink-mute mt-1">{(p.analysis_reasons as string[]).map((r) => ANALYSIS_REASON_LABELS[r] ?? r).join(", ")}</span>
-                ) : null}
+                {p.status === "em_analise" && p.within_policy === false && <span className="block text-xs text-ink-mute mt-1">Fora da política</span>}
               </Td>
             </tr>
           ))}

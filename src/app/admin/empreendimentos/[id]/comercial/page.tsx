@@ -84,6 +84,8 @@ export default async function DevelopmentCommercial({ params, searchParams }: { 
                 <TextField label="Previsão de entrega das chaves" name="keys_expected_date" type="date" defaultValue={settings?.keys_expected_date ?? ""} hint="Informada pela OUZ; usada no critério “até as chaves”." />
                 <TextField label="Prazo da reserva para documentação (horas)" name="reservation_hours" type="number" min={1} max={720} required defaultValue={String(settings?.reservation_hours ?? 48)} />
                 <TextField label="Prazo para regularizar pendências (horas)" name="regularization_hours" type="number" min={1} max={720} required defaultValue={String(settings?.regularization_hours ?? 24)} />
+                <TextField label="Máximo de propostas ativas por corretor" name="max_active_proposals_per_broker" type="number" min={1} max={50} required defaultValue={String(settings?.max_active_proposals_per_broker ?? 3)} hint="Evita que um corretor bloqueie várias unidades." />
+                <TextField label="Carência após reserva perdida (dias)" name="reservation_cooldown_days" type="number" min={0} max={90} required defaultValue={String(settings?.reservation_cooldown_days ?? 7)} hint="Mesmo corretor, mesma unidade, após expirar ou desistir." />
                 <CheckboxField name="regularization_expires" label="Expirar a reserva se a pendência não for regularizada no prazo" defaultChecked={settings?.regularization_expires ?? true} />
                 <SubmitButton className="self-start">Salvar configurações</SubmitButton>
               </form>

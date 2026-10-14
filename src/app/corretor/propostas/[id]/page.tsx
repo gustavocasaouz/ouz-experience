@@ -16,7 +16,6 @@ import {
   withdrawProposal,
 } from "@/server/actions/proposals";
 import {
-  ANALYSIS_REASON_LABELS,
   ITEM_STATUS_LABELS,
   PROPOSAL_STATUS_LABELS,
   PROPOSAL_STATUS_TONE,
@@ -34,7 +33,7 @@ export default async function BrokerProposal({ params, searchParams }: { params:
   const supabase = await createSupabaseServerClient();
   const { data: p } = await supabase
     .from("proposals")
-    .select("id, status, client_name, client_document, offered_price, table_price, payments, observations, submitted_at, analysis_reasons, decision_reason, unit:units(code), development:developments(name, slug)")
+    .select("id, status, client_name, client_document, offered_price, table_price, payments, observations, submitted_at, decision_reason, unit:units(code), development:developments(name, slug)")
     .eq("id", id)
     .maybeSingle();
   if (!p) notFound();
@@ -153,7 +152,6 @@ export default async function BrokerProposal({ params, searchParams }: { params:
                 { label: "Valor ofertado", value: formatBRL(p.offered_price) },
                 { label: "Tabela no envio", value: p.table_price ? formatBRL(p.table_price) : "—" },
                 { label: "Enviada em", value: formatDateTime(p.submitted_at) },
-                ...(p.analysis_reasons?.length ? [{ label: "Motivo da análise", value: (p.analysis_reasons as string[]).map((r) => ANALYSIS_REASON_LABELS[r] ?? r).join(", ") }] : []),
                 ...(p.decision_reason ? [{ label: "Retorno da OUZ", value: p.decision_reason }] : []),
               ]}
             />
