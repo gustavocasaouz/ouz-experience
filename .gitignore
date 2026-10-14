@@ -19,3 +19,4 @@ supabase/.bundle/
 
 # credenciais de contas de teste geradas localmente
 *.local.txt
+.env*

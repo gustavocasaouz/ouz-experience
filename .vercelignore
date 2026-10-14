@@ -1,0 +1,12 @@
+# Nunca enviar para a Vercel
+.env
+.env.*
+!.env.example
+*.local.txt
+contas-teste.local.txt
+supabase/.bundle/
+supabase/tests/
+scripts/
+.claude/
+node_modules/
+.next/
