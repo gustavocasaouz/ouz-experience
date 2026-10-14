@@ -75,6 +75,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
           <p className="text-sm text-ink-soft mt-4">
             Parcelas corrigidas pelo {f.contract.index_name}: valor em CUBs multiplicado pelo CUB do mês do vencimento
             {f.contract.post_habite_index ? `, até o Habite-se; depois, o valor passa a ser corrigido pelo ${f.contract.post_habite_index}${habite ? ` (Habite-se em ${d(habite)})` : ""}` : ""}.
+            {f.contract.index_frozen_month && ` Correção fixada pela OUZ desde ${monthYear(f.contract.index_frozen_month)}: os valores não são mais reajustados.`}
             {f.totals.hasEstimate && <> Onde aparece <strong>estimativa</strong>, o índice do mês ainda não foi publicado e o cálculo usa o último cadastrado{f.totals.lastIndexMonth ? ` (${monthYear(f.totals.lastIndexMonth)})` : ""}; o valor final depende do CUB do mês do pagamento.</>}
           </p>
         )}

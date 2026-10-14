@@ -168,5 +168,25 @@ describe("financeiro corrigido pelo CUB", () => {
     expect((await one(db.admin<{ updated_amount: string }>(`select updated_amount from public.installments where contract_id = $1 and number = 4`, [contract]))).updated_amount).toBe("11500.00");
     await db.as(financeiro, `select public.admin_set_contract_post_index($1, null)`, [contract]);
   });
+
+  it("fixar a correção: nenhum índice depois do mês fixado; desfazer volta a corrigir", async () => {
+    const { id: contract } = await one(db.admin<{ id: string }>(`select c.id from public.financial_contracts c join public.units u on u.id = c.unit_id where u.code = 'CUB-1'`));
+    await db.as(financeiro, `select public.admin_set_contract_post_index($1, 'INPC')`, [contract]);
+    await db.as(financeiro, `select public.admin_set_habite_se($1, $2)`, [MAUI, month(-2)]);
+    const v = async () => db.admin<{ number: number; updated_amount: string; is_estimate: boolean }>(
+      `select number, updated_amount, is_estimate from public.installments where contract_id = $1 and number in (3, 4) order by number`, [contract]);
+    expect((await v()).map((x) => x.updated_amount)).toEqual(["10605.00", "10605.00"]); // CUB do Habite-se × INPC de 1%
+    await expect(db.as(atendimento, `select public.admin_freeze_contract_index($1, $2)`, [contract, month(-2)])).rejects.toThrow(/acesso negado/);
+    await db.as(financeiro, `select public.admin_freeze_contract_index($1, $2)`, [contract, month(-2)]);
+    // Fixada no mês do Habite-se: sem INPC; e não é mais estimativa (nada a esperar).
+    expect(await v()).toEqual([
+      { number: 3, updated_amount: "10500.00", is_estimate: false },
+      { number: 4, updated_amount: "10500.00", is_estimate: false },
+    ]);
+    await db.as(financeiro, `select public.admin_freeze_development_index($1, null)`, [MAUI]);
+    expect((await v()).map((x) => x.updated_amount)).toEqual(["10605.00", "10605.00"]);
+    await db.as(financeiro, `select public.admin_set_habite_se($1, null)`, [MAUI]);
+    await db.as(financeiro, `select public.admin_set_contract_post_index($1, null)`, [contract]);
+  });
 });
 

@@ -9,7 +9,7 @@ import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { hasPermission } from "@/server/auth/viewer";
 import { updateUnitDetails } from "@/server/actions/admin/developments";
 import {
-  addIndexedInstallment, addInstallment, addPunchItem, setContractIndex, createDocument, registerPayment, answerInquiry, updateBooking, updateCustomization, updateDelivery, updatePunchItem, upsertContract,
+  addIndexedInstallment, addInstallment, addPunchItem, freezeIndex, setContractIndex, createDocument, registerPayment, answerInquiry, updateBooking, updateCustomization, updateDelivery, updatePunchItem, upsertContract,
 } from "@/server/actions/admin/experience";
 import {
   CUSTOMIZATION_STATUS_LABELS, DOCUMENT_CATEGORY_LABELS, INSTALLMENT_KIND_LABELS, INSTALLMENT_STATUS_LABELS, PUNCH_STATUS_LABELS, RECEIPT_STATUS_LABELS,
@@ -38,13 +38,13 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
   const [clients, docs, contract, custom, bookings, punch, delivery] = await Promise.all([
     can.cli ? supabase.from("client_units").select("relation, active, client:clients(id, full_name, email)").eq("unit_id", id).eq("active", true) : Promise.resolve({ data: null }),
     can.docs ? supabase.from("documents").select("id, category, title, visible_to_client, versions:document_versions(version_number, storage_path, uploaded_at)").eq("unit_id", id).order("created_at") : Promise.resolve({ data: null }),
-    can.fin ? supabase.from("financial_contracts").select("id, contract_value, signed_on, notes, last_updated_at, index_name, base_index_value, late_interest_monthly_pct, late_fine_pct, post_habite_index").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
+    can.fin ? supabase.from("financial_contracts").select("id, contract_value, signed_on, notes, last_updated_at, index_name, base_index_value, late_interest_monthly_pct, late_fine_pct, post_habite_index, index_frozen_month").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
     can.att ? supabase.from("customization_requests").select("*").eq("unit_id", id).order("created_at", { ascending: false }) : Promise.resolve({ data: null }),
     can.att ? supabase.from("appointment_bookings").select("id, kind, status, slot:appointment_slots(starts_at, location)").eq("unit_id", id).order("created_at", { ascending: false }) : Promise.resolve({ data: null }),
     can.att ? supabase.from("punch_list_items").select("*").eq("unit_id", id).order("created_at") : Promise.resolve({ data: null }),
     can.att ? supabase.from("unit_deliveries").select("*").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
-  const c = contract.data as { id: string; contract_value: string; signed_on: string | null; notes: string | null; last_updated_at: string; index_name: string | null; base_index_value: string | null; late_interest_monthly_pct: string | null; late_fine_pct: string | null; post_habite_index: string | null } | null;
+  const c = contract.data as { id: string; contract_value: string; signed_on: string | null; notes: string | null; last_updated_at: string; index_name: string | null; base_index_value: string | null; late_interest_monthly_pct: string | null; late_fine_pct: string | null; post_habite_index: string | null; index_frozen_month: string | null } | null;
   const [inst, receipts, inquiries] = c
     ? await Promise.all([
         supabase.from("installments_view").select("*").eq("contract_id", c.id).order("due_date").order("number"),
@@ -150,6 +150,15 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                 <SubmitButton size="sm" variant="secondary" className="self-start">{c ? "Atualizar contrato" : "Cadastrar contrato"}</SubmitButton>
               </form>
               {c && <p className="text-xs text-ink-mute mt-3">Última atualização exibida ao cliente: {formatDateTime(c.last_updated_at)}</p>}
+              {c?.index_name && (
+                <form action={freezeIndex} className="flex flex-wrap items-end gap-3 mt-6 pt-6 border-t border-line">
+                  <input type="hidden" name="unit_id" value={id} />
+                  <input type="hidden" name="contract_id" value={c.id} />
+                  <TextField label="Fixar correção a partir de (mês)" name="month" id="fc-fz" type="month" defaultValue={c.index_frozen_month?.slice(0, 7) ?? ""} hint={c.index_frozen_month ? `Fixada desde ${c.index_frozen_month.slice(5, 7)}/${c.index_frozen_month.slice(0, 4)}: nenhum CUB/INPC posterior é aplicado.` : "Os índices estão sendo aplicados normalmente."} />
+                  <SubmitButton size="sm" variant="secondary">Fixar correção</SubmitButton>
+                  {c.index_frozen_month && <button name="liberar" value="1" className="text-sm underline underline-offset-4">Voltar a corrigir</button>}
+                </form>
+              )}
               {c && (
                 <form action={setContractIndex} className="grid gap-4 sm:grid-cols-3 mt-6 pt-6 border-t border-line">
                   {/* Encargos de atraso automáticos exigem a correção pelo CUB. */}

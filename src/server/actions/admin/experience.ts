@@ -280,6 +280,23 @@ export async function setIndexValue(fd: FormData) {
   back(path, "ok", `${index} de ${month.slice(5)}/${month.slice(0, 4)} salvo; ${data ?? 0} parcela(s) em aberto recalculada(s).`);
 }
 
+/** Fixa (ou libera, com mês vazio) a correção monetária de um contrato ou de todos os contratos do empreendimento. */
+export async function freezeIndex(fd: FormData) {
+  const unit = optStr(fd, "unit_id");
+  const path = unit ? unitHub(unit, "#financeiro") : "/admin/financeiro#indices";
+  await guard("financeiro", path);
+  const month = str(fd, "month"); // AAAA-MM ou vazio
+  const release = str(fd, "liberar") === "1";
+  if (!release && !/^\d{4}-\d{2}$/.test(month)) back(path, "erro", "Informe o mês a partir do qual a correção fica fixada.");
+  const p_month = release ? null : `${month}-01`;
+  const supabase = await createSupabaseServerClient();
+  const { error } = unit
+    ? await supabase.rpc("admin_freeze_contract_index", { p_contract_id: str(fd, "contract_id"), p_month })
+    : await supabase.rpc("admin_freeze_development_index", { p_development_id: str(fd, "development_id"), p_month });
+  failOn(error, path);
+  back(path, "ok", p_month ? `Correção fixada a partir de ${month.slice(5)}/${month.slice(0, 4)}.` : "Correção liberada: os índices voltam a ser aplicados.");
+}
+
 export async function setHabiteSe(fd: FormData) {
   const path = "/admin/financeiro#indices";
   await guard("financeiro", path);

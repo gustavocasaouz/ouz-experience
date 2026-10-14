@@ -11,7 +11,7 @@ export async function unitFinance(unitId: string) {
   const supabase = await createSupabaseServerClient();
   const { data: contract } = await supabase
     .from("financial_contracts")
-    .select("id, contract_value, signed_on, last_updated_at, notes, index_name, late_interest_monthly_pct, late_fine_pct, post_habite_index, unit:units(development:developments(habite_se_date))")
+    .select("id, contract_value, signed_on, last_updated_at, notes, index_name, late_interest_monthly_pct, late_fine_pct, post_habite_index, index_frozen_month, unit:units(development:developments(habite_se_date))")
     .eq("unit_id", unitId)
     .maybeSingle();
   if (!contract) return null;

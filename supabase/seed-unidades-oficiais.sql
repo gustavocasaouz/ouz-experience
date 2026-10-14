@@ -21,3 +21,6 @@ insert into public.units (development_id, code, typology, floor, status)
 select d.id, u.code, u.typology, u.floor, u.status::public.unit_status
   from u join public.developments d on d.slug = u.slug
 on conflict (development_id, code) do nothing;
+
+-- Habite-se do SOHO (informado pela OUZ): 24/02/2023. Unidades vendidas do SOHO estão quitadas; sem reajuste.
+update public.developments set habite_se_date = '2023-02-24' where slug = 'soho' and habite_se_date is null;

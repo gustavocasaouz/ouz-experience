@@ -6,7 +6,7 @@ import { staffWith } from "@/components/admin/require-perm";
 import { ImportForm } from "@/components/admin/import-form";
 import { ReceiptForm } from "@/components/admin/receipt-form";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
-import { answerInquiry, setHabiteSe, setIndexValue } from "@/server/actions/admin/experience";
+import { answerInquiry, freezeIndex, setHabiteSe, setIndexValue } from "@/server/actions/admin/experience";
 import { formatBRL, formatDate, formatDateTime, formatDue, requestNow } from "@/lib/format";
 
 export const metadata = { title: "Financeiro" };
@@ -17,7 +17,7 @@ export default async function AdminFinance({ searchParams }: { searchParams: SP 
   const { denied } = await staffWith(["financeiro"], "/admin/financeiro");
   if (denied) return denied;
   const supabase = await createSupabaseServerClient();
-  const [{ data: receipts }, { data: inquiries }, { data: imports }, { data: cub }, { count: estimates }, { data: inpc }, { data: devs }] = await Promise.all([
+  const [{ data: receipts }, { data: inquiries }, { data: imports }, { data: cub }, { count: estimates }, { data: inpc }, { data: devs }, { data: frozen }] = await Promise.all([
     supabase.from("payment_receipts").select("id, storage_path, informed_amount, informed_paid_on, client_note, uploaded_at, contract:financial_contracts(unit:units(id, code, development:developments(name))), installment:installments(number, due_date)").eq("status", "enviado").order("uploaded_at"),
     supabase.from("financial_inquiries").select("id, message, created_at, contract:financial_contracts(unit:units(id, code, development:developments(name)))").eq("status", "aberta").order("created_at"),
     supabase.from("financial_imports").select("file_name, rows_count, summary, imported_at").order("imported_at", { ascending: false }).limit(10),
@@ -25,7 +25,13 @@ export default async function AdminFinance({ searchParams }: { searchParams: SP 
     supabase.from("installments").select("id", { count: "exact", head: true }).eq("is_estimate", true).in("status", ["aberta", "parcialmente_paga"]),
     supabase.from("index_values").select("reference_month, value, source_note, created_at").eq("index_name", "INPC").order("reference_month", { ascending: false }).limit(12),
     supabase.from("developments").select("id, name, habite_se_date").eq("is_demo", false).order("sort_order"),
+    supabase.from("financial_contracts").select("index_frozen_month, unit:units(development_id)").not("index_name", "is", null),
   ]);
+  const freezeOf = (devId: string) => {
+    const rows = (frozen ?? []).filter((f) => (f.unit as unknown as { development_id: string }).development_id === devId);
+    const months = [...new Set(rows.map((r) => r.index_frozen_month ?? ""))];
+    return { total: rows.length, months, frozen: rows.filter((r) => r.index_frozen_month).length };
+  };
   const thisMonth = new Date(requestNow()).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }).slice(0, 7);
   const lastCub = cub?.[0]?.reference_month?.slice(0, 7);
   const my = (m: string) => `${m.slice(5, 7)}/${m.slice(0, 4)}`;
@@ -123,16 +129,25 @@ export default async function AdminFinance({ searchParams }: { searchParams: SP 
             </Table>
           ) : <p className="text-xs text-ink-mute">Nenhum INPC cadastrado (necessário a partir do Habite-se).</p>}
           <div className="border-t border-line pt-4">
-            <h3 className="font-medium mb-1">Habite-se</h3>
-            <p className="text-xs text-ink-mute mb-3">A partir do mês do Habite-se, contratos marcados com INPC passam a ser corrigidos pelo INPC.</p>
+            <h3 className="font-medium mb-1">Habite-se e fixação da correção</h3>
+            <p className="text-xs text-ink-mute mb-3">A partir do mês do Habite-se, contratos marcados com INPC passam a ser corrigidos pelo INPC. “Fixar correção” congela os valores de todos os contratos corrigidos do empreendimento: nenhum CUB/INPC posterior ao mês escolhido é aplicado (juros e multa de atraso continuam). Para um contrato só, use a ficha da unidade.</p>
             <ul className="flex flex-col gap-3">
               {(devs ?? []).map((dv) => (
                 <li key={dv.id}>
                   <form action={setHabiteSe} className="flex flex-wrap items-end gap-3">
                     <input type="hidden" name="development_id" value={dv.id} />
-                    <TextField label={dv.name} name="date" id={`hs-${dv.id}`} type="date" defaultValue={dv.habite_se_date ?? ""} />
+                    <TextField label={`${dv.name} — Habite-se`} name="date" id={`hs-${dv.id}`} type="date" defaultValue={dv.habite_se_date ?? ""} />
                     <SubmitButton size="sm" variant="secondary">Salvar</SubmitButton>
                   </form>
+                  {freezeOf(dv.id).total > 0 && (
+                    <form action={freezeIndex} className="flex flex-wrap items-end gap-3 mt-2">
+                      <input type="hidden" name="development_id" value={dv.id} />
+                      <TextField label={`${dv.name} — fixar correção a partir de`} name="month" id={`fz-${dv.id}`} type="month" max={thisMonth}
+                        hint={freezeOf(dv.id).frozen ? `${freezeOf(dv.id).frozen} de ${freezeOf(dv.id).total} contrato(s) com correção fixada.` : `${freezeOf(dv.id).total} contrato(s) corrigidos pelos índices.`} />
+                      <SubmitButton size="sm" variant="secondary">Fixar correção</SubmitButton>
+                      {freezeOf(dv.id).frozen > 0 && <button name="liberar" value="1" className="text-sm underline underline-offset-4">Voltar a corrigir</button>}
+                    </form>
+                  )}
                 </li>
               ))}
             </ul>
