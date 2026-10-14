@@ -30,7 +30,7 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
   const ov = new Map(((overview ?? []) as Ov[]).map((o) => [o.unit_id, o]));
   const { data: units } = await supabase
     .from("units")
-    .select("id, code, tower, floor, typology, bedrooms, private_area_m2, status, is_demo, data_source")
+    .select("id, code, tower, floor, typology, bedrooms, private_area_m2, parking, status, is_demo, data_source")
     .eq("development_id", dev.id)
     .order("code");
 
@@ -49,6 +49,7 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
             <TextField label="Tipologia" name="typology" />
             <TextField label="Dormitórios" name="bedrooms" type="number" min={0} />
             <TextField label="Área privativa (m²)" name="private_area_m2" inputMode="decimal" />
+            <TextField label="Vagas" name="parking" placeholder="ex.: 7/7A no subsolo" />
             <SelectField label="Situação" name="status" required defaultValue="indisponivel" options={STATUS_OPTIONS} />
             <SubmitButton className="self-end">Cadastrar</SubmitButton>
           </form>
@@ -68,7 +69,7 @@ export default async function DevelopmentUnits({ params, searchParams }: { param
                 <Td className="font-medium"><Link className="hover:underline underline-offset-4" href={`/admin/unidades/${u.id}`}>{u.code}</Link>{u.is_demo ? " · demo" : ""}</Td>
                 <Td>{[u.tower, u.floor].filter((v) => v !== null && v !== "").join(" / ") || "—"}</Td>
                 <Td>{u.typology ?? "—"}{u.bedrooms !== null ? ` · ${u.bedrooms} dorm.` : ""}</Td>
-                <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}</Td>
+                <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}{u.parking && <span className="block text-xs text-ink-mute">{u.parking}</span>}</Td>
                 <Td className="text-sm">
                   {ov.get(u.id)?.reservation_id ? (
                     <Link className="underline underline-offset-4" href={`/admin/reservas/${ov.get(u.id)!.reservation_id}`}>

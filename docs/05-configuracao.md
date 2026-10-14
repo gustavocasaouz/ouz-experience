@@ -98,6 +98,7 @@ Cobrem: área pública (desktop e celular), bloqueio de áreas restritas, portal
 
 ```bash
 node --env-file=.env.local scripts/aplicar-seed.mjs supabase/seed-unidades-oficiais.sql   # cria as unidades que faltam (não altera as existentes)
+node --env-file=.env.local scripts/importar-tabela-vendas.mjs "Tabela MAUI - 10.2026.xlsx" --empreendimento maui --gravar   # tabela mensal → RASCUNHO (a OUZ revisa e publica em Comercial); atualiza tipologia, área e vagas
 node scripts/gerar-modelo-corretores.mjs "modelos/Cadastro de corretores ativos - OUZ.xlsx"   # planilha em branco para o comercial
 ```
 

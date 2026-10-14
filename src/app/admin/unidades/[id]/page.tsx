@@ -7,6 +7,7 @@ import { ReceiptForm } from "@/components/admin/receipt-form";
 import { staffWith } from "@/components/admin/require-perm";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { hasPermission } from "@/server/auth/viewer";
+import { updateUnitDetails } from "@/server/actions/admin/developments";
 import {
   addIndexedInstallment, addInstallment, addPunchItem, setContractIndex, createDocument, registerPayment, answerInquiry, updateBooking, updateCustomization, updateDelivery, updatePunchItem, upsertContract,
 } from "@/server/actions/admin/experience";
@@ -26,9 +27,10 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
     fin: hasPermission(viewer, "financeiro"),
     att: hasPermission(viewer, "atendimento"),
     cli: hasPermission(viewer, "clientes") || hasPermission(viewer, "atendimento"),
+    com: hasPermission(viewer, "comercial"),
   };
   const supabase = await createSupabaseServerClient();
-  const { data: unit } = await supabase.from("units").select("id, code, typology, development:developments(id, name)").eq("id", id).maybeSingle();
+  const { data: unit } = await supabase.from("units").select("id, code, tower, floor, typology, bedrooms, private_area_m2, parking, development:developments(id, name)").eq("id", id).maybeSingle();
   if (!unit) notFound();
   const dev = unit.development as unknown as { id: string; name: string };
   const ret = `/admin/unidades/${id}`;
@@ -54,9 +56,10 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
 
   return (
     <>
-      <PageHeader eyebrow={dev.name} title={`Unidade ${unit.code}`} description={unit.typology ?? undefined} />
+      <PageHeader eyebrow={dev.name} title={`Unidade ${unit.code}`} description={[unit.typology, unit.private_area_m2 ? `${Number(unit.private_area_m2).toLocaleString("pt-BR")} m²` : null, unit.parking].filter(Boolean).join(" · ") || undefined} />
       <Flash searchParams={searchParams} />
       <nav aria-label="Seções" className="flex flex-wrap gap-4 text-sm mb-10">
+        {can.com && <a className="underline" href="#dados">Dados</a>}
         {can.cli && <a className="underline" href="#clientes">Clientes</a>}
         {can.docs && <a className="underline" href="#documentos">Documentos</a>}
         {can.fin && <a className="underline" href="#financeiro">Financeiro</a>}
@@ -64,6 +67,24 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
         {can.att && <a className="underline" href="#entrega">Vistoria e entrega</a>}
       </nav>
       <div className="flex flex-col gap-16">
+        {can.com && (
+          <section id="dados">
+            <SectionTitle title="Dados da unidade" />
+            <Card className="p-6">
+              <form action={updateUnitDetails} className="grid gap-4 sm:grid-cols-3">
+                <input type="hidden" name="unit_id" value={id} />
+                <TextField label="Tipologia" name="typology" id="ud-t" defaultValue={unit.typology ?? ""} />
+                <TextField label="Área privativa (m²)" name="private_area_m2" id="ud-a" inputMode="decimal" defaultValue={unit.private_area_m2 ? Number(unit.private_area_m2).toString().replace(".", ",") : ""} />
+                <TextField label="Vagas" name="parking" id="ud-p" defaultValue={unit.parking ?? ""} placeholder="ex.: 7/7A no subsolo + 4C no térreo" />
+                <TextField label="Dormitórios/suítes" name="bedrooms" id="ud-b" type="number" min={0} defaultValue={unit.bedrooms ?? ""} />
+                <TextField label="Torre" name="tower" id="ud-to" defaultValue={unit.tower ?? ""} />
+                <TextField label="Andar" name="floor" id="ud-f" type="number" defaultValue={unit.floor ?? ""} />
+                <SubmitButton size="sm" variant="secondary" className="self-start">Salvar dados</SubmitButton>
+              </form>
+              <p className="text-xs text-ink-mute mt-3">Situação (disponível, vendida…) em Empreendimentos › Unidades. Preço pela tabela de preços (Comercial).</p>
+            </Card>
+          </section>
+        )}
         {can.cli && (
           <section id="clientes">
             <SectionTitle title="Clientes vinculados" />

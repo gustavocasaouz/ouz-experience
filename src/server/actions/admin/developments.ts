@@ -211,11 +211,12 @@ export async function createUnit(fd: FormData) {
       typology: z.string().trim().max(80).optional(),
       bedrooms: z.coerce.number().int().min(0).max(20).optional(),
       private_area_m2: z.coerce.number().positive().max(100000).optional(),
+      parking: z.string().trim().max(160).optional(),
       status: z.enum(UNIT_STATUSES),
     })
     .safeParse(
       Object.fromEntries(
-        ["code", "tower", "floor", "typology", "bedrooms", "private_area_m2", "status"].map((k) => [k, str(fd, k).replace(",", ".") || undefined]),
+        ["code", "tower", "floor", "typology", "bedrooms", "private_area_m2", "parking", "status"].map((k) => [k, (k === "private_area_m2" ? str(fd, k).replace(",", ".") : str(fd, k)) || undefined]),
       ),
     );
   if (!parsed.success) back(path, "erro", "Revise os dados da unidade.");
@@ -223,6 +224,32 @@ export async function createUnit(fd: FormData) {
   const { error } = await supabase.from("units").insert({ development_id: id, ...parsed.data });
   failOn(error, path);
   back(path, "ok", "Unidade cadastrada.");
+}
+
+/** Dados descritivos da unidade (ficha da unidade). Situação continua em updateUnitStatus. */
+export async function updateUnitDetails(fd: FormData) {
+  const unitId = str(fd, "unit_id");
+  const path = `/admin/unidades/${unitId}`;
+  await guard("comercial", path);
+  const parsed = z
+    .object({
+      tower: z.string().trim().max(30).nullable(),
+      floor: z.coerce.number().int().min(-5).max(200).nullable(),
+      typology: z.string().trim().max(80).nullable(),
+      bedrooms: z.coerce.number().int().min(0).max(20).nullable(),
+      private_area_m2: z.coerce.number().positive().max(100000).nullable(),
+      parking: z.string().trim().max(160).nullable(),
+    })
+    .safeParse(
+      Object.fromEntries(
+        ["tower", "floor", "typology", "bedrooms", "private_area_m2", "parking"].map((k) => [k, (k === "private_area_m2" && str(fd, k).includes(",") ? str(fd, k).replace(/\./g, "").replace(",", ".") : str(fd, k)) || null]),
+      ),
+    );
+  if (!parsed.success) back(path, "erro", "Revise os dados da unidade.");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("units").update(parsed.data).eq("id", unitId);
+  failOn(error, path);
+  back(path, "ok", "Dados da unidade salvos.");
 }
 
 export async function updateUnitStatus(fd: FormData) {

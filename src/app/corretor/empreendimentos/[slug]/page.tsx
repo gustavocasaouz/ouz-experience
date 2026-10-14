@@ -121,7 +121,7 @@ export default async function BrokerDevelopmentPage({ params }: { params: Promis
             {salesMode === "fechado" && "Este empreendimento não está recebendo propostas."}
           </p>
           {units.length ? (
-            <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área privativa", ...(prices ? ["Preço de tabela"] : []), "Situação", ""]} caption="Unidades do empreendimento">
+            <Table head={["Unidade", "Torre/Andar", "Tipologia", "Área privativa", "Vagas", ...(prices ? ["Preço de tabela"] : []), "Situação", ""]} caption="Unidades do empreendimento">
               {units.map((u) => {
                 const canPropose = prices && (u.status === "disponivel" || u.status === "reservada") && u.price !== null;
                 return (
@@ -130,6 +130,7 @@ export default async function BrokerDevelopmentPage({ params }: { params: Promis
                     <Td>{[u.tower, u.floor].filter((v) => v !== null && v !== "").join(" / ") || "—"}</Td>
                     <Td>{u.typology ?? "—"}</Td>
                     <Td>{u.private_area_m2 ? `${Number(u.private_area_m2).toLocaleString("pt-BR")} m²` : "—"}</Td>
+                    <Td className="text-sm">{u.parking?.replace(/^Vagas\s*/i, "") ?? "—"}</Td>
                     {prices && <Td className="whitespace-nowrap">{formatBRL(u.price)}</Td>}
                     <Td>{UNIT_STATUS_LABELS[u.status] ?? u.status}</Td>
                     <Td>

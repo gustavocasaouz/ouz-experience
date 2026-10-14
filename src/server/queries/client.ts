@@ -5,7 +5,7 @@ import type { DevelopmentStage } from "@/lib/labels";
 export type ClientUnit = {
   linkId: string;
   relation: string;
-  unit: { id: string; code: string; tower: string | null; floor: number | null; typology: string | null; private_area_m2: string | null };
+  unit: { id: string; code: string; tower: string | null; floor: number | null; typology: string | null; private_area_m2: string | null; parking: string | null };
   development: { id: string; slug: string; name: string; stage: DevelopmentStage; cover_image_path: string | null };
 };
 
@@ -15,7 +15,7 @@ export async function listMyUnits(): Promise<ClientUnit[]> {
   const { data } = await supabase
     .from("client_units")
     .select(
-      "id, relation, unit:units(id, code, tower, floor, typology, private_area_m2, development:developments(id, slug, name, stage, content:development_public_content(cover_image_path)))",
+      "id, relation, unit:units(id, code, tower, floor, typology, private_area_m2, parking, development:developments(id, slug, name, stage, content:development_public_content(cover_image_path)))",
     )
     .eq("active", true);
   type Row = {

@@ -90,6 +90,7 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
               { label: "Andar", value: u.unit.floor ?? "—" },
               { label: "Tipologia", value: u.unit.typology ?? "—" },
               { label: "Área privativa", value: u.unit.private_area_m2 ? `${Number(u.unit.private_area_m2).toLocaleString("pt-BR")} m²` : "—" },
+              { label: "Vagas", value: u.unit.parking?.replace(/^Vagas\s*/i, "") ?? "—" },
             ]}
           />
           <div className="mt-6 flex flex-col gap-2 text-sm">

@@ -9,6 +9,7 @@ export type UnitWithPrice = {
   typology: string | null;
   bedrooms: number | null;
   private_area_m2: string | null;
+  parking: string | null;
   status: string;
   price: number | null;
 };
@@ -17,7 +18,7 @@ export type UnitWithPrice = {
 export async function listUnitsWithPrices(developmentId: string): Promise<UnitWithPrice[]> {
   const supabase = await createSupabaseServerClient();
   const [{ data: units }, { data: prices }] = await Promise.all([
-    supabase.from("units").select("id, code, tower, floor, typology, bedrooms, private_area_m2, status").eq("development_id", developmentId).order("code"),
+    supabase.from("units").select("id, code, tower, floor, typology, bedrooms, private_area_m2, parking, status").eq("development_id", developmentId).order("code"),
     supabase.rpc("current_unit_prices", { p_development_id: developmentId }),
   ]);
   const map = new Map(((prices ?? []) as Array<{ unit_id: string; price: string }>).map((p) => [p.unit_id, Number(p.price)]));

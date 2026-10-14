@@ -65,6 +65,7 @@ Legenda: ✅ feito · 🔨 em andamento · ⬜ a fazer
 | Importação da planilha "Fluxo de Pagamentos Clientes" (simulação + gravação tudo ou nada, conferência com os totais da planilha) | ✅ |
 | Importação do MAUI (13 clientes) — conferida com os ajustes da OUZ (`importacao/maui-ajustes.json`); gravação em produção só após o plano Pro | ⬜ |
 | Unidades oficiais: SOHO 12 aptos + 4 lojas (101 à venda), MAUI 26 aptos (101, 108, 109, 111, 113 à venda) — `supabase/seed-unidades-oficiais.sql` | ✅ (dev; produção na virada) |
+| Tabela de vendas Out/2026 do MAUI (101, 108, 109, 111, 113) e SOHO 101 (R$ 5.550.000, 210,82 m², 4 suítes, 3 vagas) como rascunho; vagas por unidade; edição dos dados da unidade | ✅ (dev; publicar após revisão) |
 | Proprietários do SOHO e do MAUI fora da planilha (7 investidores + Apto 205) | ⬜ (aguardando lista) |
 | Corretores ativos: modelo de planilha (`scripts/gerar-modelo-corretores.mjs`) | ✅ |
 | Corretores ativos: importação com convite e pré-aprovação | ⬜ (aguardando planilha preenchida) |
