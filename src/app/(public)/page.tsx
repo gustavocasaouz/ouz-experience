@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ButtonLink, EmptyState, ImagePlaceholder, SectionTitle, Badge } from "@/design-system";
 import { DevelopmentCard } from "@/components/development-card";
 import { getSiteSections, listNews, listPublicEvents, listPublishedDevelopments } from "@/server/queries/public";
+import { IntroAnimation } from "@/components/intro-animation";
 import { publicMediaUrl } from "@/server/db/supabase-public";
 import { formatDateTime, formatLongDate } from "@/lib/format";
 
@@ -18,30 +19,22 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative">
-        <div className="relative h-[78svh] min-h-[520px] w-full overflow-hidden">
-          {heroImg ? (
-            <Image src={heroImg} alt="" fill priority sizes="100vw" className="object-cover" />
-          ) : (
-            <ImagePlaceholder label="Fotografia principal a definir" className="absolute inset-0" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0">
-            <div className="container-page pb-14 md:pb-20 text-paper">
-              <p className="eyebrow !text-paper/80 mb-4">{hero?.eyebrow ?? "Florianópolis"}</p>
-              <h1 className="font-display text-5xl md:text-7xl leading-[1.02] max-w-3xl">{hero?.title ?? "OUZ"}</h1>
-              {hero?.body && <p className="mt-5 max-w-xl text-paper/85">{hero.body}</p>}
-              <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/empreendimentos" size="lg" className="!bg-paper !text-ink hover:!bg-sand">
-                  Conheça os empreendimentos
-                </ButtonLink>
-                <ButtonLink href="/interesse" size="lg" variant="secondary" className="!border-paper !text-paper hover:!bg-paper hover:!text-ink">
-                  Tenho interesse
-                </ButtonLink>
-              </div>
-            </div>
-          </div>
+      <IntroAnimation />
+      <section className="container-page pt-14 md:pt-24 pb-12">
+        <p className="eyebrow mb-6">{hero?.eyebrow ?? "Florianópolis"}</p>
+        <h1 className="display-hero text-[13vw] sm:text-6xl md:text-7xl lg:text-8xl max-w-6xl">{hero?.title ?? "OUZ"}</h1>
+        {hero?.body && <p className="mt-8 max-w-xl text-lg text-ink-soft">{hero.body}</p>}
+        <div className="mt-10 flex flex-wrap gap-3">
+          <ButtonLink href="/empreendimentos" size="lg">Conheça os empreendimentos</ButtonLink>
+          <ButtonLink href="/interesse" size="lg" variant="secondary">Tenho interesse</ButtonLink>
         </div>
+      </section>
+      <section className="relative h-[70svh] min-h-[420px] w-full overflow-hidden bg-sand">
+        {heroImg ? (
+          <Image src={heroImg} alt="Empreendimento OUZ" fill priority sizes="100vw" className="object-cover" />
+        ) : (
+          <ImagePlaceholder label="Fotografia principal a definir" className="absolute inset-0" />
+        )}
       </section>
 
       {sections.sobre && (

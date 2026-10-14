@@ -4,13 +4,13 @@ export type RenderedEmail = { subject: string; text: string; html: string };
 
 const wrap = (title: string, paragraphs: string[], cta?: { label: string; url: string }) => {
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
-  const html = `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#f7f5f0;font-family:Helvetica,Arial,sans-serif;color:#2b2b2b">
+  const html = `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#f2f0eb;font-family:Helvetica,Arial,sans-serif;color:#000000">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 16px">
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border:1px solid #e4e0d8">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border:1px solid #dcd8cf">
 <tr><td style="padding:32px 40px 8px;letter-spacing:.3em;font-size:13px">OUZ</td></tr>
 <tr><td style="padding:8px 40px 32px"><h1 style="font-size:22px;font-weight:500;margin:0 0 16px">${esc(title)}</h1>
 ${paragraphs.map((p) => `<p style="font-size:15px;line-height:1.6;margin:0 0 12px">${esc(p)}</p>`).join("")}
-${cta ? `<p style="margin:24px 0 0"><a href="${esc(cta.url)}" style="display:inline-block;background:#2b2b2b;color:#fff;text-decoration:none;padding:12px 24px;font-size:14px">${esc(cta.label)}</a></p>` : ""}
+${cta ? `<p style="margin:24px 0 0"><a href="${esc(cta.url)}" style="display:inline-block;background:#000000;color:#fff;text-decoration:none;padding:12px 24px;font-size:14px">${esc(cta.label)}</a></p>` : ""}
 </td></tr></table>
 <p style="font-size:12px;color:#77756f;margin-top:16px">Mensagem automática do OUZ Experience.</p>
 </td></tr></table></body></html>`;

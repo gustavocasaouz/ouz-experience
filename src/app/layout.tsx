@@ -1,14 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Albert_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-// Tipografia PROVISÓRIA — trocar junto com os tokens quando o branding oficial chegar.
-const body = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
-const heading = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-heading", display: "swap" });
+// Tipografia oficial OUZ (ouzgroup.com.br): General Sans (títulos; ITF Free Font License, via Fontshare) e Albert Sans (texto).
+const heading = localFont({
+  src: [
+    { path: "./fonts/GeneralSans-300.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/GeneralSans-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/GeneralSans-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/GeneralSans-600.woff2", weight: "600", style: "normal" },
+  ],
+  variable: "--font-heading",
+  display: "swap",
+});
+const body = Albert_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "OUZ Experience", template: "%s · OUZ" },
-  description: "Empreendimentos de alto padrão em Florianópolis. Área do cliente e portal do corretor.",
+  description: "OUZ — vamos além do metro quadrado. Empreendimentos com design e tecnologia em Florianópolis. Área do cliente e portal do corretor.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icons/icon.svg", apple: "/icons/icon.svg" },
   appleWebApp: { capable: true, title: "OUZ", statusBarStyle: "default" },
@@ -16,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f7f5f0",
+  themeColor: "#f2f0eb",
   width: "device-width",
   initialScale: 1,
 };

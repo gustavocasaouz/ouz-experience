@@ -6,15 +6,16 @@
  * os componentes usam apenas estes tokens.
  */
 @theme {
-  --color-paper: #f7f5f0;        /* off-white de fundo */
+  /* Identidade OUZ (extraída de ouzgroup.com.br): monocromática, off-white quente e preto. */
+  --color-paper: #f2f0eb;        /* off-white OUZ */
   --color-surface: #ffffff;
-  --color-sand: #eeeae2;         /* superfícies secundárias */
-  --color-line: #e2ddd3;
-  --color-ink: #262624;          /* grafite */
-  --color-ink-soft: #5b5954;
-  --color-ink-mute: #85827b;
-  --color-accent: #8a7a63;       /* detalhe discreto */
-  --color-accent-soft: #d9cfbf;
+  --color-sand: #eae7e0;
+  --color-line: #dcd8cf;
+  --color-ink: #000000;          /* preto OUZ */
+  --color-ink-soft: #3d3d3b;     /* grafite */
+  --color-ink-mute: #77756f;
+  --color-accent: #262626;       /* grafite OUZ */
+  --color-accent-soft: #d6d2c8;
   --color-success: #3f6b4f;
   --color-success-soft: #e6efe8;
   --color-warning: #8a6420;
@@ -25,11 +26,11 @@
   --color-info-soft: #e3eaf1;
 
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-heading), ui-serif, Georgia, serif;
+  --font-display: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
 
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --tracking-label: 0.18em;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --tracking-label: 0.14em;
 }
 
 @layer base {
@@ -56,6 +57,15 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/* Títulos no estilo OUZ: General Sans leve, maiúsculas nos destaques. */
+@utility display-hero {
+  font-family: var(--font-display);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
 }
 
 @utility eyebrow {

@@ -18,6 +18,8 @@
 
 - **13/10/2026 — Domínio:** app em `ouz.app.br`; `ouzgroup.com.br` só para o site institucional.
 - **13/10/2026 — Regras comerciais ocultas do corretor:** o corretor não vê limites, percentuais nem critérios da política. Ao enviar, sabe apenas se a proposta está dentro ou fora da política e pode pedir análise da OUZ. Reforçado no banco: snapshot das regras e avaliação detalhada não são legíveis pela API do corretor; a prévia detalhada é exclusiva da OUZ. (Substitui o item do escopo original que previa mostrar os critérios não atendidos.)
+- **14/10/2026 — Branding e textos públicos:** extraídos de ouzgroup.com.br (missão, visão, valores, manifesto, SOHO e MAUI). UMAN aparece só no app, como “Em breve”. Divergência a confirmar: o site indica MAUI em “Início de obras”; no app está “Em fase de entrega”, conforme o pedido original.
+- **14/10/2026 — Hospedagem:** ouz.app.br em homologação na Vercel (equipe OUZ Experience, plano Hobby) usando o Supabase de desenvolvimento; Pro necessário antes de uso comercial.
 - **13/10/2026 — Proposta:** condições podem ser digitadas em reais ou em % do valor ofertado.
 - **13/10/2026 — Fila sigilosa:** o corretor não sabe quantas propostas existem em cada unidade nem a sua posição na fila (opção de posição removida). A quantidade e a fila completa são exclusivas da OUZ (permissão Comercial).
 - **13/10/2026 — “Reservada” só após a documentação:** a unidade aparece como *Disponível* para os corretores enquanto a reserva aguarda documentos; passa a *Reservada* quando o corretor da reserva envia a documentação completa. A reserva de 48 h e a fila valem desde a aprovação (uma reserva ativa por unidade). Consequência: um corretor pode fazer proposta numa unidade “disponível” e ela entrar na fila; ele vê apenas o status “Na fila da unidade”.
@@ -26,7 +28,7 @@
 
 | # | Tema | Pergunta | Padrão provisório |
 |---|---|---|---|
-| 1 | Branding | Logotipo, tipografia e paleta oficiais | Tokens neutros (off-white, grafite) ajustáveis |
+| 1 | Branding | ~~Logotipo, tipografia e paleta oficiais~~ **Decidido (14/10/2026):** identidade de ouzgroup.com.br — logotipo e símbolo vetoriais, animação de abertura, General Sans + Albert Sans, off-white #F2F0EB, preto e grafite #262626, fotos oficiais do SOHO e do MAUI. | — |
 | 2 | Domínio | ~~Domínio do Experience e remetente de e-mail~~ **Decidido (13/10/2026):** o app fica em `ouz.app.br`; o site institucional continua em `ouzgroup.com.br`, com um botão que leva ao app. E-mails do app saem de `ouz.app.br` (verificado no Resend); `ouzgroup.com.br` não é usado pelo app. | `EMAIL_FROM=OUZ Experience <nao-responda@ouz.app.br>` |
 | 3 | Regularização | Prazo para corrigir documento recusado na reserva | 24 h, configurável por empreendimento |
 | 4 | Análise | Prazo máximo de uma proposta em análise segurando a fila | 24 h úteis, configurável |

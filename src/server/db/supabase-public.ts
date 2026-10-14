@@ -9,6 +9,8 @@ export function createSupabasePublicClient() {
 }
 
 export function publicMediaUrl(path: string | null | undefined) {
-  if (!path || !publicEnv.supabaseUrl) return null;
+  if (!path) return null;
+  if (path.startsWith("/brand/")) return path; // acervo oficial versionado no app (public/brand)
+  if (!publicEnv.supabaseUrl) return null;
   return `${publicEnv.supabaseUrl}/storage/v1/object/public/public-media/${path.split("/").map(encodeURIComponent).join("/")}`;
 }

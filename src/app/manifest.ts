@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-/** Manifesto PWA. Ícone provisório (tipográfico) até o logotipo oficial. */
+/** Manifesto PWA. Ícone com o símbolo oficial OUZ. */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "OUZ Experience",
@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Área do cliente e portal do corretor OUZ.",
     start_url: "/conta",
     display: "standalone",
-    background_color: "#f7f5f0",
-    theme_color: "#f7f5f0",
+    background_color: "#f2f0eb",
+    theme_color: "#f2f0eb",
     lang: "pt-BR",
     icons: [{ src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
   };

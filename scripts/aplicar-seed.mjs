@@ -3,7 +3,8 @@
 import pg from "pg";
 import { readFileSync } from "node:fs";
 
-if ((process.env.APP_ENV ?? "development") !== "development") throw new Error("Dados demonstrativos só em desenvolvimento.");
+const official = /seed-conteudo-oficial\.sql$/.test(process.argv[2] ?? "");
+if (!official && (process.env.APP_ENV ?? "development") !== "development") throw new Error("Dados demonstrativos só em desenvolvimento.");
 const file = process.argv[2];
 if (!file || !/^supabase\/seed[\w-]*\.sql$/.test(file)) throw new Error("Informe um arquivo supabase/seed*.sql");
 const c = new pg.Client({ connectionString: process.env.SUPABASE_DB_URL, ssl: { rejectUnauthorized: false } });
