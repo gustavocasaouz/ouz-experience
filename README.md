@@ -18,3 +18,8 @@ Após criar a conta e verificar o e-mail, execute no SQL Editor do Supabase (ser
     select public.bootstrap_first_admin('email@ouz.com.br');
 
 Os demais operadores/administradores entram apenas por convite.
+
+## Publicação
+- Cada envio para `main` no GitHub publica automaticamente na Vercel (projeto `ouz-experience`, equipe OUZ Experience).
+- Hoje `ouz.app.br` é **homologação** (banco de desenvolvimento, e-mails em modo de teste, fora do Google).
+- Antes da produção: Supabase de produção em São Paulo, plano Pro da Vercel e liberação de e-mails (ver `docs/05-configuracao.md`).
