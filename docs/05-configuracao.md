@@ -15,11 +15,14 @@ Nada aqui foi criado automaticamente: as contas e projetos são da OUZ. Use **do
 7. **Auth › URL Configuration**:
    - Site URL: a URL do ambiente (produção: `https://ouz.app.br`; desenvolvimento: `http://localhost:3000`).
    - Redirect URLs: `<site>/auth/confirm**`.
-8. **Auth › Email Templates** (recomendado — o link funciona mesmo se aberto em outro aparelho):
-   - *Confirm signup*: link `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`
-   - *Reset password*: link `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
-   - *Change email*: link `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email_change`
-9. **Auth › SMTP**: em produção, configurar o SMTP do Resend para os e-mails de autenticação. Em desenvolvimento, o SMTP padrão do Supabase (limitado) basta.
+8. **Auth › Emails › Templates** — modelos em português em `supabase/templates/` (o link usa `token_hash`, então funciona mesmo se aberto em outro aparelho):
+
+   | Modelo | Assunto | Corpo |
+   |---|---|---|
+   | Confirm sign up | `Confirme seu e-mail · OUZ Experience` | `confirmar-cadastro.html` |
+   | Reset password | `Redefinir senha · OUZ Experience` | `redefinir-senha.html` |
+   | Change email address | `Confirme o novo e-mail · OUZ Experience` | `trocar-email.html` |
+9. **Auth › Emails › SMTP Settings** (feito no desenvolvimento em 14/10/2026; repetir na produção): host `smtp.resend.com`, porta `465`, usuário `resend`, senha = chave do Resend só de envio para `ouz.app.br` (uma chave por projeto), remetente `nao-responda@ouz.app.br`, nome `OUZ Experience`.
 10. **Primeiro administrador**: criar a conta pelo site, confirmar o e-mail e executar no SQL Editor:
     ```sql
     select public.bootstrap_first_admin('email@ouz.com.br');
