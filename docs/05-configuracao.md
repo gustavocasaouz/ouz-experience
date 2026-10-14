@@ -80,3 +80,17 @@ node --env-file=.env.local scripts/aplicar-seed.mjs supabase/seed-etapa4.sql  # 
 ```
 
 O script de criação recusa rodar se `APP_ENV` não for `development`, devolve as contas ao estado-base (desfaz aprovações e concessões feitas manualmente) e gera senhas novas a cada execução.
+
+## 7. Produção (estado em 14/10/2026)
+
+- Supabase **OUZ Experience Produção** criado em São Paulo; 23 migrações aplicadas; `seed-producao.sql` + `seed-conteudo-oficial.sql` (sem dados demonstrativos); vendas fechadas.
+- Credenciais só em `.env.producao.local` (fora do Git). Migrações em produção: `node --env-file=.env.producao.local scripts/migrar.mjs --confirmo-producao` — **somente com autorização da OUZ**.
+- `ouz.app.br` continua apontando para a homologação até a virada.
+
+### Checklist da virada para produção
+1. Supabase produção › Authentication: Confirm email ligado; Multi-Factor TOTP ligado; Site URL `https://ouz.app.br`; Redirect URLs `https://ouz.app.br/auth/confirm**`; templates de e-mail com `token_hash` (seção 1); SMTP do Resend.
+2. Plano Pro na Vercel e no Supabase.
+3. Vercel › variáveis de Production trocadas para as do Supabase de produção; `APP_ENV=production`; `EMAIL_MODE=resend`; novo `CRON_SECRET`.
+4. Primeiro administrador: criar a conta em ouz.app.br, confirmar o e-mail e executar `bootstrap_first_admin` no banco de produção.
+5. OUZ cadastra unidades, tabela, política, checklist e abre as vendas na administração.
+6. Homologação passa a usar um endereço próprio (ex.: `homologacao.ouz.app.br`) com o Supabase de desenvolvimento.
