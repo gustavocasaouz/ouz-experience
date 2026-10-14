@@ -43,7 +43,11 @@ function parseClient(sheet, opts) {
   }
   if (!code) errors.push("número do apartamento não encontrado");
   const full_name = str(labelValue("nome"));
-  const email = str(labelValue("email", "e-mail")).toLowerCase();
+  const adj = { ...(opts.ajustes?.padrao ?? {}), ...((code && opts.ajustes?.unidades?.[code]) ?? {}) };
+  const applied = [];
+  const sheetEmail = str(labelValue("email", "e-mail")).toLowerCase();
+  const email = adj.email ? adj.email.trim().toLowerCase() : sheetEmail;
+  if (adj.email) applied.push(`e-mail corrigido`);
   const phone = str(labelValue("telefone")).replace(/[^\d+]/g, "") || null;
   const parking = str(labelValue("vagas", "vaga"));
   const base = num(labelValue("cub"));
@@ -115,6 +119,44 @@ function parseClient(sheet, opts) {
   }
   if (!installments.length) errors.push("nenhuma parcela encontrada");
 
+  // Ajustes informados pela OUZ (arquivo --ajustes). Cada ajuste precisa encontrar o que corrigir.
+  // Valor original corrigido → CUBs recalculados pelo CUB-base.
+  const setOriginal = (i, v) => { i.original_amount = v; if (base) i.index_quantity = Number((v / base).toFixed(10)); };
+  if (adj.dia_vencimento_parcelas) {
+    const day = String(adj.dia_vencimento_parcelas).padStart(2, "0");
+    for (const i of installments) {
+      if (i.kind === "parcela" && i.due_date && i.due_date.slice(8) !== day) {
+        applied.push(`parcela ${i.number}: vencimento ${i.due_date} → dia ${day}`);
+        i.due_date = i.due_date.slice(0, 8) + day;
+      }
+    }
+  }
+  for (const t of adj.trocar_valor_original ?? []) {
+    const hit = installments.filter((i) => !i.prepay && Math.abs(i.original_amount - t.de) < 0.005);
+    if (!hit.length) errors.push(`ajuste: nenhuma parcela com valor original ${t.de}`);
+    for (const i of hit) setOriginal(i, t.para);
+    if (hit.length) applied.push(`${hit.length} parcela(s) de ${t.de} → ${t.para} (valor original; valores já pagos mantidos)`);
+  }
+  if (adj.valor_chaves !== undefined) {
+    const k = installments.filter((i) => i.kind === "chaves");
+    if (k.length !== 1) errors.push("ajuste: parcela das chaves não encontrada");
+    else { applied.push(`chaves ${k[0].original_amount} → ${adj.valor_chaves}`); setOriginal(k[0], adj.valor_chaves); }
+  }
+  if (adj.acrescimo_pago) {
+    const i = installments.find((x) => x.number === adj.acrescimo_pago.numero);
+    if (!i || !i.paid) errors.push(`ajuste: parcela ${adj.acrescimo_pago.numero} não encontrada ou não paga`);
+    else {
+      setOriginal(i, round2(i.original_amount + adj.acrescimo_pago.valor));
+      i.paid_amount = round2(i.paid_amount + adj.acrescimo_pago.valor);
+      applied.push(`parcela ${i.number}: + ${adj.acrescimo_pago.valor} no valor e no pago`);
+    }
+  }
+  for (const due of adj.nao_pagas ?? []) {
+    const i = installments.find((x) => x.due_date === due && x.paid);
+    if (!i) errors.push(`ajuste: nenhuma parcela paga com vencimento ${due}`);
+    else { i.paid = false; i.paid_amount = undefined; applied.push(`parcela ${i.number} (${due}) marcada como não paga`); }
+  }
+
   // Conferências com a própria planilha.
   const sumOrig = round2(installments.filter((i) => !i.prepay).reduce((a, i) => a + i.original_amount, 0));
   if (committed && Math.abs(sumOrig - committed) > 1) warnings.push(`soma das parcelas (${sumOrig.toFixed(2)}) ≠ valor das compromissadas (${committed.toFixed(2)})`);
@@ -150,13 +192,14 @@ function parseClient(sheet, opts) {
       contrato: committed, pago: paidTotal, pago_planilha: sheetPaid, saldo_estimado: balance, saldo_planilha: sheetBalance,
       chaves: installments.filter((i) => i.kind === "chaves").length,
       antecipacoes: installments.filter((i) => i.prepay).length,
+      ajustes: applied,
     },
   };
 }
 
 /**
  * @param {{ name: string, cells: Map<string, {v: string|null, f: string|null}> }[]} sheets
- * @param {{ slug: string, today?: string }} o  today = AAAA-MM-DD (America/Sao_Paulo)
+ * @param {{ slug: string, today?: string, ajustes?: { padrao?: object, unidades?: Record<string, object> } }} o  today = AAAA-MM-DD (America/Sao_Paulo)
  */
 export function parseFluxo(sheets, o) {
   const today = o.today ?? new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
@@ -171,7 +214,7 @@ export function parseFluxo(sheets, o) {
     warnings.push(`CUB de ${last.at(-1).month.slice(0, 7)} igual ao do mês anterior: confira se já é o valor oficial`);
   }
   const clientSheets = sheets.filter((s) => [...s.cells.values()].some((c) => norm(str(c)).startsWith("total ja pago")));
-  const parsed = clientSheets.map((s) => ({ sheet: s.name.trim(), ...parseClient(s, { slug: o.slug, cub }) }));
+  const parsed = clientSheets.map((s) => ({ sheet: s.name.trim(), ...parseClient(s, { slug: o.slug, cub, ajustes: o.ajustes }) }));
   const seen = new Map();
   for (const p of parsed) {
     const code = p.client?.unit_code;

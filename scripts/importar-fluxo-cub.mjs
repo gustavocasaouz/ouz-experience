@@ -5,6 +5,7 @@
 // Uso:
 //   node --env-file=.env.local scripts/importar-fluxo-cub.mjs <arquivo.xlsx> --empreendimento maui            # simulação (nada é gravado)
 //   node --env-file=.env.local scripts/importar-fluxo-cub.mjs <arquivo.xlsx> --empreendimento maui --gravar   # grava (tudo ou nada)
+//   ... --ajustes importacao/maui-ajustes.json   # correções informadas pela OUZ (e-mail, valores, parcelas não pagas, dia de vencimento)
 // Produção exige também --confirmo-producao (somente com autorização da OUZ).
 import pg from "pg";
 import { readFileSync } from "node:fs";
@@ -13,7 +14,9 @@ import { readXlsx } from "./lib/xlsx.mjs";
 import { parseFluxo } from "./lib/fluxo-cub.mjs";
 
 const args = process.argv.slice(2);
-const file = args.find((a) => !a.startsWith("--") && args[args.indexOf(a) - 1] !== "--empreendimento");
+const file = args.find((a) => !a.startsWith("--") && !["--empreendimento", "--ajustes"].includes(args[args.indexOf(a) - 1]));
+const ajustesPath = args.includes("--ajustes") ? args[args.indexOf("--ajustes") + 1] : null;
+const ajustes = ajustesPath ? JSON.parse(readFileSync(ajustesPath, "utf8")) : undefined;
 const slug = args[args.indexOf("--empreendimento") + 1];
 const write = args.includes("--gravar");
 if (!file || !slug || args.indexOf("--empreendimento") < 0) {
@@ -28,7 +31,7 @@ const url = process.env.SUPABASE_DB_URL;
 if (!url) throw new Error("Defina SUPABASE_DB_URL");
 
 const brl = (n) => (n === null || n === undefined ? "—" : Number(n).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }));
-const r = parseFluxo(readXlsx(readFileSync(file)), { slug });
+const r = parseFluxo(readXlsx(readFileSync(file)), { slug, ajustes });
 
 console.log(`\nArquivo: ${basename(file)} · empreendimento: ${slug} · ambiente: ${env}`);
 console.log(`CUB-SC: ${r.cub.meses} meses; últimos: ${r.cub.ultimos.map((c) => `${c.month.slice(0, 7)} = ${c.value}`).join(" · ")}\n`);
@@ -36,6 +39,8 @@ console.table(r.summaries.map((s) => ({
   apto: s.unit, parcelas: s.parcelas, pagas: s.pagas, "última paga": s.ultima_paga ?? "—", antecipações: s.antecipacoes,
   contrato: brl(s.contrato), pago: brl(s.pago), "saldo (estimado)": brl(s.saldo_estimado), "saldo planilha": brl(s.saldo_planilha),
 })));
+const adj = r.summaries.filter((s) => s.ajustes?.length);
+if (adj.length) console.log("\nAJUSTES APLICADOS (" + basename(ajustesPath ?? "") + "):\n" + adj.map((s) => `  Apto ${s.unit}: ` + s.ajustes.join("; ")).join("\n"));
 if (r.warnings.length) console.log("\nAVISOS (conferir com o financeiro):\n" + r.warnings.map((w) => "  • " + w).join("\n"));
 if (r.errors.length) {
   console.log("\nERROS (corrija a planilha; nada foi gravado):\n" + r.errors.map((e) => "  ✗ " + e).join("\n"));

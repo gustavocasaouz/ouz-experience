@@ -100,4 +100,26 @@ describe("importação do fluxo de pagamentos (CUB)", () => {
     wb[1].cells.set("D8", { v: "alguem@exemplo.com.br.", f: null });
     expect(parseFluxo(wb, { slug: "maui", today: "2026-03-20" }).errors).toEqual(['CLIENTE A: e-mail inválido: "alguem@exemplo.com.br."']);
   });
+
+  it("aplica ajustes informados pela OUZ e recusa ajuste que não encontra o que corrigir", () => {
+    const ajustes = {
+      padrao: { dia_vencimento_parcelas: 10 },
+      unidades: { "101": { email: "Novo@Exemplo.com", trocar_valor_original: [{ de: 10000, para: 10010 }], valor_chaves: 9000, nao_pagas: ["2026-02-10"], acrescimo_pago: { numero: 1, valor: 50 } } },
+    };
+    const a = parseFluxo(readXlsx(workbook()), { slug: "maui", today: "2026-03-20", ajustes });
+    expect(a.errors).toEqual([]);
+    const inst = a.payload.clients[0].installments;
+    expect(a.payload.clients[0].email).toBe("novo@exemplo.com");
+    expect(inst.map((i) => [i.number, i.original_amount, i.paid, i.paid_amount ?? null, i.index_quantity])).toEqual([
+      [1, 10060, true, 10050, 5.03],      // 10.010 + 50 acrescentados (valor e pago)
+      [2, 10010, false, null, 5.005],     // marcada como não paga
+      [3, 2200, true, 2200, 1],           // antecipação intocada
+      [4, 10010, false, null, 5.005],
+      [5, 9000, false, null, 4.5],        // chaves corrigida (CUBs recalculados)
+    ]);
+    expect(inst[2].due_date).toBe("2026-03-15"); // dia do vencimento só muda em parcelas comuns, não em antecipações
+    expect(a.summaries[0].ajustes).toHaveLength(5);
+    const bad = parseFluxo(readXlsx(workbook()), { slug: "maui", today: "2026-03-20", ajustes: { unidades: { "101": { nao_pagas: ["2030-01-10"] } } } });
+    expect(bad.errors).toEqual(["CLIENTE A: ajuste: nenhuma parcela paga com vencimento 2030-01-10"]);
+  });
 });
