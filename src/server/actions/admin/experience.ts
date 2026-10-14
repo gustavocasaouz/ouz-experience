@@ -242,6 +242,7 @@ export async function setContractIndex(fd: FormData) {
   if (!indexed) failOn((await supabase.rpc("admin_set_contract_charges", { p_contract_id: contract, p_interest_pct: null, p_fine_pct: null })).error, path);
   failOn((await supabase.rpc("admin_set_contract_index", { p_contract_id: contract, p_index: indexed ? "CUB-SC" : null, p_base: base })).error, path);
   if (indexed) failOn((await supabase.rpc("admin_set_contract_charges", { p_contract_id: contract, p_interest_pct: interest, p_fine_pct: fine })).error, path);
+  failOn((await supabase.rpc("admin_set_contract_post_index", { p_contract_id: contract, p_index: indexed && str(fd, "post_inpc") === "on" ? "INPC" : null })).error, path);
   back(path, "ok", indexed ? "Correção e encargos salvos." : "Correção pelo índice removida.");
 }
 
@@ -265,15 +266,27 @@ export async function addIndexedInstallment(fd: FormData) {
 }
 
 export async function setIndexValue(fd: FormData) {
-  const path = "/admin/financeiro#cub";
+  const path = "/admin/financeiro#indices";
   await guard("financeiro", path);
+  const index = str(fd, "index") === "INPC" ? "INPC" : "CUB-SC";
   const month = str(fd, "month"); // AAAA-MM
-  const value = parseBRL(str(fd, "value"));
-  if (!/^\d{4}-\d{2}$/.test(month) || !value) back(path, "erro", "Informe o mês e o valor do CUB.");
+  const raw = str(fd, "value");
+  // CUB em reais (3.171,96); INPC em % com sinal (0,48 ou -0,12).
+  const value = index === "INPC" ? (raw ? Number(raw.replace("%", "").replace(",", ".")) : NaN) : parseBRL(raw);
+  if (!/^\d{4}-\d{2}$/.test(month) || value === null || !Number.isFinite(value)) back(path, "erro", "Informe o mês e o valor do índice.");
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("admin_set_index_value", { p_index: "CUB-SC", p_month: `${month}-01`, p_value: value, p_note: optStr(fd, "note") });
+  const { data, error } = await supabase.rpc("admin_set_index_value", { p_index: index, p_month: `${month}-01`, p_value: value, p_note: optStr(fd, "note") });
   failOn(error, path);
-  back(path, "ok", `CUB-SC de ${month.slice(5)}/${month.slice(0, 4)} salvo; ${data ?? 0} parcela(s) em aberto recalculada(s).`);
+  back(path, "ok", `${index} de ${month.slice(5)}/${month.slice(0, 4)} salvo; ${data ?? 0} parcela(s) em aberto recalculada(s).`);
+}
+
+export async function setHabiteSe(fd: FormData) {
+  const path = "/admin/financeiro#indices";
+  await guard("financeiro", path);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("admin_set_habite_se", { p_development_id: str(fd, "development_id"), p_date: optStr(fd, "date") });
+  failOn(error, path);
+  back(path, "ok", `Habite-se salvo; ${data ?? 0} parcela(s) em aberto recalculada(s).`);
 }
 
 export async function registerPayment(fd: FormData) {

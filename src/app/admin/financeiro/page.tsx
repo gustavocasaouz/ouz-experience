@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { Card, EmptyState, PageHeader, SectionTitle, Table, Td, TextField } from "@/design-system";
+import { Card, EmptyState, PageHeader, SectionTitle, SelectField, Table, Td, TextField } from "@/design-system";
 import { SubmitButton } from "@/design-system/submit-button";
 import { Flash, type SP } from "@/components/admin/flash";
 import { staffWith } from "@/components/admin/require-perm";
 import { ImportForm } from "@/components/admin/import-form";
 import { ReceiptForm } from "@/components/admin/receipt-form";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
-import { answerInquiry, setIndexValue } from "@/server/actions/admin/experience";
+import { answerInquiry, setHabiteSe, setIndexValue } from "@/server/actions/admin/experience";
 import { formatBRL, formatDate, formatDateTime, formatDue, requestNow } from "@/lib/format";
 
 export const metadata = { title: "Financeiro" };
@@ -17,12 +17,14 @@ export default async function AdminFinance({ searchParams }: { searchParams: SP 
   const { denied } = await staffWith(["financeiro"], "/admin/financeiro");
   if (denied) return denied;
   const supabase = await createSupabaseServerClient();
-  const [{ data: receipts }, { data: inquiries }, { data: imports }, { data: cub }, { count: estimates }] = await Promise.all([
+  const [{ data: receipts }, { data: inquiries }, { data: imports }, { data: cub }, { count: estimates }, { data: inpc }, { data: devs }] = await Promise.all([
     supabase.from("payment_receipts").select("id, storage_path, informed_amount, informed_paid_on, client_note, uploaded_at, contract:financial_contracts(unit:units(id, code, development:developments(name))), installment:installments(number, due_date)").eq("status", "enviado").order("uploaded_at"),
     supabase.from("financial_inquiries").select("id, message, created_at, contract:financial_contracts(unit:units(id, code, development:developments(name)))").eq("status", "aberta").order("created_at"),
     supabase.from("financial_imports").select("file_name, rows_count, summary, imported_at").order("imported_at", { ascending: false }).limit(10),
     supabase.from("index_values").select("reference_month, value, source_note, created_at").eq("index_name", "CUB-SC").order("reference_month", { ascending: false }).limit(12),
     supabase.from("installments").select("id", { count: "exact", head: true }).eq("is_estimate", true).in("status", ["aberta", "parcialmente_paga"]),
+    supabase.from("index_values").select("reference_month, value, source_note, created_at").eq("index_name", "INPC").order("reference_month", { ascending: false }).limit(12),
+    supabase.from("developments").select("id, name, habite_se_date").eq("is_demo", false).order("sort_order"),
   ]);
   const thisMonth = new Date(requestNow()).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }).slice(0, 7);
   const lastCub = cub?.[0]?.reference_month?.slice(0, 7);
@@ -79,19 +81,21 @@ export default async function AdminFinance({ searchParams }: { searchParams: SP 
           </ul>
         )}
       </section>
-      <section id="cub" className="mb-14">
-        <SectionTitle title="CUB-SC mensal" />
+      <section id="indices" className="mb-14">
+        <SectionTitle title="Índices mensais (CUB-SC e INPC)" />
         <Card className="p-6 flex flex-col gap-4">
           <p className="text-sm text-ink-soft">
-            Cadastre o CUB-SC assim que o Sinduscon publicar. As parcelas em aberto corrigidas pelo CUB são recalculadas na hora;
-            enquanto o CUB do mês não existir, o cliente vê o valor como <strong>estimativa</strong> (pelo último CUB cadastrado). Parcelas pagas não mudam.
+            Cadastre o CUB-SC (Sinduscon) e o INPC (IBGE, variação mensal em %) assim que forem publicados; as parcelas em aberto são recalculadas na hora.
+            Até o Habite-se, vale o CUB do mês do vencimento; depois, nos contratos com INPC, o valor fica no CUB do mês do Habite-se corrigido pelo INPC acumulado.
+            Enquanto faltar o índice do mês, o cliente vê <strong>estimativa</strong>. Parcelas pagas não mudam.
           </p>
           {lastCub && lastCub < thisMonth && <p className="text-sm text-warning">O CUB de {my(thisMonth)} ainda não foi cadastrado.</p>}
           <p className="text-xs text-ink-mute">{estimates ?? 0} parcela(s) em aberto exibidas como estimativa.</p>
-          <form action={setIndexValue} className="grid gap-3 sm:grid-cols-4 items-end">
+          <form action={setIndexValue} className="grid gap-3 sm:grid-cols-5 items-end">
+            <SelectField label="Índice" name="index" id="cub-i" defaultValue="CUB-SC" options={[{ value: "CUB-SC", label: "CUB-SC (R$)" }, { value: "INPC", label: "INPC (% no mês)" }]} />
             <TextField label="Mês" name="month" id="cub-m" type="month" required max={thisMonth} defaultValue={thisMonth} />
-            <TextField label="CUB-SC (R$)" name="value" id="cub-v" required inputMode="decimal" placeholder="ex.: 3.171,96" />
-            <TextField label="Fonte/observação" name="note" id="cub-n" placeholder="Sinduscon/SC" />
+            <TextField label="Valor" name="value" id="cub-v" required inputMode="decimal" placeholder="CUB 3.171,96 · INPC 0,48" />
+            <TextField label="Fonte/observação" name="note" id="cub-n" placeholder="Sinduscon/SC ou IBGE" />
             <SubmitButton size="sm" className="self-end">Salvar e recalcular</SubmitButton>
           </form>
           {cub?.length ? (
@@ -106,6 +110,33 @@ export default async function AdminFinance({ searchParams }: { searchParams: SP 
               ))}
             </Table>
           ) : <EmptyState title="Nenhum CUB cadastrado" />}
+          {inpc?.length ? (
+            <Table head={["Mês", "INPC (variação)", "Fonte", "Cadastrado em"]} caption="Últimos valores do INPC">
+              {inpc.map((c) => (
+                <tr key={c.reference_month}>
+                  <Td>{my(c.reference_month)}</Td>
+                  <Td>{Number(c.value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}%</Td>
+                  <Td className="text-xs text-ink-mute">{c.source_note ?? "—"}</Td>
+                  <Td className="text-xs text-ink-mute">{formatDateTime(c.created_at)}</Td>
+                </tr>
+              ))}
+            </Table>
+          ) : <p className="text-xs text-ink-mute">Nenhum INPC cadastrado (necessário a partir do Habite-se).</p>}
+          <div className="border-t border-line pt-4">
+            <h3 className="font-medium mb-1">Habite-se</h3>
+            <p className="text-xs text-ink-mute mb-3">A partir do mês do Habite-se, contratos marcados com INPC passam a ser corrigidos pelo INPC.</p>
+            <ul className="flex flex-col gap-3">
+              {(devs ?? []).map((dv) => (
+                <li key={dv.id}>
+                  <form action={setHabiteSe} className="flex flex-wrap items-end gap-3">
+                    <input type="hidden" name="development_id" value={dv.id} />
+                    <TextField label={dv.name} name="date" id={`hs-${dv.id}`} type="date" defaultValue={dv.habite_se_date ?? ""} />
+                    <SubmitButton size="sm" variant="secondary">Salvar</SubmitButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </div>
         </Card>
       </section>
       <section>

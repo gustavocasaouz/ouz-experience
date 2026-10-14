@@ -120,6 +120,9 @@ export async function createPolicyDraft(fd: FormData) {
 const NUM_KEYS = [
   "preco_minimo",
   "desconto_maximo_percentual",
+  "desconto_maximo_valor",
+  "desconto_condicional_valor",
+  "desconto_condicional_entrada_minima",
   "entrada_minima_percentual",
   "percentual_minimo_ate_chaves",
   "prazo_maximo_meses",
@@ -127,7 +130,7 @@ const NUM_KEYS = [
   "reforcos_max_quantidade",
   "permuta_max_percentual",
 ] as const;
-const BOOL_KEYS = ["permuta_permitida", "exigir_analise_com_permuta", "exigir_analise_pessoa_juridica", "sempre_exigir_analise"] as const;
+const BOOL_KEYS = ["desconto_condicional_somente_entrada_e_chaves", "permuta_permitida", "exigir_analise_com_permuta", "exigir_analise_pessoa_juridica", "sempre_exigir_analise"] as const;
 
 export async function savePolicyDraft(fd: FormData) {
   const id = str(fd, "development_id");
@@ -137,7 +140,7 @@ export async function savePolicyDraft(fd: FormData) {
   for (const k of NUM_KEYS) {
     const raw = str(fd, k);
     if (!raw) continue;
-    const n = k === "preco_minimo" ? parseBRL(raw) : Number(raw.replace(",", "."));
+    const n = k === "preco_minimo" || k.endsWith("_valor") ? parseBRL(raw) : Number(raw.replace(",", "."));
     if (n === null || !Number.isFinite(n) || n < 0) back(path, "erro", `Valor inválido em ${k}.`);
     padrao[k] = n as number;
   }

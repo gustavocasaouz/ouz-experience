@@ -133,13 +133,16 @@ function parseClient(sheet, opts) {
   }
   for (const t of adj.trocar_valor_original ?? []) {
     const hit = installments.filter((i) => !i.prepay && Math.abs(i.original_amount - t.de) < 0.005);
-    if (!hit.length) errors.push(`ajuste: nenhuma parcela com valor original ${t.de}`);
+    const done = !hit.length && installments.some((i) => Math.abs(i.original_amount - t.para) < 0.005);
+    if (done) applied.push(`valor ${t.para} já corrigido na planilha`);
+    else if (!hit.length) errors.push(`ajuste: nenhuma parcela com valor original ${t.de}`);
     for (const i of hit) setOriginal(i, t.para);
     if (hit.length) applied.push(`${hit.length} parcela(s) de ${t.de} → ${t.para} (valor original; valores já pagos mantidos)`);
   }
   if (adj.valor_chaves !== undefined) {
     const k = installments.filter((i) => i.kind === "chaves");
     if (k.length !== 1) errors.push("ajuste: parcela das chaves não encontrada");
+    else if (Math.abs(k[0].original_amount - adj.valor_chaves) < 0.005) applied.push(`chaves ${adj.valor_chaves} já corrigida na planilha`);
     else { applied.push(`chaves ${k[0].original_amount} → ${adj.valor_chaves}`); setOriginal(k[0], adj.valor_chaves); }
   }
   if (adj.acrescimo_pago) {

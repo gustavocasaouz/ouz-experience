@@ -27,6 +27,9 @@ type V = keyof typeof VERSION_LABEL;
 const POLICY_FIELDS: Array<{ key: string; label: string; hint?: string }> = [
   { key: "preco_minimo", label: "Preço mínimo (R$)", hint: "Absoluto. Use as regras por unidade para valores específicos." },
   { key: "desconto_maximo_percentual", label: "Desconto máximo sobre a tabela (%)" },
+  { key: "desconto_maximo_valor", label: "Desconto máximo sobre a tabela (R$)" },
+  { key: "desconto_condicional_valor", label: "Desconto condicionado: até (R$)", hint: "Desconto só é aceito se as condições abaixo forem atendidas; sem desconto, sempre aceito." },
+  { key: "desconto_condicional_entrada_minima", label: "Desconto condicionado: entrada mínima (%)" },
   { key: "entrada_minima_percentual", label: "Entrada mínima (%)" },
   { key: "percentual_minimo_ate_chaves", label: "Mínimo pago até as chaves (%)", hint: "Exige a previsão de chaves preenchida." },
   { key: "prazo_maximo_meses", label: "Prazo máximo (meses)" },
@@ -35,6 +38,7 @@ const POLICY_FIELDS: Array<{ key: string; label: string; hint?: string }> = [
   { key: "permuta_max_percentual", label: "Permuta máxima (%)" },
 ];
 const POLICY_FLAGS = [
+  { key: "desconto_condicional_somente_entrada_e_chaves", label: "Desconto condicionado: só entrada e saldo nas chaves (sem parcelas)" },
   { key: "permuta_permitida", label: "Permuta permitida" },
   { key: "exigir_analise_com_permuta", label: "Permuta exige análise da OUZ" },
   { key: "exigir_analise_pessoa_juridica", label: "Compra por pessoa jurídica exige análise" },

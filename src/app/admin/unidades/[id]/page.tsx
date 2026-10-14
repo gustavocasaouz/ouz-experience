@@ -38,13 +38,13 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
   const [clients, docs, contract, custom, bookings, punch, delivery] = await Promise.all([
     can.cli ? supabase.from("client_units").select("relation, active, client:clients(id, full_name, email)").eq("unit_id", id).eq("active", true) : Promise.resolve({ data: null }),
     can.docs ? supabase.from("documents").select("id, category, title, visible_to_client, versions:document_versions(version_number, storage_path, uploaded_at)").eq("unit_id", id).order("created_at") : Promise.resolve({ data: null }),
-    can.fin ? supabase.from("financial_contracts").select("id, contract_value, signed_on, notes, last_updated_at, index_name, base_index_value, late_interest_monthly_pct, late_fine_pct").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
+    can.fin ? supabase.from("financial_contracts").select("id, contract_value, signed_on, notes, last_updated_at, index_name, base_index_value, late_interest_monthly_pct, late_fine_pct, post_habite_index").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
     can.att ? supabase.from("customization_requests").select("*").eq("unit_id", id).order("created_at", { ascending: false }) : Promise.resolve({ data: null }),
     can.att ? supabase.from("appointment_bookings").select("id, kind, status, slot:appointment_slots(starts_at, location)").eq("unit_id", id).order("created_at", { ascending: false }) : Promise.resolve({ data: null }),
     can.att ? supabase.from("punch_list_items").select("*").eq("unit_id", id).order("created_at") : Promise.resolve({ data: null }),
     can.att ? supabase.from("unit_deliveries").select("*").eq("unit_id", id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
-  const c = contract.data as { id: string; contract_value: string; signed_on: string | null; notes: string | null; last_updated_at: string; index_name: string | null; base_index_value: string | null; late_interest_monthly_pct: string | null; late_fine_pct: string | null } | null;
+  const c = contract.data as { id: string; contract_value: string; signed_on: string | null; notes: string | null; last_updated_at: string; index_name: string | null; base_index_value: string | null; late_interest_monthly_pct: string | null; late_fine_pct: string | null; post_habite_index: string | null } | null;
   const [inst, receipts, inquiries] = c
     ? await Promise.all([
         supabase.from("installments_view").select("*").eq("contract_id", c.id).order("due_date").order("number"),
@@ -52,7 +52,7 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
         supabase.from("financial_inquiries").select("*").eq("contract_id", c.id).order("created_at", { ascending: false }),
       ])
     : [{ data: [] }, { data: [] }, { data: [] }];
-  type I = { id: string; number: number; kind: string; due_date: string | null; late_days: number | null; indexed: boolean; index_quantity: string | null; index_value: string | null; is_estimate: boolean; original_amount: string; monetary_update: string | null; interest: string | null; fine: string | null; updated_amount: string | null; paid_amount: string; paid_on: string | null; display_status: string; data_source: string };
+  type I = { id: string; number: number; kind: string; due_date: string | null; late_days: number | null; indexed: boolean; index_quantity: string | null; index_value: string | null; inpc_factor: string | null; index_month: string | null; is_estimate: boolean; original_amount: string; monetary_update: string | null; interest: string | null; fine: string | null; updated_amount: string | null; paid_amount: string; paid_on: string | null; display_status: string; data_source: string };
 
   return (
     <>
@@ -159,6 +159,7 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                   <TextField label="CUB-base do contrato (R$)" name="base_index_value" id="fc-base" inputMode="decimal" defaultValue={c.base_index_value ? Number(c.base_index_value).toFixed(2).replace(".", ",") : ""} />
                   <TextField label="Juros de atraso (% ao mês, pro rata die)" name="late_interest" id="fc-li" inputMode="decimal" defaultValue={c.late_interest_monthly_pct ? Number(c.late_interest_monthly_pct).toString().replace(".", ",") : ""} />
                   <TextField label="Multa moratória (%)" name="late_fine" id="fc-lf" inputMode="decimal" defaultValue={c.late_fine_pct ? Number(c.late_fine_pct).toString().replace(".", ",") : ""} />
+                  <CheckboxField label="Após o Habite-se, corrigir pelo INPC" name="post_inpc" id="fc-inpc" defaultChecked={c.post_habite_index === "INPC"} />
                   <SubmitButton size="sm" variant="secondary" className="self-end">Salvar correção e encargos</SubmitButton>
                   <p className="text-xs text-ink-mute sm:col-span-3">Com juros e multa preenchidos, parcelas vencidas recebem os encargos automaticamente e são atualizadas todo dia (juros simples ÷ 30 por dia de atraso; multa sobre parcela + juros). Vazios: juros e multa são informados manualmente.</p>
                 </form>
@@ -173,7 +174,7 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                         <Td>{i.number}</Td>
                         <Td>{INSTALLMENT_KIND_LABELS[i.kind]}</Td>
                         <Td className="whitespace-nowrap">{formatDue(i.due_date)}{i.late_days ? <span className="block text-xs text-danger">{i.late_days} dia(s) de atraso</span> : null}</Td>
-                        <Td className="whitespace-nowrap">{formatBRL(i.original_amount)}{i.index_quantity && <span className="block text-xs text-ink-mute">{Number(i.index_quantity).toLocaleString("pt-BR", { maximumFractionDigits: 4 })} CUB{i.indexed ? "" : " · sem reajuste"}</span>}</Td>
+                        <Td className="whitespace-nowrap">{formatBRL(i.original_amount)}{i.index_quantity && <span className="block text-xs text-ink-mute">{Number(i.index_quantity).toLocaleString("pt-BR", { maximumFractionDigits: 4 })} CUB{i.indexed ? "" : " · sem reajuste"}{i.inpc_factor ? ` · INPC ×${Number(i.inpc_factor).toLocaleString("pt-BR", { maximumFractionDigits: 4 })}` : ""}</span>}</Td>
                         <Td className="text-xs whitespace-nowrap">{[i.monetary_update, i.interest, i.fine].map((v) => (v ? formatBRL(v) : "—")).join(" / ")}</Td>
                         <Td className="whitespace-nowrap">{i.updated_amount ? formatBRL(i.updated_amount) : "—"}{i.is_estimate && !["paga", "cancelada", "renegociada"].includes(i.display_status) && <span className="block text-xs text-warning">estimativa{i.index_value ? ` (CUB ${formatBRL(i.index_value)})` : ""}</span>}</Td>
                         <Td className="whitespace-nowrap">{Number(i.paid_amount) > 0 ? `${formatBRL(i.paid_amount)}${i.paid_on ? ` ${d(i.paid_on)}` : ""}` : "—"}</Td>

@@ -146,5 +146,27 @@ describe("financeiro corrigido pelo CUB", () => {
     expect(await one(db.admin(`select late_interest_monthly_pct, late_fine_pct from public.financial_contracts c join public.units u on u.id = c.unit_id where u.code = 'CUB-3'`)))
       .toEqual({ late_interest_monthly_pct: "1.000", late_fine_pct: "2.000" });
   });
+
+  it("após o Habite-se: CUB do mês do Habite-se corrigido pelo INPC acumulado (estimativa se faltar INPC)", async () => {
+    const { id: contract } = await one(db.admin<{ id: string }>(`select c.id from public.financial_contracts c join public.units u on u.id = c.unit_id where u.code = 'CUB-1'`));
+    await expect(db.as(atendimento, `select public.admin_set_habite_se($1, $2)`, [MAUI, month(-2)])).rejects.toThrow(/acesso negado/);
+    await expect(db.as(financeiro, `select public.admin_set_index_value('INPC', $1, 80, null)`, [month(-1)])).rejects.toThrow(/variação mensal/);
+    await db.as(financeiro, `select public.admin_set_index_value('INPC', $1, 1, 'IBGE')`, [month(-1)]);
+    await db.as(financeiro, `select public.admin_set_contract_post_index($1, 'INPC')`, [contract]);
+    await db.as(financeiro, `select public.admin_set_habite_se($1, $2)`, [MAUI, month(-2).slice(0, 8) + "15"]);
+    const rows = await db.admin<{ number: number; updated_amount: string; index_value: string; inpc_factor: string; is_estimate: boolean }>(
+      `select number, updated_amount, index_value, round(inpc_factor, 4)::text as inpc_factor, is_estimate from public.installments
+        where contract_id = $1 and number in (3, 4) order by number`, [contract]);
+    expect(rows).toEqual([
+      // vence no mês corrente: CUB do Habite-se (2100) × 5 CUBs × INPC do mês anterior (1%) — todos publicados
+      { number: 3, updated_amount: "10605.00", index_value: "2100.00", inpc_factor: "1.0100", is_estimate: false },
+      // vence daqui a 3 meses: faltam INPCs → estimativa com os já publicados
+      { number: 4, updated_amount: "10605.00", index_value: "2100.00", inpc_factor: "1.0100", is_estimate: true },
+    ]);
+    // Sem Habite-se, volta ao CUB do mês do vencimento.
+    await db.as(financeiro, `select public.admin_set_habite_se($1, null)`, [MAUI]);
+    expect((await one(db.admin<{ updated_amount: string }>(`select updated_amount from public.installments where contract_id = $1 and number = 4`, [contract]))).updated_amount).toBe("11500.00");
+    await db.as(financeiro, `select public.admin_set_contract_post_index($1, null)`, [contract]);
+  });
 });
 

@@ -56,6 +56,7 @@ try {
   const payload = {
     development_id: dev.id, file_name: basename(file), ...r.payload,
     ...(enc ? { late_charges: { interest_monthly_pct: enc.juros_ao_mes, fine_pct: enc.multa } } : {}),
+    ...(ajustes?.indice_apos_habite_se ? { post_habite_index: ajustes.indice_apos_habite_se } : {}),
   };
   if (enc) console.log(`\nEncargos de atraso dos contratos: juros de ${enc.juros_ao_mes}% ao mês pro rata die + multa de ${enc.multa}% (atualizados diariamente)`);
   await db.query("begin");

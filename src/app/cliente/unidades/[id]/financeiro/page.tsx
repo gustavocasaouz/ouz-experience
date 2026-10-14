@@ -21,6 +21,7 @@ export default async function ClientFinance({ params, searchParams }: { params: 
   if (!f) return <EmptyState title="Informações financeiras ainda não disponíveis">A OUZ publicará aqui os valores do seu contrato.</EmptyState>;
   const open = f.installments.filter((i) => !["paga", "cancelada", "renegociada"].includes(i.status));
   const hasBreakdown = f.installments.some((i) => i.monetary_update || i.interest || i.fine);
+  const habite = (f.contract.unit as unknown as { development: { habite_se_date: string | null } } | null)?.development?.habite_se_date ?? null;
 
   return (
     <div className="flex flex-col gap-12">
@@ -72,8 +73,9 @@ export default async function ClientFinance({ params, searchParams }: { params: 
         )}
         {f.contract.index_name && (
           <p className="text-sm text-ink-soft mt-4">
-            Parcelas corrigidas pelo {f.contract.index_name}: valor em CUBs multiplicado pelo CUB do mês do vencimento.
-            {f.totals.hasEstimate && <> Onde aparece <strong>estimativa</strong>, o CUB do mês ainda não foi publicado e o cálculo usa o último CUB cadastrado{f.totals.lastIndexMonth ? ` (${monthYear(f.totals.lastIndexMonth)})` : ""}; o valor final depende do CUB do mês do pagamento.</>}
+            Parcelas corrigidas pelo {f.contract.index_name}: valor em CUBs multiplicado pelo CUB do mês do vencimento
+            {f.contract.post_habite_index ? `, até o Habite-se; depois, o valor passa a ser corrigido pelo ${f.contract.post_habite_index}${habite ? ` (Habite-se em ${d(habite)})` : ""}` : ""}.
+            {f.totals.hasEstimate && <> Onde aparece <strong>estimativa</strong>, o índice do mês ainda não foi publicado e o cálculo usa o último cadastrado{f.totals.lastIndexMonth ? ` (${monthYear(f.totals.lastIndexMonth)})` : ""}; o valor final depende do CUB do mês do pagamento.</>}
           </p>
         )}
         {f.contract.late_interest_monthly_pct && f.totals.overdueCount > 0 && (
