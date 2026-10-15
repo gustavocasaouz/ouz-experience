@@ -50,6 +50,30 @@ export default async function ClientFinance({ params, searchParams }: { params: 
         {f.installments.length === 0 ? (
           <EmptyState title="Nenhuma parcela lançada" />
         ) : (
+          <>
+          {/* Celular: lista (cada parcela numa linha legível, sem rolagem lateral). Computador: tabela completa. */}
+          <ul className="md:hidden divide-y divide-line border-y border-line bg-surface" aria-label="Parcelas do contrato">
+            {f.installments.map((i) => {
+              const open = !["paga", "cancelada", "renegociada"].includes(i.status);
+              return (
+                <li key={i.id} className="px-4 py-4 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-medium">{INSTALLMENT_KIND_LABELS[i.kind]} {i.number}</p>
+                    <p className="text-sm text-ink-soft">{formatDue(i.due_date)}</p>
+                    {i.late_days && i.late_days > 0 && i.display_status === "vencida" ? <p className="text-xs text-danger mt-0.5">{i.late_days} dia(s) de atraso</p> : null}
+                    {(i.interest || i.fine) && <p className="text-xs text-ink-mute mt-0.5">Juros {i.interest ? formatBRL(i.interest) : "—"} · multa {i.fine ? formatBRL(i.fine) : "—"}</p>}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-medium tabular-nums">{formatBRL(i.updated_amount ?? i.original_amount)}</p>
+                    {i.is_estimate && open && <p className="text-xs text-ink-mute">estimativa</p>}
+                    {!open && Number(i.paid_amount) > 0 && <p className="text-xs text-ink-mute">pago {formatBRL(i.paid_amount)}</p>}
+                    <Badge tone={tone(i.display_status)} className="mt-1">{INSTALLMENT_STATUS_LABELS[i.display_status] ?? i.display_status}</Badge>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="hidden md:block">
           <Table head={["Nº", "Tipo", "Vencimento", "Valor original", ...(hasBreakdown ? ["Atualização", "Juros", "Multa"] : []), "Valor atualizado", "Pago", "Situação"]} caption="Parcelas do contrato">
             {f.installments.map((i) => (
               <tr key={i.id}>
@@ -70,6 +94,8 @@ export default async function ClientFinance({ params, searchParams }: { params: 
               </tr>
             ))}
           </Table>
+          </div>
+          </>
         )}
         {f.contract.index_name && (
           <p className="text-sm text-ink-soft mt-4">

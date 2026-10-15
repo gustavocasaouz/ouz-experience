@@ -36,17 +36,17 @@ export function IntroAnimation() {
 
   if (!show) return null;
   return (
-    <div ref={overlay} aria-hidden className="fixed inset-0 z-[100] bg-white flex items-center justify-center">
+    <div ref={overlay} aria-hidden className="fixed inset-0 z-[100] bg-paper text-ink flex items-center justify-center">
       <div className="relative" style={{ width: 90, height: 90 }}>
         <svg ref={left} viewBox="0 0 107 107" width="90" height="90" fill="none" className="absolute inset-0" style={{ transform: "translateX(-110px)" }}>
-          <path d="M3 78.6191V3.06763H77.7845L103.48 28.7628V103.547H28.3117L3 78.6191Z" stroke="black" strokeWidth="6" />
+          <path d="M3 78.6191V3.06763H77.7845L103.48 28.7628V103.547H28.3117L3 78.6191Z" stroke="currentColor" strokeWidth="6" />
         </svg>
         <svg viewBox="0 0 107 107" width="90" height="90" fill="none" className="absolute inset-0">
-          <path d="M3.42651 0V78.6196L28.7382 103.548H103.906V23.7776" stroke="black" strokeWidth="6" />
+          <path d="M3.42651 0V78.6196L28.7382 103.548H103.906V23.7776" stroke="currentColor" strokeWidth="6" />
         </svg>
         <svg ref={right} viewBox="0 0 105 107" width="88" height="90" fill="none" className="absolute inset-0" style={{ transform: "translateX(110px)" }}>
-          <path d="M0.876709 3.06763H79.3045M26.1884 103.547H105" stroke="black" strokeWidth="6" />
-          <path d="M100.208 1.60278L1.26196 100.548" stroke="black" strokeWidth="3" />
+          <path d="M0.876709 3.06763H79.3045M26.1884 103.547H105" stroke="currentColor" strokeWidth="6" />
+          <path d="M100.208 1.60278L1.26196 100.548" stroke="currentColor" strokeWidth="3" />
         </svg>
       </div>
     </div>

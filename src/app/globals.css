@@ -33,10 +33,49 @@
   --tracking-label: 0.14em;
 }
 
+/*
+ * Modo escuro (segue o ajuste do sistema, sem opção própria no app — HIG › Dark Mode).
+ * Mesma identidade OUZ invertida: fundo grafite quente, texto off-white #f2f0eb. Contrastes medidos:
+ * texto 16,2:1 · secundário 11,8:1 · apoio 6,9:1 sobre o fundo; estados ≥ 6,5:1.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: #141413;
+    --color-surface: #1d1d1b;
+    --color-sand: #272724;
+    --color-line: #34332f;
+    --color-ink: #f2f0eb;
+    --color-ink-soft: #d2cfc7;
+    --color-ink-mute: #a19e95;
+    --color-accent: #f2f0eb;
+    --color-accent-soft: #3a3935;
+    --color-success: #86b896;
+    --color-success-soft: #1f2e24;
+    --color-warning: #d9ad62;
+    --color-warning-soft: #33291a;
+    --color-danger: #e8968c;
+    --color-danger-soft: #3a211e;
+    --color-info: #94b6d8;
+    --color-info-soft: #1c2834;
+  }
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
+    color-scheme: light dark; /* calendário, seletores e barras de rolagem nativos no tom certo */
+  }
+  /*
+   * iPhone/iPad: o tamanho base acompanha o "Tamanho do Texto" do sistema (Dynamic Type, padrão 17 pt);
+   * como tudo é em rem, a interface inteira cresce junto. Só em telas de toque (no Mac o padrão seria 13 pt).
+   */
+  @supports (font: -apple-system-body) {
+    @media (pointer: coarse) {
+      html {
+        font: -apple-system-body;
+      }
+    }
   }
   body {
     padding-left: env(safe-area-inset-left);

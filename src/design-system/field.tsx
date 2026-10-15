@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { cx } from "./cx";
 
 const control =
-  "w-full bg-surface border border-line rounded-[var(--radius-sm)] px-3.5 py-2.5 text-[15px] text-ink placeholder:text-ink-mute focus:border-ink focus:outline-none aria-[invalid=true]:border-danger disabled:bg-sand";
+  "w-full bg-surface border border-line rounded-[var(--radius-sm)] px-3.5 py-2.5 text-base min-h-11 text-ink placeholder:text-ink-mute focus:border-ink focus:outline-none aria-[invalid=true]:border-danger disabled:bg-sand";
 
 type FieldProps = { label: string; name: string; id?: string; hint?: ReactNode; error?: string[] | string; required?: boolean; className?: string };
 

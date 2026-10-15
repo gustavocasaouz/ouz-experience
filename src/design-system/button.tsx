@@ -14,7 +14,7 @@ const variants: Record<Variant, string> = {
   danger: "bg-danger text-white hover:opacity-90",
 };
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-4 text-sm",
+  sm: "h-11 md:h-9 px-4 text-sm", // 44 pt no toque (HIG), compacto no computador
   md: "h-11 px-6 text-sm",
   lg: "h-13 px-8 text-base",
 };
