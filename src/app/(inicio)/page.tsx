@@ -54,7 +54,7 @@ export default function Entrada() {
             </p>
           </div>
           <div className="flex items-center justify-between gap-4 text-xs text-ink-mute">
-            <span>SOHO · MAUI · UMAN</span>
+            <span>SOHO · MAUI</span>
             <Link href="/entrar?next=/admin" className="hover:text-ink">Acesso da equipe OUZ</Link>
           </div>
         </div>
