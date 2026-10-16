@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { adminDb, cpf, expectAccessible, purgeE2eData, sessao } from "./helpers";
+import { CONTAS, adminDb, cpf, expectAccessible, purgeE2eData, sessao } from "./helpers";
 
 test.beforeAll(purgeE2eData);
 test.afterAll(purgeE2eData);
@@ -19,11 +19,16 @@ test("corretor envia proposta dentro da política e recebe a reserva de 48 h", a
   const db = adminDb();
   const { data: soho } = await db.from("developments").select("id").eq("slug", "soho").single();
   const { data: units } = await db.from("units").select("id, code").eq("development_id", soho!.id).eq("status", "disponivel").eq("is_demo", true).order("code"); // só unidades demonstrativas
+  // Corretor que teve reserva encerrada na unidade há pouco fica em carência (regra comercial): pula essas unidades.
+  const { data: me } = await db.from("profiles").select("id").eq("email", CONTAS.corretorSemUman).single();
+  const since = new Date(Date.now() - 8 * 86_400_000).toISOString();
   let free: { id: string; code: string } | undefined;
   for (const u of units ?? []) {
     const { count } = await db.from("reservations").select("id", { count: "exact", head: true }).eq("unit_id", u.id)
       .in("status", ["aguardando_documentos", "documentacao_enviada", "aguardando_conferencia", "documentacao_validada", "pendencias_documentacao"]);
-    if (!count) { free = u; break; }
+    const { count: carencia } = await db.from("reservations").select("id", { count: "exact", head: true }).eq("unit_id", u.id)
+      .eq("broker_user_id", me!.id).gte("ended_at", since);
+    if (!count && !carencia) { free = u; break; }
   }
   test.skip(!free, "Nenhuma unidade livre no SOHO de desenvolvimento");
 
