@@ -116,6 +116,13 @@ export async function updatePassword(_prev: ActionState, fd: FormData): Promise<
   return { ok: true, message: "Senha atualizada." };
 }
 
+/** Sai e volta ao login (ex.: na tela do código, para entrar com outra conta). */
+export async function switchAccount(fd: FormData) {
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.signOut();
+  redirect(`/entrar?next=${encodeURIComponent(safeNext(fd.get("next"), "/admin"))}`);
+}
+
 export async function signOut() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
