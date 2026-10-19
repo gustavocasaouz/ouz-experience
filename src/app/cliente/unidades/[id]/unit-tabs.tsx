@@ -10,8 +10,9 @@ import type { DevelopmentStage } from "@/lib/labels";
  * - pré-lançamento e entregue: sem personalização (cedo demais / obra concluída);
  * - entregue: "Entrega e garantia" (registro da entrega, pendências e assistência).
  * - "Manual": quando a OUZ publica o manual de uso, operação e manutenção do empreendimento.
+ * - Entrega pode ser desligada por empreendimento (ex.: SOHO, portal enxuto).
  */
-export function UnitTabs({ base, stage, hasManual }: { base: string; stage: DevelopmentStage; hasManual: boolean }) {
+export function UnitTabs({ base, stage, hasManual, deliveryEnabled }: { base: string; stage: DevelopmentStage; hasManual: boolean; deliveryEnabled: boolean }) {
   const pathname = usePathname();
   const early = stage === "pre_lancamento" || stage === "lancamento";
   const tabs = [
@@ -20,7 +21,7 @@ export function UnitTabs({ base, stage, hasManual }: { base: string; stage: Deve
     { key: "/documentos", label: "Documentos" },
     { key: "/financeiro", label: "Financeiro" },
     ...(stage === "pre_lancamento" || stage === "entregue" ? [] : [{ key: "/personalizacao", label: "Personalização" }]),
-    ...(early ? [] : [{ key: "/entrega", label: stage === "entregue" ? "Entrega e garantia" : "Vistoria e entrega" }]),
+    ...(early || !deliveryEnabled ? [] : [{ key: "/entrega", label: stage === "entregue" ? "Entrega e garantia" : "Vistoria e entrega" }]),
     ...(hasManual ? [{ key: "/manual", label: "Manual" }] : []),
   ];
   const current = tabs.slice().reverse().find((t) => pathname.startsWith(base + t.key))?.key ?? "";

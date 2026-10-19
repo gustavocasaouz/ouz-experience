@@ -23,7 +23,7 @@ export default async function UnitLayout({ children, params }: { children: React
           </span>
         }
       />
-      <UnitTabs base={`/cliente/unidades/${id}`} stage={u.development.stage} hasManual={manuals.length > 0} />
+      <UnitTabs base={`/cliente/unidades/${id}`} stage={u.development.stage} hasManual={manuals.length > 0} deliveryEnabled={u.development.client_delivery_enabled} />
       {children}
     </>
   );

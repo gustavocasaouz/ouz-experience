@@ -43,6 +43,7 @@ export default async function DevelopmentGeneral({ params, searchParams }: { par
                 <TextField label="Cidade" name="city" required defaultValue={dev.city} />
                 <TextField label="Ordem de exibição" name="sort_order" type="number" min={0} defaultValue={String(dev.sort_order)} />
                 <CheckboxField name="client_portal_enabled" label="Visível no portal do cliente (para quem tem unidade aqui)" defaultChecked={dev.client_portal_enabled} className="sm:mt-8" />
+                <CheckboxField name="client_delivery_enabled" label="Mostrar “Vistoria e entrega” / “Entrega e garantia” aos clientes" defaultChecked={dev.client_delivery_enabled} />
                 <SubmitButton className="self-start">Salvar dados gerais</SubmitButton>
               </form>
             </Card>

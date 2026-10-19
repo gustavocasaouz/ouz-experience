@@ -9,7 +9,7 @@ export async function loadDevelopment(id: string) {
   const { data } = await supabase.from("developments").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
   return data as {
-    id: string; slug: string; name: string; city: string; stage: DevelopmentStage; is_published: boolean; client_portal_enabled: boolean;
+    id: string; slug: string; name: string; city: string; stage: DevelopmentStage; is_published: boolean; client_portal_enabled: boolean; client_delivery_enabled: boolean;
     broker_access_mode: BrokerAccessMode; sort_order: number; is_demo: boolean; data_source: string;
   };
 }

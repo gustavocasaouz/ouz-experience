@@ -120,6 +120,15 @@ describe("manuais", () => {
     await expect(importManual(db.pg, { ...owner, unit_code: "NAO-EXISTE" })).rejects.toThrow(/unidade não encontrada/);
   });
 
+  it("entrega por empreendimento: ligada por padrão; equipe com conteúdo desliga; cliente não", async () => {
+    const [d] = await db.admin<{ on: boolean }>(`select client_delivery_enabled as on from public.developments where id = $1`, [SOHO]);
+    expect(d.on).toBe(true); // SOHO demonstrativo: a migração só desliga o SOHO real
+    await expect(db.as(A.claims, `update public.developments set client_delivery_enabled = false where id = $1 returning id`, [SOHO])).resolves.toHaveLength(0);
+    await db.as(conteudo, `update public.developments set client_delivery_enabled = false where id = $1`, [SOHO]);
+    const [after] = await db.admin<{ on: boolean }>(`select client_delivery_enabled as on from public.developments where id = $1`, [SOHO]);
+    expect(after.on).toBe(false);
+  });
+
   it("limpa scripts e eventos do HTML importado", () => {
     expect(cleanHtml(`<p onclick="x()">a</p><script>alert(1)</script><a href="javascript:x">b</a><img src="data:image/png;base64,AA" alt="">`))
       .toBe(`<p>a</p><a>b</a><img src="data:image/png;base64,AA" alt="">`);

@@ -14,7 +14,8 @@ const KIND = { vistoria: "Vistoria", entrega_chaves: "Entrega de chaves" } as co
 export default async function ClientDelivery({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
   const { id } = await params;
   const u = await myUnit(id);
-  if (!u) notFound();
+  // Empreendimento com a entrega desligada para os clientes (ex.: SOHO): a página não existe.
+  if (!u || !u.development.client_delivery_enabled) notFound();
   const supabase = await createSupabaseServerClient();
   const [{ data: bookings }, { data: vistoria }, { data: chaves }, { data: punch }, { data: delivery }] = await Promise.all([
     supabase.from("appointment_bookings").select("id, kind, status, slot:appointment_slots(starts_at, ends_at, location)").eq("unit_id", id).eq("status", "agendada"),
