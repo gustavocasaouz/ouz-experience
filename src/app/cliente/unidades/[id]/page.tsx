@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, DataList, EmptyState, SectionTitle } from "@/design-system";
 import { myUnit, developmentFeed } from "@/server/queries/client-unit";
+import { listManuals } from "@/server/queries/manual";
 import { formatDate, formatLongDate } from "@/lib/format";
 import { MILESTONE_STAGE_LABELS } from "@/lib/labels";
 
@@ -9,7 +10,8 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
   const { id } = await params;
   const u = await myUnit(id);
   if (!u) notFound();
-  const feed = await developmentFeed(u.development.id, id);
+  const [feed, manuals] = await Promise.all([developmentFeed(u.development.id, id), listManuals(u.development.id, id)]);
+  const hasManual = manuals.length > 0;
   const latest = feed.progress[0];
   const next = feed.milestones.find((m) => !m.completed_on);
   return (
@@ -27,7 +29,10 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
             <Card className="p-6">
               <p className="eyebrow mb-2">Assistência técnica</p>
               <p className="text-sm text-ink-soft">Precisa de algo na unidade? Abra um chamado: a OUZ avalia cada caso.</p>
-              <Link href="/cliente/chamados/novo" className="text-sm underline underline-offset-4 mt-3 inline-block">Abrir chamado</Link>
+              <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-sm">
+                <Link href="/cliente/chamados/novo" className="underline underline-offset-4">Abrir chamado</Link>
+                {hasManual && <Link href={`/cliente/unidades/${id}/manual`} className="underline underline-offset-4">Prazos de garantia e manual</Link>}
+              </div>
             </Card>
           </section>
         ) : (

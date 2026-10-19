@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/design-system";
 import { listMyUnits } from "@/server/queries/client";
+import { listManuals } from "@/server/queries/manual";
 import { CLIENT_RELATION_LABELS, STAGE_LABELS } from "@/lib/labels";
 import { UnitTabs } from "./unit-tabs";
 
@@ -9,6 +10,7 @@ export default async function UnitLayout({ children, params }: { children: React
   // Busca entre as unidades do próprio cliente: um ID de outra unidade simplesmente não existe aqui.
   const u = (await listMyUnits()).find((x) => x.unit.id === id);
   if (!u) notFound();
+  const manuals = await listManuals(u.development.id, u.unit.id);
   return (
     <>
       <PageHeader
@@ -21,7 +23,7 @@ export default async function UnitLayout({ children, params }: { children: React
           </span>
         }
       />
-      <UnitTabs base={`/cliente/unidades/${id}`} stage={u.development.stage} />
+      <UnitTabs base={`/cliente/unidades/${id}`} stage={u.development.stage} hasManual={manuals.length > 0} />
       {children}
     </>
   );

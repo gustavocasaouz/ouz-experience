@@ -125,3 +125,28 @@
     padding-inline: 2.5rem;
   }
 }
+
+/* Texto dos manuais (HTML importado do manual oficial): leitura confortável, tabelas roláveis no celular. */
+@utility manual-prose {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-ink-soft);
+  overflow-wrap: anywhere;
+  & p { margin-block: 0 0.9em; }
+  & ul, & ol { margin: 0 0 1em; padding-left: 1.25em; }
+  & ul { list-style: disc; }
+  & ol { list-style: decimal; }
+  & li { margin-bottom: 0.35em; }
+  & strong { color: var(--color-ink); font-weight: 500; }
+  & a { color: var(--color-ink); text-decoration: underline; text-underline-offset: 3px; }
+  & h3 { font-family: var(--font-display); color: var(--color-ink); font-size: 1.35rem; margin: 2em 0 0.6em; scroll-margin-top: 6rem; }
+  & h4 { color: var(--color-ink); font-weight: 500; margin: 1.6em 0 0.5em; }
+  & figure { margin: 1.5em 0; }
+  & img { max-width: 100%; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--color-line); background: #fff; }
+  & figcaption { font-size: 0.8rem; color: var(--color-ink-mute); margin-top: 0.4em; }
+  & .tbl { overflow-x: auto; margin: 1em 0 1.5em; border: 1px solid var(--color-line); border-radius: var(--radius-sm); }
+  & table { width: 100%; border-collapse: collapse; font-size: 0.875rem; line-height: 1.5; }
+  & th, & td { border-bottom: 1px solid var(--color-line); padding: 0.6em 0.8em; text-align: left; vertical-align: top; min-width: 7rem; }
+  & tr:last-child td { border-bottom: 0; }
+  & th { background: var(--color-sand); color: var(--color-ink); font-weight: 500; }
+}

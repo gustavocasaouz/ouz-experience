@@ -39,6 +39,7 @@ export function DevelopmentHeader({ dev, tab }: { dev: Awaited<ReturnType<typeof
           { key: "unidades", href: `${b}/unidades`, label: "Unidades" },
           { key: "comercial", href: `${b}/comercial`, label: "Comercial" },
           { key: "acompanhamento", href: `${b}/acompanhamento`, label: "Acompanhamento" },
+          { key: "manuais", href: `${b}/manuais`, label: "Manuais" },
         ]}
       />
     </>
