@@ -41,7 +41,10 @@ export function InstallPrompt() {
   const [ios, setIos] = useState(false);
   const [hidden, setHidden] = useState(true);
   useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone;
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone ||
+      /OUZExperienceApp/.test(navigator.userAgent); // dentro do app iOS (Capacitor)
     let dismissed = false;
     try {
       dismissed = localStorage.getItem("ouz_install_dismissed") === "1";

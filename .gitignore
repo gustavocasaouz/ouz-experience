@@ -32,3 +32,6 @@ e2e/.auth/
 
 # Ajustes de importação (contêm dados de clientes)
 importacao/
+
+# App iOS (Capacitor): dependências; os gerados do Xcode ficam em mobile/ios/.gitignore
+mobile/node_modules/

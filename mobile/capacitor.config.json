@@ -1,0 +1,19 @@
+{
+  "appId": "br.com.ouzgroup.experience",
+  "appName": "OUZ Experience",
+  "webDir": "www",
+  "server": {
+    "url": "https://ouz.app.br",
+    "allowNavigation": [
+      "ouz.app.br"
+    ],
+    "errorPath": "offline.html"
+  },
+  "appendUserAgent": "OUZExperienceApp",
+  "backgroundColor": "#f2f0eb",
+  "ios": {
+    "contentInset": "never",
+    "allowsLinkPreview": false,
+    "loggingBehavior": "debug"
+  }
+}

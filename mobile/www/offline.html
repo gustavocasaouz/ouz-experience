@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sem conexão · OUZ Experience</title>
+<style>
+  :root { --paper:#f2f0eb; --ink:#141413; --soft:#5f5e5a; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#141413; --ink:#f2f0eb; --soft:#a8a69f; } }
+  html,body { margin:0; height:100%; background:var(--paper); color:var(--ink); font:17px/1.45 -apple-system,system-ui,sans-serif; -webkit-text-size-adjust:100%; }
+  main { min-height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:16px;
+         padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom)); }
+  svg { width:56px; height:56px; }
+  h1 { font-size:22px; font-weight:600; margin:8px 0 0; }
+  p { margin:0; color:var(--soft); max-width:300px; }
+  button { margin-top:8px; min-height:44px; padding:0 28px; border:0; background:var(--ink); color:var(--paper); font:inherit; font-weight:500; cursor:pointer; }
+</style>
+</head>
+<body>
+<main>
+  <svg viewBox="38 39 42 42" fill="currentColor" aria-hidden="true">
+    <path d="M78.7708 79.4685H49.6437L39.7336 69.6446V40.4314H68.9469L78.857 50.3415V79.4685H78.7708ZM50.5917 76.9695H76.2717V51.2894L67.8266 42.8443H42.2327V68.5244L50.5917 76.9695Z"/>
+    <path d="M77.5306 40.7578L40.0562 78.2323L40.9092 79.0854L78.3837 41.6109L77.5306 40.7578Z"/>
+  </svg>
+  <h1>Sem conexão</h1>
+  <p>Não foi possível abrir o OUZ Experience. Verifique sua internet e tente novamente.</p>
+  <button type="button" onclick="location.replace('https://ouz.app.br/')">Tentar novamente</button>
+</main>
+<script>window.addEventListener("online", function () { location.replace("https://ouz.app.br/"); });</script>
+</body>
+</html>
