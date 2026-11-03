@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { CheckboxField, FormMessage, SuccessState, TextField } from "@/design-system";
 import { SubmitButton } from "@/design-system/submit-button";
-import { requestPasswordReset, signIn, signUp, updatePassword } from "@/server/actions/auth";
+import { deleteAccount, requestPasswordReset, signIn, signUp, updatePassword } from "@/server/actions/auth";
 import type { ActionState } from "@/server/actions/types";
 import { markPasswordSignIn } from "@/components/biometric";
 
@@ -75,6 +75,17 @@ export function NewPasswordForm() {
       <TextField label="Nova senha" name="password" type="password" autoComplete="new-password" required hint="Mínimo de 10 caracteres, com letras e números." error={state.fieldErrors?.password} />
       <TextField label="Confirme a nova senha" name="password_confirm" type="password" autoComplete="new-password" required error={state.fieldErrors?.password_confirm} />
       <SubmitButton size="lg">Salvar senha</SubmitButton>
+    </form>
+  );
+}
+
+export function DeleteAccountForm() {
+  const [state, action] = useActionState<ActionState, FormData>(deleteAccount, {});
+  return (
+    <form action={action} className="flex flex-col gap-5" noValidate>
+      <FormMessage state={state} />
+      <CheckboxField name="confirm" required error={state.fieldErrors?.confirm} label="Entendi que o acesso será apagado e que não é possível desfazer." />
+      <SubmitButton variant="danger" size="lg" pendingLabel="Excluindo…">Excluir minha conta</SubmitButton>
     </form>
   );
 }

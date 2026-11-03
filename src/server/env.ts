@@ -15,6 +15,11 @@ export const serverEnv = {
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   emailFrom: process.env.EMAIL_FROM ?? "",
   cronSecret: process.env.CRON_SECRET ?? "",
+  /** Avisos no app iOS (APNs). Chave .p8 de "Keys" no Apple Developer; sem ela, os avisos ficam só no portal. */
+  apnsKeyId: process.env.APNS_KEY_ID ?? "",
+  apnsTeamId: process.env.APNS_TEAM_ID ?? "",
+  apnsPrivateKey: (process.env.APNS_PRIVATE_KEY ?? "").replace(/\\n/g, "\n"),
+  apnsBundleId: process.env.APNS_BUNDLE_ID ?? "br.com.ouzgroup.experience",
 };
 
 export function requireServerSecret(name: keyof typeof serverEnv): string {

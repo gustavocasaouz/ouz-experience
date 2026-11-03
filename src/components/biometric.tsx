@@ -158,7 +158,7 @@ export function BiometricOffer() {
   if (!biometry) return null;
   const name = label(biometry);
   return (
-    <div role="dialog" aria-labelledby="bio-offer-title" className="fixed inset-x-0 bottom-0 z-[95] border-t border-line bg-surface shadow-lg px-6 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+    <div role="dialog" aria-labelledby="bio-offer-title" data-native-sheet className="fixed inset-x-0 bottom-0 z-[95] border-t border-line bg-surface shadow-lg px-6 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <div className="mx-auto max-w-md flex flex-col gap-4">
         <div>
           <p id="bio-offer-title" className="font-medium">Entrar com {name} da próxima vez?</p>
@@ -236,4 +236,12 @@ export function BiometricSetting() {
       </Button>
     </div>
   );
+}
+
+/** Depois de excluir a conta: apaga o token do Keychain deste aparelho. */
+export function ForgetBiometric() {
+  useEffect(() => {
+    void callNative("clear").catch(() => undefined);
+  }, []);
+  return null;
 }

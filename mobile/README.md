@@ -43,6 +43,24 @@ Plugin nativo próprio (`ios/App/App/BiometricPlugin.swift`, registrado em `OuzB
 
 Para testar no simulador: Features › Face ID › Enrolled e, no pedido, Features › Face ID › Matching Face.
 
+## Avisos no celular (push)
+
+Plugin `OuzPush` em `ios/App/App/PushPlugin.swift`. O `AppDelegate` repassa o token do APNs, e a permissão fica em `App/App.entitlements` (`aps-environment`; o Xcode troca para produção ao arquivar). No site: `src/components/push.tsx`.
+
+- Nas áreas logadas, o app oferece "Receber avisos no iPhone?" uma vez por sessão (depois da oferta do Face ID). Com a permissão dada, o aparelho é registrado em `/api/push/registrar` (tabela `push_devices`) a cada abertura. Em "Minha conta" dá para ligar depois.
+- Tudo que já vira aviso no portal (`notify_user`) também entra no outbox como `push` para quem tem aparelho. O servidor envia pelo APNs (`src/server/notifications/push.ts`): na hora, depois das ações da equipe e do cliente, e no cron diário.
+- Ao tocar no aviso, o app abre o link do aviso. Sair no app desliga os avisos daquele aparelho até alguém entrar de novo.
+- Build do Xcode usa o APNs de teste (`sandbox`); TestFlight e App Store usam o de produção. O ambiente vai junto com o token.
+- Servidor (Vercel): `APNS_KEY_ID`, `APNS_TEAM_ID` e `APNS_PRIVATE_KEY` (o conteúdo do `.p8`). Sem elas, os avisos ficam só no portal e no e-mail.
+
+## Links para fora do site
+
+`LinksPlugin` (mesmo arquivo): links para outros sites abrem numa janela do Safari dentro do app, com "Fechar" para voltar. WhatsApp, Mapas e App Store abrem no app próprio.
+
+## Excluir conta
+
+Exigência da App Store para apps com cadastro: "Minha conta › Excluir conta" (`/conta/excluir`). O banco (`erase_user_account`) apaga perfil, avisos, aparelhos e preferências e solta o cadastro de cliente; contratos e histórico ficam com a OUZ. Depois todas as sessões são encerradas e o login é anonimizado no Supabase Auth (exclusão "soft"). A equipe OUZ não exclui a própria conta pelo app.
+
 ## Navegação com cara de iOS
 
 - **Voltar arrastando da borda esquerda:** ligado em `OuzBridgeViewController` (`allowsBackForwardNavigationGestures`). Usa o histórico do site.
@@ -51,7 +69,7 @@ Para testar no simulador: Features › Face ID › Enrolled e, no pedido, Featur
 
 ## Publicar no TestFlight (primeira vez)
 
-1. **Identificador:** em [developer.apple.com](https://developer.apple.com/account/resources/identifiers/list), vá em Identifiers › **+** › App IDs › App e use o Bundle ID `br.com.ouzgroup.experience`. Por enquanto, nenhum recurso extra (push entra na fase 2).
+1. **Identificador:** em [developer.apple.com](https://developer.apple.com/account/resources/identifiers/list), vá em Identifiers › **+** › App IDs › App e use o Bundle ID `br.com.ouzgroup.experience`. Em Capabilities, marque **Push Notifications** (o Xcode também liga isso sozinho ao arquivar com assinatura automática).
 2. **App Store Connect:** em [appstoreconnect.apple.com](https://appstoreconnect.apple.com), vá em Apps › **+** › Novo app. Plataforma iOS, nome "OUZ Experience", idioma principal português (Brasil), o Bundle ID acima e um SKU (por exemplo `ouz-experience`).
 3. **Assinatura no Xcode:** abra o projeto, selecione o alvo **App**, vá em *Signing & Capabilities*, marque *Automatically manage signing* e escolha o **Team**. Atenção: escolha o time da conta da OUZ, não o da outra empresa.
 4. **Enviar o build:** no topo do Xcode, escolha o destino *Any iOS Device (arm64)*. Depois vá em **Product › Archive**, e no Organizer clique em **Distribute App › App Store Connect › Upload**.

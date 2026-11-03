@@ -9,6 +9,7 @@ import { CloseMenusOnNavigate } from "./close-menus-on-navigate";
 import { TabBar, type TabItem } from "./tab-bar";
 import { PageTransition } from "./page-transition";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
+import { PushSetup } from "@/components/push";
 
 /** Abas do celular por área (até 5, rótulos de uma palavra — HIG › Tab bars). A equipe usa o menu de seções. */
 function tabsFor(area: Area, viewer: Viewer, unread: number): TabItem[] | null {
@@ -60,6 +61,7 @@ export async function AppShell({ viewer, area, nav, children }: { viewer: Viewer
     <>
       <EnvironmentBanner />
       <CloseMenusOnNavigate />
+      <PushSetup />
       <header className="border-b border-line bg-surface pt-[env(safe-area-inset-top)]">
         <div className="container-page flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-6 min-w-0">

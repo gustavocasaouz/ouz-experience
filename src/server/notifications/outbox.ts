@@ -4,10 +4,13 @@ import { createSupabaseAdminClient } from "@/server/db/supabase-admin";
 import { serverEnv } from "@/server/env";
 import { publicEnv } from "@/lib/env";
 import { renderTemplate } from "./templates";
+import { pushConfigured, sendApns, type PushEnvironment } from "./push";
 
+type Admin = ReturnType<typeof createSupabaseAdminClient>;
 type OutboxRow = {
   id: string;
   dedupe_key: string;
+  channel: "email" | "push";
   template: string;
   recipient_user_id: string | null;
   recipient_email: string | null;
@@ -39,10 +42,37 @@ export async function enqueueEmail(input: {
 
 const maskEmail = (e: string) => e.replace(/^(.).*(@.*)$/, "$1***$2");
 
-/** Processa a fila. Idempotente: lotes travados com SKIP LOCKED; Resend recebe Idempotency-Key. */
-export async function processOutbox(limit = 20) {
+/**
+ * Aviso no celular para todos os aparelhos do usuário. Tokens recusados pela Apple saem do banco;
+ * só falha (e volta para a fila) se nenhum aparelho recebeu por erro temporário.
+ */
+async function deliverPush(admin: Admin, row: OutboxRow): Promise<string> {
+  if (!pushConfigured()) {
+    console.info(`[push:log] ${String(row.payload.title ?? "")}`);
+    return `log:${row.id}`;
+  }
+  const { data: devices } = await admin.from("push_devices").select("token, environment").eq("user_id", row.recipient_user_id ?? "");
+  const byEnv = new Map<PushEnvironment, string[]>();
+  for (const d of devices ?? []) byEnv.set(d.environment as PushEnvironment, [...(byEnv.get(d.environment as PushEnvironment) ?? []), d.token as string]);
+  const message = {
+    title: String(row.payload.title ?? "OUZ Experience"),
+    body: typeof row.payload.body === "string" ? row.payload.body : null,
+    link: row.payload.link as string | null,
+    collapseId: row.dedupe_key,
+  };
+  const results = new Map<string, string>();
+  for (const [env, tokens] of byEnv) for (const [t, r] of await sendApns(env, tokens, message)) results.set(t, r);
+  const gone = [...results].filter(([, r]) => r === "gone").map(([t]) => t);
+  if (gone.length) await admin.from("push_devices").delete().in("token", gone);
+  const values = [...results.values()];
+  if (values.includes("error") && !values.includes("ok")) throw new Error("APNs indisponível");
+  return `apns:${values.filter((r) => r === "ok").length}`;
+}
+
+/** Processa a fila (ou só um canal). Idempotente: lotes travados com SKIP LOCKED; Resend recebe Idempotency-Key. */
+export async function processOutbox(limit = 20, channel?: OutboxRow["channel"]) {
   const admin = createSupabaseAdminClient();
-  const { data, error } = await admin.rpc("claim_outbox_batch", { p_limit: limit });
+  const { data, error } = await admin.rpc("claim_outbox_batch", { p_limit: limit, p_channel: channel ?? null });
   if (error) throw new Error(`claim_outbox_batch: ${error.message}`);
   const rows = (data ?? []) as OutboxRow[];
   const resend = serverEnv.emailMode === "resend" ? new Resend(serverEnv.resendApiKey) : null;
@@ -51,6 +81,11 @@ export async function processOutbox(limit = 20) {
 
   for (const row of rows) {
     try {
+      if (row.channel === "push") {
+        await admin.rpc("complete_outbox_item", { p_id: row.id, p_ok: true, p_provider_id: await deliverPush(admin, row), p_error: null });
+        sent++;
+        continue;
+      }
       let to = row.recipient_email;
       if (!to && row.recipient_user_id) {
         const { data: p } = await admin.from("profiles").select("email").eq("id", row.recipient_user_id).maybeSingle();

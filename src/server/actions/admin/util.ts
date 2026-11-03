@@ -1,11 +1,17 @@
 import "server-only";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { assertStaff, AuthorizationError } from "@/server/auth/viewer";
 import type { StaffPermission } from "@/server/auth/permissions";
+import { processOutbox } from "@/server/notifications/outbox";
 import { dbErrorMessage } from "../types";
 
-/** Volta para a página com mensagem (não sensível) na URL. */
+/**
+ * Volta para a página com mensagem (não sensível) na URL.
+ * Depois de uma ação concluída, os avisos no celular que ela gerou saem na hora (os e-mails seguem no lote).
+ */
 export function back(path: string, kind: "ok" | "erro", msg: string): never {
+  if (kind === "ok") after(() => processOutbox(20, "push").catch(() => undefined));
   // A mensagem vai na query, antes da âncora (#financeiro etc.), senão a página não a recebe.
   const [base = path, hash] = path.split("#");
   redirect(`${base}${base.includes("?") ? "&" : "?"}${kind}=${encodeURIComponent(msg)}${hash ? `#${hash}` : ""}`);

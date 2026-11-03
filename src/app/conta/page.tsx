@@ -8,6 +8,7 @@ import { signOut } from "@/server/actions/auth";
 import { availableContexts } from "@/components/app-shell";
 import { InstallPrompt } from "@/components/pwa";
 import { BiometricSetting } from "@/components/biometric";
+import { PushSetting } from "@/components/push";
 
 export const metadata = { title: "Minha conta" };
 
@@ -36,6 +37,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
         <InstallPrompt />
         <BiometricSetting />
+        <PushSetting />
 
         {restrito === "admin" && <RestrictedState>A administração é exclusiva da equipe OUZ, com acesso concedido por convite.</RestrictedState>}
 
@@ -84,6 +86,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <div className="text-sm text-ink-soft flex flex-wrap gap-6 border-t border-line pt-6">
           <Link href="/entrar/redefinir" className="underline underline-offset-4">Alterar senha</Link>
           <Link href="/entrar/mfa?next=/conta" className="underline underline-offset-4">Verificação em duas etapas</Link>
+          {!viewer.staff && <Link href="/conta/excluir" className="underline underline-offset-4 text-danger">Excluir conta</Link>}
         </div>
       </main>
     </>

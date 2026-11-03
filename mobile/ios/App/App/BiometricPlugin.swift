@@ -7,6 +7,8 @@ import Capacitor
 class OuzBridgeViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(BiometricPlugin())
+        bridge?.registerPluginInstance(PushPlugin())
+        bridge?.registerPluginInstance(LinksPlugin())
         // Voltar arrastando da borda esquerda, como em qualquer app do iPhone (usa o histórico do site).
         webView?.allowsBackForwardNavigationGestures = true
     }

@@ -1,12 +1,13 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { createSupabaseAdminClient } from "@/server/db/supabase-admin";
 import { checkRateLimit, clientIpHash } from "@/server/security/rate-limit";
 import { publicEnv } from "@/lib/env";
+import { PUSH_COOKIE } from "@/server/notifications/push";
 import { safeNext } from "@/lib/safe-next";
 import { formValues, fromZodError, type ActionState } from "./types";
 
@@ -125,14 +126,51 @@ export async function switchAccount(fd: FormData) {
 }
 
 /**
- * No app iOS sai só desta sessão: a sessão do aparelho (Face ID) continua valendo para a próxima entrada.
+ * No app iOS sai só desta sessão: a sessão do aparelho (Face ID) continua valendo para a próxima entrada,
+ * e os avisos deste aparelho são desligados até alguém entrar de novo.
  * No navegador sai de todas as sessões, inclusive a do Face ID.
  */
 export async function signOut() {
   const inApp = /OUZExperienceApp/.test((await headers()).get("user-agent") ?? "");
+  const jar = await cookies();
+  const pushToken = jar.get(PUSH_COOKIE)?.value;
+  if (pushToken) {
+    await createSupabaseAdminClient().from("push_devices").delete().eq("token", pushToken);
+    jar.delete(PUSH_COOKIE);
+  }
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut({ scope: inApp ? "local" : "global" });
   redirect("/");
+}
+
+/**
+ * Exclui a própria conta (exigência da App Store). O banco anonimiza o perfil e solta o cadastro de cliente
+ * (contratos e histórico ficam com a OUZ); depois todas as sessões são encerradas e o login é anonimizado no Auth.
+ */
+export async function deleteAccount(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  if (fd.get("confirm") !== "on") return { error: "Marque a confirmação para excluir a conta.", fieldErrors: { confirm: ["Marque para confirmar."] } };
+  const supabase = await createSupabaseServerClient();
+  const user = (await supabase.auth.getUser()).data.user;
+  if (!user) redirect("/entrar?next=/conta/excluir");
+  if (!(await checkRateLimit("account-delete", 5, 3600, user.id))) return { error: "Muitas tentativas. Aguarde alguns minutos." };
+
+  const admin = createSupabaseAdminClient();
+  const { data: files, error } = await admin.rpc("erase_user_account", { p_user_id: user.id });
+  if (error) {
+    return {
+      error: error.code === "42501"
+        ? "Contas da equipe OUZ são removidas pela administração. Fale com um administrador."
+        : "Não foi possível excluir a conta agora. Tente novamente.",
+    };
+  }
+  if (Array.isArray(files) && files.length > 0) await admin.storage.from("broker-documents").remove(files as string[]);
+  await supabase.auth.signOut({ scope: "global" }); // inclui a sessão do Face ID
+  const { error: authError } = await admin.auth.admin.deleteUser(user.id, true);
+  if (authError) {
+    console.error("account_delete_auth_error", { code: authError.code });
+    return { error: "Seus dados foram apagados, mas o acesso não pôde ser encerrado. Tente novamente ou fale com a OUZ." };
+  }
+  redirect("/conta/excluida");
 }
 
 // ---------------------------------------------------------------------------
