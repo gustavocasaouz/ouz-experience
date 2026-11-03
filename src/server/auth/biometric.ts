@@ -9,8 +9,8 @@ import { createSupabaseAdminClient } from "@/server/db/supabase-admin";
  *
  * O aparelho guarda no Keychain o refresh token de uma sessão própria (a "sessão do aparelho"),
  * separada da sessão dos cookies: assim a renovação dos cookies não invalida o que está no Keychain.
- * Ao desbloquear, a sessão do aparelho é renovada (o Supabase confere se ainda vale: sair, que é
- * global, encerra também essa sessão) e uma sessão nova é criada nos cookies.
+ * Ao desbloquear, a sessão do aparelho é renovada (o Supabase confere se ainda vale: sair pelo app
+ * a mantém; sair pelo navegador, que é global, a encerra) e uma sessão nova é criada nos cookies.
  * As duas sessões nascem em aal1: a equipe continua precisando do código em /admin.
  */
 

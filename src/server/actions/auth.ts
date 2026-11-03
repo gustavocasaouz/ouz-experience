@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
@@ -123,9 +124,14 @@ export async function switchAccount(fd: FormData) {
   redirect(`/entrar?next=${encodeURIComponent(safeNext(fd.get("next"), "/admin"))}`);
 }
 
+/**
+ * No app iOS sai só desta sessão: a sessão do aparelho (Face ID) continua valendo para a próxima entrada.
+ * No navegador sai de todas as sessões, inclusive a do Face ID.
+ */
 export async function signOut() {
+  const inApp = /OUZExperienceApp/.test((await headers()).get("user-agent") ?? "");
   const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
+  await supabase.auth.signOut({ scope: inApp ? "local" : "global" });
   redirect("/");
 }
 

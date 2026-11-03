@@ -126,7 +126,8 @@ export function BiometricSignIn({ next }: { next: string }) {
 
 /**
  * Fica no layout raiz: depois de entrar com a senha no app, pergunta se a pessoa quer usar o Face ID;
- * ao sair (formulários com data-signout), apaga o token do Keychain.
+ * ao sair (formulários com data-signout), esquece a oferta pendente. O token do Keychain fica:
+ * a próxima entrada é pelo Face ID (desligar é em "Minha conta").
  */
 export function BiometricOffer() {
   const pathname = usePathname();
@@ -139,7 +140,6 @@ export function BiometricOffer() {
     const onSubmit = (e: SubmitEvent) => {
       if (!(e.target instanceof HTMLFormElement) || !e.target.hasAttribute("data-signout")) return;
       storage("session")?.removeItem(OFFER_KEY);
-      void callNative("clear").catch(() => undefined);
     };
     document.addEventListener("submit", onSubmit, true);
     return () => document.removeEventListener("submit", onSubmit, true);

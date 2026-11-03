@@ -37,7 +37,7 @@ Plugin nativo próprio (`ios/App/App/BiometricPlugin.swift`, registrado em `OuzB
 
 - Depois de entrar com a senha no app, aparece "Entrar com Face ID da próxima vez?". Se a pessoa aceitar, `/api/biometria/ativar` abre uma **sessão própria do aparelho** e o refresh token dela vai para o Keychain (`biometryCurrentSet`: se a biometria do iPhone mudar, o acesso some). A senha nunca é guardada.
 - Na tela de login, com o Face ID ativo, o app pede a biometria sozinho. Depois `/api/biometria/entrar` renova a sessão do aparelho (o token novo volta para o Keychain) e grava nos cookies uma sessão nova.
-- Sair (`data-signout`) apaga o token do Keychain. Como o `signOut` do Supabase é global, a sessão do aparelho também é encerrada no servidor.
+- Sair dentro do app encerra só a sessão dos cookies (`signOut` com `scope: "local"`): o token fica no Keychain e a próxima entrada é pelo Face ID. Para desligar, use "Minha conta". Sair pelo navegador continua global e encerra também a sessão do aparelho.
 - Equipe OUZ: a sessão aberta pelo Face ID é **aal1**, então o /admin continua pedindo o código da verificação em duas etapas.
 - Ligar ou desligar: em "Minha conta".
 
