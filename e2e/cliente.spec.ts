@@ -29,8 +29,14 @@ test("MAUI: evolução física na visão geral e manual do proprietário com a e
   await page.goto("/cliente");
   await unidade(page, "MAUI").click();
   const secoes = page.getByRole("navigation", { name: "Seções" });
-  await expect(secoes.getByRole("link")).toHaveText(["Visão geral", "Documentos", "Financeiro", "Manual do proprietário"]);
+  await expect(secoes.getByRole("link")).toHaveText(["Visão geral", "Documentos", "Projetos", "Financeiro", "Manual do proprietário"]);
   await expect(page.getByText("94,51%")).toBeVisible();
+  await expectAccessible(page);
+  await secoes.getByRole("link", { name: "Projetos" }).click();
+  const especialidades = page.getByRole("navigation", { name: "Especialidades" });
+  await expect(especialidades.getByRole("link", { name: /Arquitetônico/ })).toBeVisible();
+  await especialidades.getByRole("link", { name: /Estrutural/ }).click();
+  await expect(page.getByRole("heading", { name: "Estrutural" })).toBeVisible();
   await expectAccessible(page);
   await secoes.getByRole("link", { name: "Manual do proprietário" }).click();
   await expect(page.getByRole("heading", { name: "Manual do Proprietário" })).toBeVisible();
@@ -48,7 +54,10 @@ test("UMAN: acompanhamento e catálogo de personalização com upgrades", async 
   await page.goto("/cliente");
   await unidade(page, "UMAN").click();
   const secoes = page.getByRole("navigation", { name: "Seções" });
-  await expect(secoes.getByRole("link")).toHaveText(["Visão geral", "Acompanhamento", "Documentos", "Financeiro", "Personalização"]);
+  await expect(secoes.getByRole("link")).toHaveText(["Visão geral", "Acompanhamento", "Documentos", "Projetos", "Memorial descritivo", "Financeiro", "Personalização"]);
+  await secoes.getByRole("link", { name: "Memorial descritivo" }).click();
+  await expect(page.getByText(/Memorial descritivo do empreendimento/)).toBeVisible();
+  await expectAccessible(page);
   await secoes.getByRole("link", { name: "Personalização" }).click();
   const piso = page.getByRole("group", { name: "Piso das áreas sociais" });
   await expect(piso.getByRole("radio", { name: /90×90/ })).toBeChecked();

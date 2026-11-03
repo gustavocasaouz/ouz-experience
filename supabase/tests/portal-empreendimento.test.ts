@@ -129,3 +129,19 @@ describe("catálogo de personalização", () => {
     await db.admin(`update public.developments set client_tabs = default where id = $1`, [UMAN]);
   });
 });
+
+describe("projetos e memorial", () => {
+  it("projeto exige especialidade; as demais categorias não aceitam", async () => {
+    const ins = (category: string, discipline: string | null) =>
+      db.admin(`insert into public.documents (development_id, category, discipline, title) values ($1, $2, $3, 'Doc') returning id`, [MAUI, category, discipline]);
+    await expect(ins("projeto", null)).rejects.toThrow(/documents_discipline_only_projects/);
+    await expect(ins("memorial_descritivo", "estrutural")).rejects.toThrow(/documents_discipline_only_projects/);
+    await expect(ins("projeto", "estrutural")).resolves.toHaveLength(1);
+    await expect(ins("memorial_descritivo", null)).resolves.toHaveLength(1);
+  });
+
+  it("abas novas são aceitas no empreendimento", async () => {
+    await db.as(conteudo, `update public.developments set client_tabs = '{documentos,projetos,memorial}' where id = $1`, [UMAN]);
+    await db.as(conteudo, `update public.developments set client_tabs = default where id = $1`, [UMAN]);
+  });
+});

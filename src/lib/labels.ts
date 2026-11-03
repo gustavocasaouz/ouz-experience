@@ -110,7 +110,26 @@ export const DOCUMENT_CATEGORY_LABELS: Record<string, string> = {
   documento_unidade: "Documentos da unidade",
   vistoria_entrega: "Vistoria e entrega",
   manual: "Manuais e orientações",
+  projeto: "Projetos",
+  memorial_descritivo: "Memorial descritivo",
   outro: "Outros",
+};
+/** Especialidades dos projetos (documents.discipline), na ordem em que aparecem para o cliente. */
+export const PROJECT_DISCIPLINE_LABELS: Record<string, string> = {
+  arquitetonico: "Arquitetônico",
+  estrutural: "Estrutural",
+  fundacoes: "Fundações",
+  hidrossanitario: "Hidrossanitário",
+  eletrico: "Elétrico",
+  gas: "Gás",
+  preventivo_incendio: "Preventivo de incêndio",
+  climatizacao: "Climatização e exaustão",
+  luminotecnico: "Luminotécnico",
+  telecomunicacoes: "Telecomunicações e automação",
+  impermeabilizacao: "Impermeabilização",
+  paisagismo: "Paisagismo",
+  interiores: "Interiores",
+  outros: "Outros projetos",
 };
 export const INSTALLMENT_STATUS_LABELS: Record<string, string> = {
   a_vencer: "A vencer",
@@ -212,11 +231,13 @@ export const EVENT_AUDIENCE_LABELS: Record<string, string> = {
 };
 
 /** Abas da unidade no portal do cliente, escolhidas por empreendimento (developments.client_tabs). */
-export const CLIENT_TABS = ["acompanhamento", "documentos", "financeiro", "personalizacao", "entrega", "manual"] as const;
+export const CLIENT_TABS = ["acompanhamento", "documentos", "projetos", "memorial", "financeiro", "personalizacao", "entrega", "manual"] as const;
 export type ClientTab = (typeof CLIENT_TABS)[number];
 export const CLIENT_TAB_LABELS: Record<ClientTab, string> = {
   acompanhamento: "Acompanhamento da obra",
   documentos: "Documentos",
+  projetos: "Projetos (por especialidade)",
+  memorial: "Memorial descritivo",
   financeiro: "Financeiro",
   personalizacao: "Personalização",
   entrega: "Vistoria e entrega / Entrega e garantia",

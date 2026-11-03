@@ -8,7 +8,7 @@ import { hasPermission } from "@/server/auth/viewer";
 import {
   addAnnouncement, addMilestone, addProgressReport, changeForecast, createDocument, publishAnnouncement, publishUpdate, toggleUpdate, updateMilestone,
 } from "@/server/actions/admin/experience";
-import { DOCUMENT_CATEGORY_LABELS, MILESTONE_STAGE_LABELS } from "@/lib/labels";
+import { DOCUMENT_CATEGORY_LABELS, MILESTONE_STAGE_LABELS, PROJECT_DISCIPLINE_LABELS } from "@/lib/labels";
 import { formatDate, formatDateTime } from "@/lib/format";
 
 const d = (v: string | null) => (v ? formatDate(v + "T12:00:00Z") : "—");
@@ -200,6 +200,7 @@ export default async function DevelopmentFollowUp({ params, searchParams }: { pa
                   <input type="hidden" name="development_id" value={dev.id} />
                   <SelectField label="Categoria" name="category" id="dd-cat" required defaultValue="manual" options={Object.entries(DOCUMENT_CATEGORY_LABELS).map(([value, label]) => ({ value, label }))} />
                   <TextField label="Título" name="title" id="dd-title" required />
+                  <SelectField label="Especialidade (só para Projetos)" name="discipline" id="dd-disc" placeholder="—" options={Object.entries(PROJECT_DISCIPLINE_LABELS).map(([value, label]) => ({ value, label }))} />
                   <TextField label="Descrição" name="description" id="dd-desc" className="sm:col-span-2" />
                   <input id="dd-file" name="file" type="file" required accept="application/pdf,image/jpeg,image/png" className="text-sm sm:col-span-2" aria-label="Arquivo" />
                   <CheckboxField name="visible" id="dd-vis" label="Visível aos clientes" defaultChecked />

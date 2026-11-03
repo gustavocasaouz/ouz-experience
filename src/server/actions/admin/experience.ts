@@ -171,10 +171,13 @@ export async function createDocument(fd: FormData) {
   if (err) back(path, "erro", err);
   const supabase = await createSupabaseServerClient();
   let docId = optStr(fd, "document_id");
+  const category = str(fd, "category");
+  const discipline = category === "projeto" ? optStr(fd, "discipline") : null;
+  if (!docId && category === "projeto" && !discipline) back(path, "erro", "Escolha a especialidade do projeto.");
   if (!docId) {
     const { data, error } = await supabase
       .from("documents")
-      .insert({ unit_id: unit, development_id: unit ? null : dev, category: str(fd, "category"), title: str(fd, "title"), description: optStr(fd, "description"), visible_to_client: str(fd, "visible") === "on" })
+      .insert({ unit_id: unit, development_id: unit ? null : dev, category, discipline, title: str(fd, "title"), description: optStr(fd, "description"), visible_to_client: str(fd, "visible") === "on" })
       .select("id")
       .single();
     failOn(error, path);

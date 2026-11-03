@@ -16,6 +16,8 @@ export function UnitTabs({ base, stage, tabs, hasManual }: { base: string; stage
     { key: "", label: "Visão geral" },
     ...(on("acompanhamento") ? [{ key: "/acompanhamento", label: stage === "entregue" ? "Histórico da obra" : "Acompanhamento" }] : []),
     ...(on("documentos") ? [{ key: "/documentos", label: "Documentos" }] : []),
+    ...(on("projetos") ? [{ key: "/projetos", label: "Projetos" }] : []),
+    ...(on("memorial") ? [{ key: "/memorial", label: "Memorial descritivo" }] : []),
     ...(on("financeiro") ? [{ key: "/financeiro", label: "Financeiro" }] : []),
     ...(on("personalizacao") ? [{ key: "/personalizacao", label: "Personalização" }] : []),
     ...(on("entrega") ? [{ key: "/entrega", label: stage === "entregue" ? "Entrega e garantia" : "Vistoria e entrega" }] : []),

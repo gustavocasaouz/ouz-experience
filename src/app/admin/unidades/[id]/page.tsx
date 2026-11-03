@@ -12,7 +12,7 @@ import {
   addIndexedInstallment, addInstallment, addPunchItem, freezeIndex, setContractIndex, createDocument, registerPayment, answerInquiry, updateBooking, updateCustomization, updateDelivery, updatePunchItem, upsertContract,
 } from "@/server/actions/admin/experience";
 import {
-  CUSTOMIZATION_STATUS_LABELS, DOCUMENT_CATEGORY_LABELS, INSTALLMENT_KIND_LABELS, INSTALLMENT_STATUS_LABELS, PUNCH_STATUS_LABELS, RECEIPT_STATUS_LABELS,
+  CUSTOMIZATION_STATUS_LABELS, DOCUMENT_CATEGORY_LABELS, PROJECT_DISCIPLINE_LABELS, INSTALLMENT_KIND_LABELS, INSTALLMENT_STATUS_LABELS, PUNCH_STATUS_LABELS, RECEIPT_STATUS_LABELS,
 } from "@/lib/labels";
 import { formatBRL, formatDate, formatDateTime, formatDue, utcToBrasiliaLocalInput } from "@/lib/format";
 
@@ -129,6 +129,7 @@ export default async function AdminUnitHub({ params, searchParams }: { params: P
                 <input type="hidden" name="unit_id" value={id} />
                 <SelectField label="Categoria" name="category" id="doc-cat" required options={Object.entries(DOCUMENT_CATEGORY_LABELS).map(([value, label]) => ({ value, label }))} />
                 <TextField label="Título" name="title" id="doc-title" required />
+                  <SelectField label="Especialidade (só para Projetos)" name="discipline" id="doc-disc" placeholder="—" options={Object.entries(PROJECT_DISCIPLINE_LABELS).map(([value, label]) => ({ value, label }))} />
                 <TextField label="Descrição" name="description" id="doc-desc" className="sm:col-span-2" />
                 <input name="file" type="file" required accept="application/pdf,image/jpeg,image/png" className="text-sm sm:col-span-2" aria-label="Arquivo" />
                 <CheckboxField name="visible" id="doc-vis" label="Visível ao cliente" defaultChecked />
