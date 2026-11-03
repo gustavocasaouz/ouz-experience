@@ -144,6 +144,7 @@ export const TICKET_CATEGORY_LABELS: Record<string, string> = {
   duvida_administrativa: "Dúvidas administrativas",
   solicitacao_unidade: "Solicitações sobre a unidade",
   pos_entrega: "Pós-entrega",
+  solicitacao_geral: "Solicitação geral",
   concierge: "Concierge",
 };
 export const TICKET_STATUS_LABELS: Record<string, string> = {
@@ -208,4 +209,16 @@ export const EVENT_AUDIENCE_LABELS: Record<string, string> = {
   corretores_aprovados: "Corretores aprovados",
   empreendimento: "Pessoas vinculadas a um empreendimento",
   convidados: "Convidados específicos",
+};
+
+/** Abas da unidade no portal do cliente, escolhidas por empreendimento (developments.client_tabs). */
+export const CLIENT_TABS = ["acompanhamento", "documentos", "financeiro", "personalizacao", "entrega", "manual"] as const;
+export type ClientTab = (typeof CLIENT_TABS)[number];
+export const CLIENT_TAB_LABELS: Record<ClientTab, string> = {
+  acompanhamento: "Acompanhamento da obra",
+  documentos: "Documentos",
+  financeiro: "Financeiro",
+  personalizacao: "Personalização",
+  entrega: "Vistoria e entrega / Entrega e garantia",
+  manual: "Manual (quando publicado)",
 };

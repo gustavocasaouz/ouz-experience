@@ -27,7 +27,7 @@ const unitPath = (unitId: string, tab = "") => `/cliente/unidades/${unitId}${tab
 
 export async function requestCustomization(fd: FormData) {
   const unit = s(fd, "unit_id");
-  const path = unitPath(unit, "/personalizacao");
+  const path = unitPath(unit, "/personalizacao/solicitacoes");
   if (!(await limited("customization"))) back(path, "erro", "Muitas solicitações. Tente mais tarde.");
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("client_create_customization", { p_unit_id: unit, p_title: s(fd, "title"), p_description: s(fd, "description") });
@@ -40,9 +40,27 @@ export async function decideCustomization(fd: FormData) {
   const unit = s(fd, "unit_id");
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("client_decide_customization", { p_id: s(fd, "id"), p_approve: s(fd, "decision") === "aprovar" });
-  if (error) back(unitPath(unit, "/personalizacao"), "erro", dbErrorMessage(error));
+  if (error) back(unitPath(unit, "/personalizacao/solicitacoes"), "erro", dbErrorMessage(error));
   flush();
-  back(unitPath(unit, "/personalizacao"), "ok", "Resposta registrada.");
+  back(unitPath(unit, "/personalizacao/solicitacoes"), "ok", "Resposta registrada.");
+}
+
+/** Catálogo: grava a opção de cada item; com intent=enviar, manda os upgrades à OUZ como solicitação. */
+export async function saveCustomizationChoices(fd: FormData) {
+  const unit = s(fd, "unit_id");
+  const path = unitPath(unit, "/personalizacao");
+  const supabase = await createSupabaseServerClient();
+  for (const [key, value] of fd.entries()) {
+    if (!key.startsWith("item:") || typeof value !== "string" || !value) continue;
+    const { error } = await supabase.rpc("client_choose_customization", { p_unit_id: unit, p_choice_id: value });
+    if (error) back(path, "erro", dbErrorMessage(error));
+  }
+  if (s(fd, "intent") !== "enviar") back(path, "ok", "Escolhas salvas. Você pode alterá-las até enviar à OUZ.");
+  if (!(await limited("customization"))) back(path, "erro", "Muitas solicitações. Tente mais tarde.");
+  const { error } = await supabase.rpc("client_submit_customization_choices", { p_unit_id: unit });
+  if (error) back(path, "erro", dbErrorMessage(error));
+  flush();
+  back(unitPath(unit, "/personalizacao/solicitacoes"), "ok", "Escolhas enviadas. A OUZ confirma viabilidade, valores e prazo e responde por aqui.");
 }
 
 export async function bookSlot(fd: FormData) {
@@ -137,6 +155,7 @@ export async function openTicket(fd: FormData) {
     p_category: s(fd, "category"),
     p_title: s(fd, "title"),
     p_description: s(fd, "description"),
+    p_warranty_item_id: s(fd, "warranty_item_id") || null,
   });
   if (error || typeof id !== "string") back(path, "erro", dbErrorMessage(error, "Revise os campos."));
   await uploadTicketFiles(id as string, fd, `/cliente/chamados/${id}`);

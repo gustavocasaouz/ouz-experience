@@ -1,0 +1,475 @@
+{
+ "development_slug": "maui",
+ "kind": "proprietario",
+ "title": "Manual do Proprietário",
+ "source": "Estrutura (só títulos) do Manual do Proprietário do SOHO; o texto do MAUI entra quando o material estiver pronto.",
+ "sections": [
+  {
+   "num": "0",
+   "title": "Sobre a OUZ",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "1",
+   "title": "Apresentação do manual",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "1.1",
+   "title": "Introdução",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "1.2",
+   "title": "Referências normativas",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "1.3",
+   "title": "Termos e definições",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "1.4",
+   "title": "Sobre o manual",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "1.4.1",
+   "title": "Elaboração e entrega do manual",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "1.4.2",
+   "title": "Atualização do manual",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "2",
+   "title": "Garantias e assistência técnica",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "2.1",
+   "title": "Condições e prazos de garantias",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "2.1.1",
+   "title": "Prazos de Garantias",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "2.2",
+   "title": "Perdas de garantia",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "2.3",
+   "title": "Assistência técnica",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "2.4",
+   "title": "Responsabilidades",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "3",
+   "title": "Memorial descritivo",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "3.1",
+   "title": "Descrição Geral do Empreendimento",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "3.2",
+   "title": "Descrição da unidade residencial privativa",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "3.2.1",
+   "title": "Descrição dos ambientes que compõem a unidade",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "4",
+   "title": "Recebimento e ocupação do condomínio",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "4.1",
+   "title": "Recebimento da unidade privativa",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "4.2",
+   "title": "Solicitação de ligação dos serviços públicos",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "4.2.1",
+   "title": "Energia elétrica",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "4.2.2",
+   "title": "Água e esgoto",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "4.3",
+   "title": "Modificações e reformas",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5",
+   "title": "Descrição, uso, operação e conservação dos sistemas",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "5.1",
+   "title": "Estrutura",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.2",
+   "title": "Vedação vertical (alvenarias)",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.3",
+   "title": "Revestimentos de argamassa",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.4",
+   "title": "Instalações de gás",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.5",
+   "title": "Instalações elétricas",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.6",
+   "title": "Instalações de telefonia, interfonia, antena coletiva e TV por assinatura",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.7",
+   "title": "Instalações hidrossanitárias",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.8",
+   "title": "Infraestrutura para instalação de aquecedores de passagem",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.9",
+   "title": "Infraestrutura para aspiração central",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.10",
+   "title": "Infraestrutura para piso aquecido",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.11",
+   "title": "Exaustão mecânica",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.12",
+   "title": "Serralheria",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.13",
+   "title": "Inox",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.14",
+   "title": "Pinturas",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.15",
+   "title": "Revestimentos cerâmicos internos",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.16",
+   "title": "Piso de madeira",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.17",
+   "title": "Pedras naturais",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.18",
+   "title": "Rejunte",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.19",
+   "title": "Forro de gesso",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.20",
+   "title": "Forro de madeira",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.21",
+   "title": "Impermeabilização",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.22",
+   "title": "Previsão para ar condicionado",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.23",
+   "title": "Infraestrutura para carregador de veículos elétricos",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.24",
+   "title": "Esquadrias de alumínio",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.25",
+   "title": "Vidros",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.26",
+   "title": "Esquadrias de madeira e ferragens",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.27",
+   "title": "Rodapés",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.28",
+   "title": "Churrasqueiras",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "5.29",
+   "title": "Louças sanitárias e metais",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "6",
+   "title": "Fornecedores",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "6.1",
+   "title": "Relação de projetistas",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "6.2",
+   "title": "Relação de fornecedores",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "7",
+   "title": "Sistema de manutenção",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "7.1",
+   "title": "Programa de manutenção preventiva",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "7.2",
+   "title": "Registros",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "8",
+   "title": "Documentação técnica e legal",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "9",
+   "title": "Informações complementares",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "9.1",
+   "title": "Meio ambiente e sustentabilidade",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "9.2",
+   "title": "Segurança",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "9.2.1",
+   "title": "Vazamentos de gás",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "9.2.2",
+   "title": "Vazamentos de água",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "9.2.3",
+   "title": "Falhas do sistema elétrico",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "9.2.4",
+   "title": "Falha nos elevadores",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "9.2.5",
+   "title": "Situações de incêndio",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "9.3",
+   "title": "Serviços de utilidade pública",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "10",
+   "title": "Anexos técnicos",
+   "level": 1,
+   "html": ""
+  },
+  {
+   "num": "10.1",
+   "title": "ART de elaboração dos manuais (manual do condomínio e do proprietário)",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "10.2",
+   "title": "Documentos técnicos e legais relacionados no capítulo 8",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "10.3",
+   "title": "Modelo de programa de manutenção preventiva",
+   "level": 2,
+   "html": ""
+  },
+  {
+   "num": "10.3.1",
+   "title": "Descrição das atividades e periodicidade das manutenções",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "10.3.2",
+   "title": "Modelo de formulário para agendamento e programação das atividades de manutenção",
+   "level": 3,
+   "html": ""
+  },
+  {
+   "num": "10.3.3",
+   "title": "Modelos de verificações e registros das manutenções",
+   "level": 3,
+   "html": ""
+  }
+ ],
+ "warranty_items": [],
+ "maintenance": [],
+ "suppliers": [],
+ "legal_documents": [],
+ "attachments": []
+}

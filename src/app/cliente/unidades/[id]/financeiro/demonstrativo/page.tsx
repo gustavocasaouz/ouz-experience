@@ -7,7 +7,7 @@ import { INSTALLMENT_KIND_LABELS, INSTALLMENT_STATUS_LABELS } from "@/lib/labels
 
 export default async function Statement({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const u = await myUnit(id);
+  const u = await myUnit(id, "financeiro");
   if (!u) notFound();
   const f = await unitFinance(id);
   if (!f) notFound();

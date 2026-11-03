@@ -12,7 +12,7 @@ export default async function ClientTicket({ params, searchParams }: { params: P
   const supabase = await createSupabaseServerClient();
   const { data: t } = await supabase
     .from("tickets")
-    .select("id, number, category, title, description, status, scheduled_at, informed_deadline, rating, rated_at, created_at, unit:units(code, development:developments(name))")
+    .select("id, number, category, warranty_item, title, description, status, scheduled_at, informed_deadline, rating, rated_at, created_at, unit:units(code, development:developments(name))")
     .eq("id", id)
     .maybeSingle();
   if (!t) notFound();
@@ -65,6 +65,7 @@ export default async function ClientTicket({ params, searchParams }: { params: P
               items={[
                 { label: "Unidade", value: `${unit.development.name} · ${unit.code}` },
                 { label: "Categoria", value: TICKET_CATEGORY_LABELS[t.category] },
+                ...(t.warranty_item ? [{ label: "Item em garantia", value: t.warranty_item }] : []),
                 { label: "Atendimento agendado", value: t.scheduled_at ? formatDateTime(t.scheduled_at) : "—" },
                 { label: "Prazo informado", value: t.informed_deadline ? formatDate(t.informed_deadline + "T12:00:00Z") : "—" },
               ]}

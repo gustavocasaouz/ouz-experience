@@ -12,7 +12,7 @@ type Doc = {
 
 export default async function ClientDocuments({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const u = await myUnit(id);
+  const u = await myUnit(id, "documentos");
   if (!u) notFound();
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase

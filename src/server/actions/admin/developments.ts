@@ -4,12 +4,15 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { ALLOWED_DOC_TYPES, ALLOWED_IMAGE_TYPES, objectPath, validateUpload } from "@/server/files";
+import { CLIENT_TABS, TICKET_CATEGORY_LABELS } from "@/lib/labels";
 import { back, failOn, guard, lines, optStr, str } from "./util";
 
 const STAGES = ["pre_lancamento", "lancamento", "em_obra", "em_entrega", "entregue"] as const;
 const MODES = ["aberto", "restrito", "teaser", "oculto"] as const;
 const UNIT_STATUSES = ["disponivel", "reservada", "vendida", "bloqueada", "indisponivel"] as const;
 const MATERIAL_KINDS = ["apresentacao", "planta", "material_comercial", "tabela", "comunicado", "outro"] as const;
+
+const TICKET_CATEGORIES = Object.keys(TICKET_CATEGORY_LABELS).filter((k) => k !== "concierge");
 
 const base = (id: string, tab = "") => `/admin/empreendimentos/${id}${tab}`;
 
@@ -68,12 +71,27 @@ export async function updateDevelopment(fd: FormData) {
     .update({
       ...parsed.data,
       client_portal_enabled: str(fd, "client_portal_enabled") === "on",
-      client_delivery_enabled: str(fd, "client_delivery_enabled") === "on",
     })
     .eq("id", id);
   failOn(error, path);
   revalidatePublic();
   back(path, "ok", "Dados gerais salvos.");
+}
+
+/** Abas da unidade e categorias de chamado que os clientes do empreendimento enxergam. */
+export async function updateClientPortal(fd: FormData) {
+  const id = str(fd, "id");
+  const path = base(id);
+  await guard("conteudo", path);
+  const pick = <T extends string>(k: string, allowed: readonly T[]) => fd.getAll(k).filter((v): v is T => allowed.includes(v as T));
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("developments")
+    .update({ client_tabs: pick("tabs", CLIENT_TABS), client_ticket_categories: pick("categories", TICKET_CATEGORIES) })
+    .eq("id", id);
+  failOn(error, path);
+  revalidatePath("/cliente", "layout");
+  back(path, "ok", "Portal do cliente salvo.");
 }
 
 export async function updatePublicContent(fd: FormData) {

@@ -1,10 +1,15 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
+import type { ClientTab } from "@/lib/labels";
 import { listMyUnits } from "./client";
 
-/** Unidade do cliente atual (ou null). Toda leitura posterior ainda passa pelo RLS. */
-export async function myUnit(unitId: string) {
-  return (await listMyUnits()).find((x) => x.unit.id === unitId) ?? null;
+/**
+ * Unidade do cliente atual (ou null). Toda leitura posterior ainda passa pelo RLS.
+ * Com `tab`: null também quando a aba está desligada no empreendimento (a página responde 404).
+ */
+export async function myUnit(unitId: string, tab?: ClientTab) {
+  const u = (await listMyUnits()).find((x) => x.unit.id === unitId) ?? null;
+  return u && (!tab || u.development.client_tabs.includes(tab)) ? u : null;
 }
 
 export async function developmentFeed(developmentId: string, unitId: string) {

@@ -10,7 +10,7 @@ import { Icon, IconBadge, type Tone } from "./icons";
 export async function loadManual(params: Promise<{ id: string; kind: string }>) {
   const { id, kind } = await params;
   if (kind !== "proprietario" && kind !== "condominio") notFound();
-  const u = await myUnit(id);
+  const u = await myUnit(id, "manual");
   if (!u) notFound();
   const manual = await getManual(u.development.id, u.unit.id, kind as ManualKind);
   if (!manual) notFound();
@@ -82,6 +82,16 @@ export function Crumbs({ items }: { items: Array<{ href?: string; label: string 
           ))}
         </ol>
       </nav>
+    </div>
+  );
+}
+
+/** Manual publicado só com a estrutura (ex.: MAUI antes do material final): o texto chega depois. */
+export function Preparing({ what = "O conteúdo deste capítulo" }: { what?: string }) {
+  return (
+    <div className="flex items-start gap-3 p-5 max-w-3xl bg-sand/60 border border-dashed border-line rounded-[var(--radius-md)]">
+      <Icon name="paper" className="size-5 text-ink-mute shrink-0 mt-0.5" />
+      <p className="text-ink-soft">{what} está em preparação. A OUZ publica o texto aqui antes da entrega, e você recebe um aviso quando estiver disponível.</p>
     </div>
   );
 }

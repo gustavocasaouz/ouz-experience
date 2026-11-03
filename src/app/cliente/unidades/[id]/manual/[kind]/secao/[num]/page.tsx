@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { manualAttachments, manualSectionsUnder } from "@/server/queries/manual";
-import { PANE_LABELS, chapterOf, isSystem, pageNumFor, parentNum, readingSequence, splitPanes, withoutLines } from "@/lib/manual";
-import { AttachmentRows, CHAPTER_ICONS, Crumbs, Icon, ManualTitle, Prose, loadManual, sectionTone, systemIcon } from "../../../ui";
+import { PANE_LABELS, chapterOf, isSystem, pageNumFor, parentNum, plainText, readingSequence, splitPanes, withoutLines } from "@/lib/manual";
+import { AttachmentRows, CHAPTER_ICONS, Crumbs, Icon, ManualTitle, Preparing, Prose, loadManual, sectionTone, systemIcon } from "../../../ui";
 import { Panes } from "../../panes";
 
 export default async function ManualSection({ params }: { params: Promise<{ id: string; kind: string; num: string }> }) {
@@ -38,6 +38,7 @@ export default async function ManualSection({ params }: { params: Promise<{ id: 
   const eyebrow = s.level === 1 ? `Capítulo ${num}` : `${num.startsWith("5.") ? "Sistema" : `Capítulo ${chapterOf(num)}`} · ${num}`;
   const children = index.filter((x) => parentNum(x.num) === num);
   const descendants = rows.filter((r) => r.num !== num);
+  const empty = ![s, ...descendants].some((r) => plainText(r.html).trim()) && attachments.length === 0;
   const body = s.html + descendants.map((d) => `<h3 id="s-${d.num}">${d.num} · ${escapeHtml(d.title)}</h3>${d.html}`).join("");
 
   return (
@@ -48,6 +49,7 @@ export default async function ManualSection({ params }: { params: Promise<{ id: 
       {s.level === 1 ? (
         <>
           {s.html.trim() && <Prose html={s.html} className="max-w-3xl mb-10" />}
+          {!plainText(s.html).trim() && children.length === 0 && <Preparing />}
           {children.length > 0 && (
             <ul className="grid gap-3 sm:grid-cols-2">
               {children.map((c) => (
@@ -59,6 +61,20 @@ export default async function ManualSection({ params }: { params: Promise<{ id: 
                       {countUnder(c.num) > 0 && <span className="text-xs text-ink-mute">{countUnder(c.num)} {countUnder(c.num) === 1 ? "anexo" : "anexos"}</span>}
                     </span>
                   </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      ) : empty ? (
+        <>
+          <Preparing what={system ? "O texto deste sistema (uso, manutenção e perda de garantia)" : undefined} />
+          {descendants.length > 0 && (
+            <ul className="mt-6 flex flex-col gap-2 max-w-3xl">
+              {descendants.map((d) => (
+                <li key={d.num} id={`s-${d.num}`} className="scroll-mt-24 text-ink-soft">
+                  <span className="text-ink-mute tabular-nums mr-2">{d.num}</span>
+                  {d.title}
                 </li>
               ))}
             </ul>

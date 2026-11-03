@@ -8,7 +8,7 @@ const d = (v: string | null) => (v ? formatDate(v + "T12:00:00Z") : "a definir")
 
 export default async function ClientProgress({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const u = await myUnit(id);
+  const u = await myUnit(id, "acompanhamento");
   if (!u) notFound();
   const feed = await developmentFeed(u.development.id, id);
   return (

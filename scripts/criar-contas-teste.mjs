@@ -15,6 +15,7 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/(rest|auth)\/v1\/?$/
 const db = createClient(url, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
 const UMAN = "00000000-0000-4000-8000-000000000003";
 const SOHO = "00000000-0000-4000-8000-000000000001";
+const MAUI = "00000000-0000-4000-8000-000000000002";
 
 /** CPF fictício válido (dígitos verificadores corretos), derivado de uma semente. */
 function cpf(seed) {
@@ -36,7 +37,7 @@ const ACCOUNTS = [
   { key: "corretor_pendente", email: "corretor.pendente@teste.ouz.app.br", name: "[Teste] Corretor Pendente", broker: { status: "pendente", cpf: cpf(901000001), creci: "90001" } },
   { key: "corretor_uman", email: "corretor.uman@teste.ouz.app.br", name: "[Teste] Corretor com UMAN", broker: { status: "aprovado", cpf: cpf(901000002), creci: "90002", uman: true } },
   { key: "corretor_sem_uman", email: "corretor.semuman@teste.ouz.app.br", name: "[Teste] Corretor sem UMAN", broker: { status: "aprovado", cpf: cpf(901000003), creci: "90003" } },
-  { key: "cliente", email: "cliente@teste.ouz.app.br", name: "[Teste] Cliente SOHO", client: { unit: "DEMO-101", development: SOHO } },
+  { key: "cliente", email: "cliente@teste.ouz.app.br", name: "[Teste] Cliente SOHO", client: { units: [[SOHO, "DEMO-101"], [MAUI, "DEMO-101"], [UMAN, "DEMO-101"]] } },
   {
     key: "equipe",
     email: "equipe@teste.ouz.app.br",
@@ -100,8 +101,11 @@ for (const acc of ACCOUNTS) {
     let { data: client } = await db.from("clients").select("id").eq("email", acc.email).maybeSingle();
     if (!client) client = must(await db.from("clients").insert({ full_name: acc.name, email: acc.email, is_demo: true }).select("id").single(), "client");
     must(await db.from("clients").update({ user_id: user.id }).eq("id", client.id), "client link");
-    const unit = must(await db.from("units").select("id").eq("development_id", acc.client.development).eq("code", acc.client.unit).single(), "unit");
-    await db.from("client_units").upsert({ client_id: client.id, unit_id: unit.id, relation: "titular", active: true }, { onConflict: "client_id,unit_id" });
+    // Uma unidade demonstrativa em cada empreendimento (SOHO entregue, MAUI em entrega, UMAN em lançamento).
+    for (const [development, code] of acc.client.units) {
+      const unit = must(await db.from("units").select("id").eq("development_id", development).eq("code", code).single(), "unit");
+      await db.from("client_units").upsert({ client_id: client.id, unit_id: unit.id, relation: "titular", active: true }, { onConflict: "client_id,unit_id" });
+    }
   }
 
   let mfaSecret = null;

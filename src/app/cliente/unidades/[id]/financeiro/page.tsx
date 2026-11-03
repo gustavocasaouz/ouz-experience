@@ -15,7 +15,7 @@ const tone = (s: string) => (s === "paga" ? "success" : s === "vencida" ? "dange
 
 export default async function ClientFinance({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
   const { id } = await params;
-  const u = await myUnit(id);
+  const u = await myUnit(id, "financeiro");
   if (!u) notFound();
   const f = await unitFinance(id);
   if (!f) return <EmptyState title="Informações financeiras ainda não disponíveis">A OUZ publicará aqui os valores do seu contrato.</EmptyState>;

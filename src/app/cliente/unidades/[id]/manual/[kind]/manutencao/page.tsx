@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { manualMaintenance } from "@/server/queries/manual";
 import { MAINTENANCE_FREQUENCY_LABELS, fold } from "@/lib/manual";
-import { Crumbs, ManualTitle, loadManual } from "../../ui";
+import { Crumbs, ManualTitle, Preparing, loadManual } from "../../ui";
 import { ListFilter } from "../filter";
 
 export default async function ManualMaintenance({ params }: { params: Promise<{ id: string; kind: string }> }) {
@@ -20,8 +20,12 @@ export default async function ManualMaintenance({ params }: { params: Promise<{ 
         icon="calendar"
         eyebrow="Capítulo 7 · NBR 5674"
         title="Plano de manutenção preventiva"
-        lead="Atividades de manutenção de cada sistema, organizadas por periodicidade. Manter as manutenções em dia é condição para a garantia."
+        lead="Atividades de manutenção de cada sistema, organizadas por periodicidade. Manter as manutenções em dia é condição para a garantia. Todo mês, a partir do habite-se, a OUZ avisa no portal e por e-mail o que vence no mês."
       />
+      {tasks.length === 0 ? (
+        <Preparing what="O plano de manutenção, com as atividades de cada sistema e a periodicidade," />
+      ) : (
+      <>
       <div className="grid grid-cols-2 gap-3 mb-8 max-w-md">
         <div className="p-4 bg-surface border border-line rounded-[var(--radius-md)]">
           <p className="font-display text-2xl">{tasks.length}</p>
@@ -61,6 +65,8 @@ export default async function ManualMaintenance({ params }: { params: Promise<{ 
           </section>
         ))}
       </div>
+      </>
+      )}
       {management.length > 0 && (
         <section className="mt-12">
           <h3 className="font-display text-xl mb-4">Gestão da manutenção</h3>

@@ -6,7 +6,7 @@ import { listManuals } from "@/server/queries/manual";
 /** Abre o manual do proprietário; se ainda não houver, o do condomínio. */
 export default async function ManualEntry({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const u = await myUnit(id);
+  const u = await myUnit(id, "manual");
   if (!u) notFound();
   const manuals = await listManuals(u.development.id, u.unit.id);
   const first = manuals.find((m) => m.kind === "proprietario") ?? manuals[0];

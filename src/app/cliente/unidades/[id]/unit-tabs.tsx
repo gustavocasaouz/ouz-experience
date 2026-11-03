@@ -2,28 +2,25 @@
 
 import { usePathname } from "next/navigation";
 import { Tabs } from "@/components/admin/tabs";
-import type { DevelopmentStage } from "@/lib/labels";
+import type { ClientTab, DevelopmentStage } from "@/lib/labels";
 
 /**
- * Abas conforme a fase do empreendimento:
- * - pré-lançamento/lançamento: sem vistoria e entrega (ainda não existe);
- * - pré-lançamento e entregue: sem personalização (cedo demais / obra concluída);
- * - entregue: "Entrega e garantia" (registro da entrega, pendências e assistência).
- * - "Manual": quando a OUZ publica o manual de uso, operação e manutenção do empreendimento.
- * - Entrega pode ser desligada por empreendimento (ex.: SOHO, portal enxuto).
+ * Abas escolhidas por empreendimento (Empreendimentos › Geral no admin). Os nomes acompanham a fase:
+ * - entregue: "Histórico da obra" e "Entrega e garantia";
+ * - "Manual" aparece só quando a OUZ publica o manual do empreendimento ou da unidade.
  */
-export function UnitTabs({ base, stage, hasManual, deliveryEnabled }: { base: string; stage: DevelopmentStage; hasManual: boolean; deliveryEnabled: boolean }) {
+export function UnitTabs({ base, stage, tabs, hasManual }: { base: string; stage: DevelopmentStage; tabs: ClientTab[]; hasManual: boolean }) {
   const pathname = usePathname();
-  const early = stage === "pre_lancamento" || stage === "lancamento";
-  const tabs = [
+  const on = (t: ClientTab) => tabs.includes(t);
+  const items = [
     { key: "", label: "Visão geral" },
-    { key: "/acompanhamento", label: stage === "entregue" ? "Histórico da obra" : "Acompanhamento" },
-    { key: "/documentos", label: "Documentos" },
-    { key: "/financeiro", label: "Financeiro" },
-    ...(stage === "pre_lancamento" || stage === "entregue" ? [] : [{ key: "/personalizacao", label: "Personalização" }]),
-    ...(early || !deliveryEnabled ? [] : [{ key: "/entrega", label: stage === "entregue" ? "Entrega e garantia" : "Vistoria e entrega" }]),
-    ...(hasManual ? [{ key: "/manual", label: "Manual" }] : []),
+    ...(on("acompanhamento") ? [{ key: "/acompanhamento", label: stage === "entregue" ? "Histórico da obra" : "Acompanhamento" }] : []),
+    ...(on("documentos") ? [{ key: "/documentos", label: "Documentos" }] : []),
+    ...(on("financeiro") ? [{ key: "/financeiro", label: "Financeiro" }] : []),
+    ...(on("personalizacao") ? [{ key: "/personalizacao", label: "Personalização" }] : []),
+    ...(on("entrega") ? [{ key: "/entrega", label: stage === "entregue" ? "Entrega e garantia" : "Vistoria e entrega" }] : []),
+    ...(on("manual") && hasManual ? [{ key: "/manual", label: "Manual do proprietário" }] : []),
   ];
-  const current = tabs.slice().reverse().find((t) => pathname.startsWith(base + t.key))?.key ?? "";
-  return <Tabs current={current} items={tabs.map((t) => ({ key: t.key, href: base + t.key, label: t.label }))} />;
+  const current = items.slice().reverse().find((t) => pathname.startsWith(base + t.key))?.key ?? "";
+  return <Tabs current={current} items={items.map((t) => ({ key: t.key, href: base + t.key, label: t.label }))} />;
 }

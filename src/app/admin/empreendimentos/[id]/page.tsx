@@ -6,8 +6,8 @@ import { DevelopmentHeader, loadDevelopment } from "@/components/admin/developme
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 import { publicMediaUrl } from "@/server/db/supabase-public";
 import { hasPermission } from "@/server/auth/viewer";
-import { updateDevelopment, updatePublicContent, updateTeaser } from "@/server/actions/admin/developments";
-import { STAGE_LABELS } from "@/lib/labels";
+import { updateClientPortal, updateDevelopment, updatePublicContent, updateTeaser } from "@/server/actions/admin/developments";
+import { CLIENT_TABS, CLIENT_TAB_LABELS, STAGE_LABELS, TICKET_CATEGORY_LABELS } from "@/lib/labels";
 
 const fileInput = "text-sm file:mr-4 file:border file:border-ink file:bg-transparent file:px-4 file:py-2 file:text-sm";
 
@@ -43,8 +43,32 @@ export default async function DevelopmentGeneral({ params, searchParams }: { par
                 <TextField label="Cidade" name="city" required defaultValue={dev.city} />
                 <TextField label="Ordem de exibição" name="sort_order" type="number" min={0} defaultValue={String(dev.sort_order)} />
                 <CheckboxField name="client_portal_enabled" label="Visível no portal do cliente (para quem tem unidade aqui)" defaultChecked={dev.client_portal_enabled} className="sm:mt-8" />
-                <CheckboxField name="client_delivery_enabled" label="Mostrar “Vistoria e entrega” / “Entrega e garantia” aos clientes" defaultChecked={dev.client_delivery_enabled} />
                 <SubmitButton className="self-start">Salvar dados gerais</SubmitButton>
+              </form>
+            </Card>
+          </section>
+
+          <section>
+            <SectionTitle eyebrow="Portal do cliente" title="Abas e chamados" />
+            <Card className="p-6">
+              <form action={updateClientPortal} className="flex flex-col gap-6">
+                <input type="hidden" name="id" value={dev.id} />
+                <fieldset className="flex flex-col gap-3">
+                  <legend className="text-sm font-medium mb-3">Abas da unidade <span className="text-ink-mute font-normal">(a visão geral sempre aparece)</span></legend>
+                  {CLIENT_TABS.map((t) => (
+                    <CheckboxField key={t} id={`tab-${t}`} name="tabs" value={t} label={CLIENT_TAB_LABELS[t]} defaultChecked={dev.client_tabs.includes(t)} />
+                  ))}
+                </fieldset>
+                <fieldset className="flex flex-col gap-3">
+                  <legend className="text-sm font-medium mb-1">Categorias para abrir chamado</legend>
+                  <p className="text-sm text-ink-mute mb-2">
+                    Em assistência técnica, se o manual do proprietário tiver a tabela de garantias, o cliente escolhe o item; os itens saem da lista quando o prazo, contado do habite-se, termina.
+                  </p>
+                  {Object.entries(TICKET_CATEGORY_LABELS).filter(([k]) => k !== "concierge").map(([k, label]) => (
+                    <CheckboxField key={k} id={`cat-${k}`} name="categories" value={k} label={label} defaultChecked={dev.client_ticket_categories.includes(k)} />
+                  ))}
+                </fieldset>
+                <SubmitButton className="self-start">Salvar portal do cliente</SubmitButton>
               </form>
             </Card>
           </section>

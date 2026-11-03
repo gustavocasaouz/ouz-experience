@@ -120,13 +120,14 @@ describe("manuais", () => {
     await expect(importManual(db.pg, { ...owner, unit_code: "NAO-EXISTE" })).rejects.toThrow(/unidade não encontrada/);
   });
 
-  it("entrega por empreendimento: ligada por padrão; equipe com conteúdo desliga; cliente não", async () => {
-    const [d] = await db.admin<{ on: boolean }>(`select client_delivery_enabled as on from public.developments where id = $1`, [SOHO]);
-    expect(d.on).toBe(true); // SOHO demonstrativo: a migração só desliga o SOHO real
-    await expect(db.as(A.claims, `update public.developments set client_delivery_enabled = false where id = $1 returning id`, [SOHO])).resolves.toHaveLength(0);
-    await db.as(conteudo, `update public.developments set client_delivery_enabled = false where id = $1`, [SOHO]);
-    const [after] = await db.admin<{ on: boolean }>(`select client_delivery_enabled as on from public.developments where id = $1`, [SOHO]);
-    expect(after.on).toBe(false);
+  it("abas do portal por empreendimento: todas por padrão; equipe com conteúdo escolhe; cliente não", async () => {
+    const tabs = async () => (await db.admin<{ t: string[] }>(`select client_tabs as t from public.developments where id = $1`, [SOHO]))[0].t;
+    expect(await tabs()).toContain("entrega"); // SOHO demonstrativo: a migração só ajusta o SOHO real
+    await expect(db.as(A.claims, `update public.developments set client_tabs = '{documentos}' where id = $1 returning id`, [SOHO])).resolves.toHaveLength(0);
+    await db.as(conteudo, `update public.developments set client_tabs = '{documentos,financeiro,manual}' where id = $1`, [SOHO]);
+    expect(await tabs()).toEqual(["documentos", "financeiro", "manual"]);
+    await expect(db.as(conteudo, `update public.developments set client_tabs = '{obra}' where id = $1`, [SOHO])).rejects.toThrow(/check/);
+    await db.as(conteudo, `update public.developments set client_tabs = default where id = $1`, [SOHO]);
   });
 
   it("limpa scripts e eventos do HTML importado", () => {

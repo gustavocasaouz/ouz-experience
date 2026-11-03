@@ -18,7 +18,7 @@ export default async function AdminTicket({ params, searchParams }: { params: Pr
   const supabase = await createSupabaseServerClient();
   const { data: t } = await supabase
     .from("tickets")
-    .select("id, number, category, title, description, status, priority, scheduled_at, informed_deadline, rating, rating_comment, created_at, unit:units(id, code, development:developments(name)), client:clients(id, full_name, email, phone)")
+    .select("id, number, category, warranty_item, title, description, status, priority, scheduled_at, informed_deadline, rating, rating_comment, created_at, unit:units(id, code, development:developments(name)), client:clients(id, full_name, email, phone)")
     .eq("id", id)
     .maybeSingle();
   if (!t) notFound();
@@ -37,7 +37,7 @@ export default async function AdminTicket({ params, searchParams }: { params: Pr
       <Flash searchParams={searchParams} />
       <div className="grid gap-10 xl:grid-cols-[1fr_22rem]">
         <div className="flex flex-col gap-6">
-          <Card className="p-5"><p className="text-xs text-ink-mute mb-2">{c.full_name} · {formatDateTime(t.created_at)}</p><p className="whitespace-pre-line">{t.description}</p></Card>
+          <Card className="p-5"><p className="text-xs text-ink-mute mb-2">{c.full_name} · {formatDateTime(t.created_at)}</p>{t.warranty_item && <p className="text-sm mb-2"><span className="text-ink-mute">Item do manual:</span> {t.warranty_item}</p>}<p className="whitespace-pre-line">{t.description}</p></Card>
           {(messages ?? []).map((m) => (
             <Card key={m.id} className={`p-5 ${m.internal ? "border-warning/50 bg-warning-soft/40" : m.from_staff ? "bg-sand/40" : ""}`}>
               <p className="text-xs text-ink-mute mb-2">

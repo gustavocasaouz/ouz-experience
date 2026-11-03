@@ -4,14 +4,15 @@ import { Card, DataList, EmptyState, SectionTitle } from "@/design-system";
 import { myUnit, developmentFeed } from "@/server/queries/client-unit";
 import { listManuals } from "@/server/queries/manual";
 import { formatDate, formatLongDate } from "@/lib/format";
-import { MILESTONE_STAGE_LABELS } from "@/lib/labels";
+import { MILESTONE_STAGE_LABELS, type ClientTab } from "@/lib/labels";
 
 export default async function ClientUnitOverview({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const u = await myUnit(id);
   if (!u) notFound();
   const [feed, manuals] = await Promise.all([developmentFeed(u.development.id, id), listManuals(u.development.id, id)]);
-  const hasManual = manuals.length > 0;
+  const tab = (t: ClientTab) => u.development.client_tabs.includes(t);
+  const hasManual = tab("manual") && manuals.length > 0;
   const latest = feed.progress[0];
   const next = feed.milestones.find((m) => !m.completed_on);
   return (
@@ -30,7 +31,7 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
               <p className="eyebrow mb-2">Assistência técnica</p>
               <p className="text-sm text-ink-soft">Precisa de algo na unidade? Abra um chamado: a OUZ avalia cada caso.</p>
               <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-sm">
-                <Link href="/cliente/chamados/novo" className="underline underline-offset-4">Abrir chamado</Link>
+                <Link href={`/cliente/chamados/novo?unidade=${id}`} className="underline underline-offset-4">Abrir chamado</Link>
                 {hasManual && <Link href={`/cliente/unidades/${id}/manual`} className="underline underline-offset-4">Prazos de garantia e manual</Link>}
               </div>
             </Card>
@@ -52,13 +53,19 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
             )}
           </Card>
           <Card className="p-6">
-            <p className="eyebrow mb-2">Próxima etapa</p>
+            <p className="eyebrow mb-2">{next || !hasManual ? "Próxima etapa" : "Para a entrega"}</p>
             {next ? (
               <>
                 <p className="font-display text-2xl">{next.title}</p>
                 <p className="text-sm text-ink-soft mt-1">
                   {MILESTONE_STAGE_LABELS[next.stage]} · previsão {next.forecast_date ? formatDate(next.forecast_date + "T12:00:00Z") : "a definir"}
                 </p>
+              </>
+            ) : hasManual ? (
+              <>
+                <p className="font-display text-2xl">Manual do proprietário</p>
+                <p className="text-sm text-ink-soft mt-1">Sistemas da unidade, prazos de garantia e plano de manutenção.</p>
+                <Link href={`/cliente/unidades/${id}/manual`} className="inline-block text-sm underline underline-offset-4 mt-3">Abrir o manual</Link>
               </>
             ) : (
               <p className="text-sm text-ink-soft">Linha do tempo ainda não publicada.</p>
@@ -84,6 +91,7 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
           )}
         </section>
 
+        {tab("acompanhamento") && (
         <section>
           <div className="flex items-end justify-between mb-6">
             <SectionTitle title="Últimas atualizações" className="!mb-0" />
@@ -102,6 +110,7 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
             </ul>
           )}
         </section>
+        )}
       </div>
       <aside>
         <Card className="p-6">
@@ -116,9 +125,10 @@ export default async function ClientUnitOverview({ params }: { params: Promise<{
             ]}
           />
           <div className="mt-6 flex flex-col gap-2 text-sm">
-            <Link className="underline underline-offset-4" href="/cliente/chamados/novo">Abrir um chamado</Link>
-            <Link className="underline underline-offset-4" href={`/cliente/unidades/${id}/documentos`}>Meus documentos</Link>
-            <Link className="underline underline-offset-4" href={`/cliente/unidades/${id}/financeiro`}>Meu financeiro</Link>
+            <Link className="underline underline-offset-4" href={`/cliente/chamados/novo?unidade=${id}`}>Abrir um chamado</Link>
+            {tab("documentos") && <Link className="underline underline-offset-4" href={`/cliente/unidades/${id}/documentos`}>Meus documentos</Link>}
+            {tab("financeiro") && <Link className="underline underline-offset-4" href={`/cliente/unidades/${id}/financeiro`}>Meu financeiro</Link>}
+            {hasManual && <Link className="underline underline-offset-4" href={`/cliente/unidades/${id}/manual`}>Manual do proprietário</Link>}
           </div>
         </Card>
       </aside>

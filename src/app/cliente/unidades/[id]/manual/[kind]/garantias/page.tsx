@@ -4,7 +4,7 @@ import { manualWarranty } from "@/server/queries/manual";
 import { fold } from "@/lib/manual";
 import { formatDate } from "@/lib/format";
 import { formatWarrantyPeriod, todayInBrasilia, warrantyStatus, type WarrantyStatus } from "@/lib/warranty";
-import { Crumbs, ManualTitle, loadManual } from "../../ui";
+import { Crumbs, ManualTitle, Preparing, loadManual } from "../../ui";
 import { ListFilter } from "../filter";
 
 const day = (d: string) => formatDate(d + "T12:00:00Z");
@@ -44,7 +44,7 @@ export default async function ManualWarranty({ params }: { params: Promise<{ id:
         </div>
         <div className="p-5 bg-surface border border-line rounded-[var(--radius-md)]">
           <p className="eyebrow mb-1">Em garantia hoje</p>
-          <p className="font-display text-2xl">{habite ? `${active} de ${items.length}` : "—"}</p>
+          <p className="font-display text-2xl">{habite && items.length ? `${active} de ${items.length}` : "—"}</p>
           <p className="text-sm text-ink-mute">itens da tabela</p>
         </div>
         <div className="p-5 bg-surface border border-line rounded-[var(--radius-md)] flex flex-col justify-between gap-3">
@@ -58,7 +58,9 @@ export default async function ManualWarranty({ params }: { params: Promise<{ id:
         manutenções preventivas descritas no manual. Falhas visíveis (riscos, lascas, trincas em vidros) precisam constar no termo de vistoria e entrega.
       </p>
 
-      <ListFilter
+      {items.length === 0 && <Preparing what="A tabela de prazos de garantia de cada sistema" />}
+
+      {items.length > 0 && <ListFilter
         target="warranty"
         placeholder="Buscar sistema ou item (ex.: vidros, pintura)"
         noun={["item", "itens"]}
@@ -66,7 +68,7 @@ export default async function ManualWarranty({ params }: { params: Promise<{ id:
           ...(habite ? [{ value: "vigente", label: "Em garantia" }, { value: "encerrada", label: "Encerradas" }] : []),
           ...periods.map((m) => ({ value: `m${m}`, label: formatWarrantyPeriod(m) })),
         ]}
-      />
+      />}
 
       <ul id="warranty" className="flex flex-col gap-3">
         {[...rows.entries()].map(([n, r]) => (

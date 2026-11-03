@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/design-system";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
-import { ACCESS_MODE_LABELS, STAGE_LABELS, type BrokerAccessMode, type DevelopmentStage } from "@/lib/labels";
+import { ACCESS_MODE_LABELS, STAGE_LABELS, type BrokerAccessMode, type ClientTab, type DevelopmentStage } from "@/lib/labels";
 import { Tabs } from "./tabs";
 
 export async function loadDevelopment(id: string) {
@@ -9,7 +9,8 @@ export async function loadDevelopment(id: string) {
   const { data } = await supabase.from("developments").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
   return data as {
-    id: string; slug: string; name: string; city: string; stage: DevelopmentStage; is_published: boolean; client_portal_enabled: boolean; client_delivery_enabled: boolean;
+    id: string; slug: string; name: string; city: string; stage: DevelopmentStage; is_published: boolean; client_portal_enabled: boolean;
+    client_tabs: ClientTab[]; client_ticket_categories: string[];
     broker_access_mode: BrokerAccessMode; sort_order: number; is_demo: boolean; data_source: string;
   };
 }
@@ -40,6 +41,7 @@ export function DevelopmentHeader({ dev, tab }: { dev: Awaited<ReturnType<typeof
           { key: "comercial", href: `${b}/comercial`, label: "Comercial" },
           { key: "acompanhamento", href: `${b}/acompanhamento`, label: "Acompanhamento" },
           { key: "manuais", href: `${b}/manuais`, label: "Manuais" },
+          { key: "personalizacao", href: `${b}/personalizacao`, label: "Personalização" },
         ]}
       />
     </>
