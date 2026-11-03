@@ -37,7 +37,7 @@ const ACCOUNTS = [
   { key: "corretor_pendente", email: "corretor.pendente@teste.ouz.app.br", name: "[Teste] Corretor Pendente", broker: { status: "pendente", cpf: cpf(901000001), creci: "90001" } },
   { key: "corretor_uman", email: "corretor.uman@teste.ouz.app.br", name: "[Teste] Corretor com UMAN", broker: { status: "aprovado", cpf: cpf(901000002), creci: "90002", uman: true } },
   { key: "corretor_sem_uman", email: "corretor.semuman@teste.ouz.app.br", name: "[Teste] Corretor sem UMAN", broker: { status: "aprovado", cpf: cpf(901000003), creci: "90003" } },
-  { key: "cliente", email: "cliente@teste.ouz.app.br", name: "[Teste] Cliente SOHO", client: { units: [[SOHO, "DEMO-101"], [MAUI, "DEMO-101"], [UMAN, "DEMO-101"]] } },
+  { key: "cliente", email: "cliente@teste.ouz.app.br", name: "[Teste] Cliente SOHO", client: { units: [{ development: SOHO, code: "DEMO-101" }, { development: MAUI, code: "108" }, { development: UMAN, code: "105", tower: "A", demo: true }] } },
   {
     key: "equipe",
     email: "equipe@teste.ouz.app.br",
@@ -101,11 +101,17 @@ for (const acc of ACCOUNTS) {
     let { data: client } = await db.from("clients").select("id").eq("email", acc.email).maybeSingle();
     if (!client) client = must(await db.from("clients").insert({ full_name: acc.name, email: acc.email, is_demo: true }).select("id").single(), "client");
     must(await db.from("clients").update({ user_id: user.id }).eq("id", client.id), "client link");
-    // Uma unidade demonstrativa em cada empreendimento (SOHO entregue, MAUI em entrega, UMAN em lançamento).
-    for (const [development, code] of acc.client.units) {
-      const unit = must(await db.from("units").select("id").eq("development_id", development).eq("code", code).single(), "unit");
+    // Uma unidade em cada empreendimento: SOHO entregue (DEMO-101), MAUI em entrega (108) e UMAN em pré-lançamento
+    // (105 do bloco A, demonstrativa até haver unidades oficiais). Vínculos fora desta lista são removidos.
+    const ids = [];
+    for (const { development, code, tower, demo } of acc.client.units) {
+      let { data: unit } = await db.from("units").select("id").eq("development_id", development).eq("code", code).maybeSingle();
+      if (!unit && demo) unit = must(await db.from("units").insert({ development_id: development, code, tower, typology: "Tipologia demonstrativa", is_demo: true }).select("id").single(), "unit demo");
+      if (!unit) throw new Error(`unidade não encontrada: ${code}`);
+      ids.push(unit.id);
       await db.from("client_units").upsert({ client_id: client.id, unit_id: unit.id, relation: "titular", active: true }, { onConflict: "client_id,unit_id" });
     }
+    await db.from("client_units").delete().eq("client_id", client.id).not("unit_id", "in", `(${ids.join(",")})`);
   }
 
   let mfaSecret = null;

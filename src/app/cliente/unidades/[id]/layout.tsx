@@ -14,7 +14,7 @@ export default async function UnitLayout({ children, params }: { children: React
   return (
     <>
       <PageHeader
-        eyebrow={u.development.name}
+        eyebrow={u.unit.tower ? `${u.development.name} · Bloco ${u.unit.tower}` : u.development.name}
         title={`Unidade ${u.unit.code}`}
         description={
           <span className="flex flex-wrap gap-2">

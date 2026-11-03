@@ -5,11 +5,14 @@ test.beforeAll(purgeE2eData);
 test.afterAll(purgeE2eData);
 test.use(sessao("cliente"));
 
-const unidade = (page: Page, empreendimento: string) => page.getByRole("link", { name: new RegExp(`${empreendimento}.*Unidade DEMO-101`) });
+// Cliente de teste: SOHO DEMO-101, MAUI 108 e UMAN 105 do bloco A (scripts/criar-contas-teste.mjs).
+const CODIGO = { SOHO: "DEMO-101", MAUI: "108", UMAN: "105" } as const;
+const unidade = (page: Page, empreendimento: keyof typeof CODIGO) =>
+  page.getByRole("link", { name: new RegExp(`${empreendimento}.*Unidade ${CODIGO[empreendimento]}`) });
 
 test("cliente vê as três unidades; SOHO entregue fica enxuto", async ({ page }) => {
   await page.goto("/cliente");
-  for (const nome of ["SOHO", "MAUI", "UMAN"]) await expect(unidade(page, nome)).toBeVisible();
+  for (const nome of ["SOHO", "MAUI", "UMAN"] as const) await expect(unidade(page, nome)).toBeVisible();
   await unidade(page, "SOHO").click();
   await expect(page.getByText("Empreendimento entregue")).toBeVisible();
   const secoes = page.getByRole("navigation", { name: "Seções" });
@@ -67,7 +70,7 @@ test("cliente abre chamado e solicita concierge", async ({ page }) => {
   // SOHO entregue: sem assistência técnica; MAUI: assistência técnica liberada.
   await page.getByLabel("Unidade").selectOption({ label: "SOHO · DEMO-101" });
   await expect(page.getByLabel("Categoria").getByRole("option")).toHaveText(["Dúvidas administrativas", "Solicitações sobre a unidade", "Pós-entrega", "Solicitação geral"]);
-  await page.getByLabel("Unidade").selectOption({ label: "MAUI · DEMO-101" });
+  await page.getByLabel("Unidade").selectOption({ label: "MAUI · 108" });
   await expect(page.getByLabel("Categoria").getByRole("option", { name: "Assistência técnica" })).toHaveCount(1);
   await page.getByLabel("Unidade").selectOption({ label: "SOHO · DEMO-101" });
   await page.getByLabel("Categoria").selectOption({ label: "Solicitação geral" });

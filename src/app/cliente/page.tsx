@@ -33,7 +33,7 @@ export default async function ClientHome() {
                       <Badge tone="accent">{STAGE_LABELS[u.development.stage]}</Badge>
                       <Badge>{CLIENT_RELATION_LABELS[u.relation] ?? u.relation}</Badge>
                     </div>
-                    <p className="eyebrow mt-2">{u.development.name}</p>
+                    <p className="eyebrow mt-2">{u.development.name}{u.unit.tower && ` · Bloco ${u.unit.tower}`}</p>
                     <h2 className="font-display text-3xl">Unidade {u.unit.code}</h2>
                   </div>
                 </Link>

@@ -17,16 +17,18 @@ export async function listMyUnits(): Promise<ClientUnit[]> {
   const { data } = await supabase
     .from("client_units")
     .select(
-      "id, relation, unit:units(id, code, tower, floor, typology, private_area_m2, parking, development:developments(id, slug, name, stage, habite_se_date, client_tabs, client_ticket_categories, content:development_public_content(cover_image_path)))",
+      "id, relation, unit:units(id, code, tower, floor, typology, private_area_m2, parking, development:developments(id, slug, name, sort_order, stage, habite_se_date, client_tabs, client_ticket_categories, content:development_public_content(cover_image_path)))",
     )
     .eq("active", true);
   type Row = {
     id: string;
     relation: string;
-    unit: ClientUnit["unit"] & { development: Omit<ClientUnit["development"], "cover_image_path"> & { content: { cover_image_path: string | null } | null } };
+    unit: ClientUnit["unit"] & { development: Omit<ClientUnit["development"], "cover_image_path"> & { sort_order: number; content: { cover_image_path: string | null } | null } };
   };
   return ((data ?? []) as unknown as Row[])
     .filter((r) => r.unit)
+    // Na ordem dos empreendimentos (SOHO, MAUI, UMAN…) e, dentro de cada um, pelo código da unidade.
+    .sort((a, b) => a.unit.development.sort_order - b.unit.development.sort_order || a.unit.code.localeCompare(b.unit.code, "pt-BR", { numeric: true }))
     .map((r) => ({
       linkId: r.id,
       relation: r.relation,

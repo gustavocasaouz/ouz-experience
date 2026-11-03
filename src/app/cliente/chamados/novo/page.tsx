@@ -25,7 +25,7 @@ export default async function NewTicket({ searchParams }: { searchParams: SP }) 
         const categories = Object.entries(TICKET_CATEGORY_LABELS)
           .filter(([v]) => u.development.client_ticket_categories.includes(v) && (v !== "assistencia_tecnica" || !items.length || warranty.length > 0))
           .map(([value, label]) => ({ value, label }));
-        return { id: u.unit.id, label: `${u.development.name} · ${u.unit.code}`, categories, warranty, hasWarrantyTable: items.length > 0 };
+        return { id: u.unit.id, label: `${u.development.name} · ${u.unit.tower ? `Bloco ${u.unit.tower} · ` : ""}${u.unit.code}`, categories, warranty, hasWarrantyTable: items.length > 0 };
       }),
     )
   ).filter((o) => o.categories.length > 0);
