@@ -2,14 +2,21 @@
 
 Ficha do app **OUZ Experience** (`br.com.ouzgroup.experience`) para o App Store Connect, aba **Distribuição › 1.0 Preparar para envio**. Os textos já respeitam os limites de caracteres da Apple.
 
+## Situação
+
+- **03/11/2026:** versão 1.0 (build 4) enviada para revisão, com **lançamento manual**. Depois de aprovada, só fica pública quando alguém clicar em "Lançar esta versão", o que deve acontecer depois da virada para produção.
+- **Países:** Brasil, Argentina, Canadá, Chile, Estados Unidos, Japão, Nova Zelândia e Suíça. Preço: gratuito (referência Brasil, BRL).
+- **França e demais países da União Europeia:** fora por enquanto. Exigem o cadastro de comerciante (Regulamento dos Serviços Digitais), com endereço, telefone e e-mail exibidos publicamente.
+- **Conta de desenvolvedor:** hoje é **pessoal ("Gustavo Casa")**, então o vendedor aparece com esse nome na loja. Próximo passo: obter o D-U-N-S da OUZ Administradora e Construção LTDA e pedir ao suporte da Apple a conversão para conta de **Organização**. Depois disso, fazer o cadastro europeu com os dados da empresa e incluir a França.
+
 ## Antes de enviar para revisão (pendências da OUZ)
 
 | Pendência | Por quê | Status |
 |---|---|---|
-| Política de privacidade em `/privacidade` | A Apple exige uma política real | ✅ Redigida com os dados da OUZ; revisão do jurídico recomendada |
-| Termos de uso em `/termos` | O cadastro pede o aceite dos termos | ✅ Redigidos; revisão do jurídico recomendada |
+| Política de privacidade em `/privacidade` | A Apple exige uma política real | ✅ Aprovada pelo jurídico (versão 2026-11-03) |
+| Termos de uso em `/termos` | O cadastro pede o aceite dos termos | ✅ Aprovados pelo jurídico (versão 2026-11-03) |
 | Página de suporte (`/suporte`) com contato da OUZ | Campo obrigatório "URL de suporte" | ✅ Criada |
-| Versão dos textos na Vercel (`NEXT_PUBLIC_PRIVACY_VERSION` e `NEXT_PUBLIC_TERMS_VERSION`) | Hoje aparece "rascunho-2026-10" e fica registrada em cada aceite | ⏳ Trocar para `2026-11-03` |
+| Versão dos textos na Vercel (`NEXT_PUBLIC_PRIVACY_VERSION` e `NEXT_PUBLIC_TERMS_VERSION`) | Fica registrada em cada aceite | ✅ `2026-11-03` |
 | Virada para produção (`docs/05-configuracao.md` §7) | Hoje `ouz.app.br` é homologação. Sem a virada, clientes reais entrariam no banco de teste | ⏳ Antes de **liberar** o app |
 | Conta de teste para a Apple no banco que estiver no ar | A revisão entra com ela. Depois da virada, precisa existir na produção | ⏳ |
 
@@ -21,9 +28,10 @@ Dá para enviar para revisão antes da virada, escolhendo **"Liberar esta versã
 - **Subtítulo (29/30):** Área do cliente e do corretor
 - **Categoria principal:** Estilo de vida
 - **Categoria secundária:** Negócios
-- **Classificação etária:** responder "Nenhum" em todas as perguntas → **4+**. O app não tem conteúdo gerado por usuários públicos: as mensagens de chamados são só entre o cliente e a OUZ.
+- **Classificação etária:** responder "Nenhum" em todas as perguntas (o cálculo dá 4+) e, no passo 7, escolher **Substituir por uma classificação etária mais alta › 18+**. Os termos de uso exigem 18 anos, e a Apple pede que a classificação acompanhe a idade mínima do contrato de uso. O app não tem conteúdo gerado por usuários públicos: as mensagens de chamados são só entre o cliente e a OUZ.
+- **Direitos de conteúdo:** "Não" (o app só mostra conteúdo da própria OUZ).
 - **Direitos autorais:** © 2026 OUZ
-- **URL da política de privacidade:** https://ouz.app.br/privacidade
+- **URL da política de privacidade:** https://ouz.app.br/privacidade (fica em **Privacidade do app**, não em Informações do app)
 
 ## Versão 1.0
 
@@ -67,7 +75,7 @@ construtora,apartamento,obra,imóvel,cliente,corretor,florianópolis,jurerê,pra
 
 ## Capturas de tela
 
-iPhone 6,9" (1320 × 2868), de 3 a 10 imagens. Prontas em `docs/app-store/`, nesta ordem:
+Enviadas no tamanho **"iPhone com Dynamic Island (tela média)"**, que hoje é o quadro principal do App Store Connect: 1206 × 2622, em `docs/app-store/tela-media-6.3/`. Os originais em 1320 × 2868 (6,9") ficam em `docs/app-store/`. Ordem:
 
 1. `01-inicio.png`: início do app (MAUI, fachada)
 2. `02-unidades.png`: "Olá, Ana" com a unidade MAUI 214
