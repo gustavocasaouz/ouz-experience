@@ -7,6 +7,7 @@ import { BROKER_STATUS_LABELS } from "@/server/auth/permissions";
 import { signOut } from "@/server/actions/auth";
 import { availableContexts } from "@/components/app-shell";
 import { InstallPrompt } from "@/components/pwa";
+import { BiometricSetting } from "@/components/biometric";
 
 export const metadata = { title: "Minha conta" };
 
@@ -22,7 +23,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       <EnvironmentBanner />
       <header className="container-page flex h-16 items-center justify-between">
         <Wordmark subtitle="Experience" />
-        <form action={signOut}>
+        <form action={signOut} data-signout>
           <button className="text-sm text-ink-soft hover:text-ink underline underline-offset-4">Sair</button>
         </form>
       </header>
@@ -34,6 +35,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         </div>
 
         <InstallPrompt />
+        <BiometricSetting />
 
         {restrito === "admin" && <RestrictedState>A administração é exclusiva da equipe OUZ, com acesso concedido por convite.</RestrictedState>}
 

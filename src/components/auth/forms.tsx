@@ -6,11 +6,12 @@ import { CheckboxField, FormMessage, SuccessState, TextField } from "@/design-sy
 import { SubmitButton } from "@/design-system/submit-button";
 import { requestPasswordReset, signIn, signUp, updatePassword } from "@/server/actions/auth";
 import type { ActionState } from "@/server/actions/types";
+import { markPasswordSignIn } from "@/components/biometric";
 
 export function SignInForm({ next }: { next?: string }) {
   const [state, action] = useActionState<ActionState, FormData>(signIn, {});
   return (
-    <form action={action} className="flex flex-col gap-5" noValidate>
+    <form action={action} onSubmit={markPasswordSignIn} className="flex flex-col gap-5" noValidate>
       <FormMessage state={state} />
       <input type="hidden" name="next" value={next ?? ""} />
       <TextField label="E-mail" name="email" type="email" autoComplete="email" required defaultValue={state.values?.email} error={state.fieldErrors?.email} />

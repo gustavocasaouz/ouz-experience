@@ -7,6 +7,7 @@ import { EnvironmentBanner } from "./environment-banner";
 import { NavLinks, type NavItem } from "./nav-links";
 import { CloseMenusOnNavigate } from "./close-menus-on-navigate";
 import { TabBar, type TabItem } from "./tab-bar";
+import { PageTransition } from "./page-transition";
 import { createSupabaseServerClient } from "@/server/db/supabase-server";
 
 /** Abas do celular por área (até 5, rótulos de uma palavra — HIG › Tab bars). A equipe usa o menu de seções. */
@@ -98,7 +99,7 @@ export async function AppShell({ viewer, area, nav, children }: { viewer: Viewer
               ))}
               <Link href="/conta?escolher" className="block px-3 py-3 md:py-2 hover:bg-sand">Minha conta</Link>
               <Link href="/" className="block px-3 py-3 md:py-2 hover:bg-sand">Início</Link>
-              <form action={signOut}>
+              <form action={signOut} data-signout>
                 <button type="submit" className="w-full text-left px-3 py-3 md:py-2 hover:bg-sand">Sair</button>
               </form>
             </div>
@@ -122,7 +123,7 @@ export async function AppShell({ viewer, area, nav, children }: { viewer: Viewer
           </details>
         )}
         <main id="conteudo" className="flex-1 min-w-0">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
       {tabs && <TabBar items={tabs} root={`/${area}`} />}

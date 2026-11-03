@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthCard } from "@/components/auth/auth-card";
 import { SignInForm } from "@/components/auth/forms";
+import { BiometricSignIn } from "@/components/biometric";
 import { FormMessage } from "@/design-system";
 import { getViewer } from "@/server/auth/viewer";
 import { safeNext } from "@/lib/safe-next";
@@ -40,6 +41,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     >
       {erro === "link" && <div className="mb-5"><FormMessage state={{ error: "Link inválido ou expirado. Solicite um novo." }} /></div>}
       <SignInForm next={target} />
+      <BiometricSignIn next={target} />
     </AuthCard>
   );
 }

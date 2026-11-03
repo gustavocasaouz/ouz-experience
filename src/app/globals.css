@@ -63,6 +63,8 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent; /* sem o flash cinza ao tocar; o retorno é o :active abaixo */
+    touch-action: manipulation; /* toque responde na hora (sem esperar o duplo toque de zoom); pinça continua */
     text-rendering: optimizeLegibility;
     color-scheme: light dark; /* calendário, seletores e barras de rolagem nativos no tom certo */
   }
@@ -91,6 +93,24 @@
   }
   ::selection {
     background: var(--color-accent-soft);
+  }
+  /* Controles não selecionam texto por acidente (texto do conteúdo continua selecionável para copiar). */
+  button, summary, label, nav a, [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* App iOS: sem o menu de "pressionar e segurar" em links e imagens (o site no navegador mantém). */
+  .ouz-app a, .ouz-app img {
+    -webkit-touch-callout: none;
+  }
+  .ouz-app img {
+    -webkit-user-drag: none;
+  }
+  /* Toque: o item escurece levemente enquanto o dedo está nele, como nos botões do iOS. */
+  @media (hover: none) and (pointer: coarse) {
+    a:active, button:not(:disabled):active, summary:active, [role="button"]:active {
+      opacity: 0.55;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -149,4 +169,80 @@
   & th, & td { border-bottom: 1px solid var(--color-line); padding: 0.6em 0.8em; text-align: left; vertical-align: top; min-width: 7rem; }
   & tr:last-child td { border-bottom: 0; }
   & th { background: var(--color-sand); color: var(--color-ink); font-weight: 500; }
+}
+
+/*
+ * Transições entre páginas no estilo iOS (PageTransition + NativeFeel).
+ * <html data-nav>: forward = entrar num item (desliza para a esquerda), back = subir um nível (para a direita),
+ * tab = trocar de aba ou seção (esmaece), pop = gesto/botão de voltar (o iPhone já anima; aqui troca direto).
+ * Cabeçalho e barra de abas ficam parados; só o conteúdo se move.
+ */
+:root {
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+}
+::view-transition {
+  pointer-events: none; /* toques durante a animação chegam à página nova */
+}
+::view-transition-old(root) {
+  display: none;
+}
+::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-group(tab-bar) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(tab-bar) {
+  display: none;
+}
+::view-transition-new(tab-bar) {
+  animation: none;
+}
+
+:root[data-nav="forward"]::view-transition-old(.page) {
+  --page-offset: -48px;
+  animation: 140ms ease-in both page-fade reverse, 380ms var(--ease-ios) both page-slide reverse;
+}
+:root[data-nav="forward"]::view-transition-new(.page) {
+  --page-offset: 48px;
+  animation: 220ms ease-out 100ms both page-fade, 380ms var(--ease-ios) both page-slide;
+}
+:root[data-nav="back"]::view-transition-old(.page) {
+  --page-offset: 48px;
+  animation: 140ms ease-in both page-fade reverse, 380ms var(--ease-ios) both page-slide reverse;
+}
+:root[data-nav="back"]::view-transition-new(.page) {
+  --page-offset: -48px;
+  animation: 220ms ease-out 100ms both page-fade, 380ms var(--ease-ios) both page-slide;
+}
+:root[data-nav="tab"]::view-transition-old(.page) {
+  animation: 120ms ease-in both page-fade reverse;
+}
+:root[data-nav="tab"]::view-transition-new(.page) {
+  animation: 180ms ease-out 60ms both page-fade;
+}
+:root[data-nav="pop"]::view-transition-old(.page) {
+  display: none;
+}
+:root[data-nav="pop"]::view-transition-new(.page) {
+  animation: none;
+}
+
+@keyframes page-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes page-slide {
+  from { translate: var(--page-offset); }
+  to { translate: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }

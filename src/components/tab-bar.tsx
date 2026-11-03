@@ -24,6 +24,7 @@ const PATHS: Record<TabIcon, string> = {
  * Barra de abas do celular (HIG › Tab bars): navegação entre as seções principais, sempre visível,
  * no rodapé (alcance com uma mão), com ícone + rótulo de uma palavra e selo para avisos não lidos.
  * Fundo translúcido com desfoque: o conteúdo passa por baixo, como no iOS. No computador, o menu lateral assume.
+ * Nas transições de página ela não se move (view-transition-name "tab-bar").
  */
 export function TabBar({ items, root }: { items: TabItem[]; root: string }) {
   const pathname = usePathname();
@@ -34,6 +35,7 @@ export function TabBar({ items, root }: { items: TabItem[]; root: string }) {
   return (
     <nav
       aria-label="Navegação principal"
+      style={{ viewTransitionName: "tab-bar" }}
       className="md:hidden fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/80 backdrop-blur-xl backdrop-saturate-150 pb-[env(safe-area-inset-bottom)] supports-[not(backdrop-filter:blur(1px))]:bg-paper"
     >
       <ul className="flex">

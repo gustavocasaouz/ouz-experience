@@ -3,6 +3,8 @@ import { Albert_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { OfflineBanner, ServiceWorkerRegister } from "@/components/pwa";
+import { BiometricOffer } from "@/components/biometric";
+import { NativeFeel } from "@/components/native-feel";
 
 // Tipografia oficial OUZ (ouzgroup.com.br): General Sans (títulos; ITF Free Font License, via Fontshare) e Albert Sans (texto).
 const heading = localFont({
@@ -43,6 +45,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <OfflineBanner />
         <ServiceWorkerRegister />
+        <BiometricOffer />
+        <NativeFeel />
       </body>
     </html>
   );
