@@ -125,7 +125,11 @@ export function PushSetting() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (native()) void readPermission().then(setPermission);
+    if (!native()) return;
+    void readPermission().then((p) => {
+      setPermission(p);
+      if (p === "granted") void register(); // mantém o aparelho ligado à conta (o token pode mudar)
+    });
   }, []);
 
   if (!permission) return null;

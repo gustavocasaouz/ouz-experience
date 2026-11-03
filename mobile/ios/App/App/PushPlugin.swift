@@ -44,6 +44,11 @@ public class PushPlugin: CAPPlugin, CAPBridgedPlugin, NotificationHandlerProtoco
             DispatchQueue.main.async {
                 self.waiting.append(call)
                 UIApplication.shared.registerForRemoteNotifications()
+                // Sem resposta do iOS, o site não fica esperando para sempre.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
+                    guard let index = self.waiting.firstIndex(where: { $0 === call }) else { return }
+                    self.waiting.remove(at: index).reject("O iPhone não respondeu ao registro dos avisos.", "timeout")
+                }
             }
         }
     }
