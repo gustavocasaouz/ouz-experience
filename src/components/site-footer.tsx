@@ -8,6 +8,7 @@ export function SiteFooter() {
         <nav aria-label="Políticas" className="flex gap-4">
           <Link href="/privacidade" className="hover:text-ink">Privacidade</Link>
           <Link href="/termos" className="hover:text-ink">Termos de uso</Link>
+          <Link href="/suporte" className="hover:text-ink">Suporte</Link>
         </nav>
       </div>
     </footer>

@@ -9,6 +9,7 @@ Documentação:
 - [Premissas e decisões pendentes](docs/03-premissas-e-pendencias.md)
 - [Backlog](docs/04-backlog.md)
 - [Configuração dos ambientes](docs/05-configuracao.md)
+- [Publicação na App Store](docs/06-app-store.md)
 
 Banco: `supabase/migrations` (RLS em todas as tabelas) e `supabase/seed.sql` (dados demonstrativos, só desenvolvimento).
 
